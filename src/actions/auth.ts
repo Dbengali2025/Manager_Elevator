@@ -111,3 +111,103 @@ export async function verifyOtpAction(
 
   return { success: true };
 }
+
+// ---------------------------------------------------------------------------
+// Login
+// ---------------------------------------------------------------------------
+
+export async function loginAction(
+  email: string,
+  password: string
+): Promise<ActionResult> {
+  const { data, error } = await insforgeAuth.login(email, password);
+
+  if (error) {
+    return { success: false, error: "Invalid email or password." };
+  }
+
+  if (!data) {
+    return { success: false, error: "Login failed. Please try again." };
+  }
+
+  // Set auth cookies
+  const cookieStore = await cookies();
+
+  cookieStore.set("access_token", data.access_token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: data.expires_in,
+  });
+
+  cookieStore.set("refresh_token", data.refresh_token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 30, // 30 days
+  });
+
+  return { success: true };
+}
+
+// ---------------------------------------------------------------------------
+// Request password reset
+// ---------------------------------------------------------------------------
+
+export async function requestPasswordResetAction(
+  email: string
+): Promise<ActionResult> {
+  const { error } = await insforgeAuth.resetPassword(email);
+
+  if (error) {
+    // Don't reveal whether the email exists
+    console.error("Password reset error:", error);
+  }
+
+  // Always return success to prevent email enumeration
+  return { success: true };
+}
+
+// ---------------------------------------------------------------------------
+// Confirm password reset (verify code + set new password)
+// ---------------------------------------------------------------------------
+
+export async function confirmPasswordResetAction(
+  email: string,
+  code: string,
+  newPassword: string
+): Promise<ActionResult> {
+  // Verify the recovery OTP code
+  const { data, error } = await insforgeAuth.verifyOtp(email, code, "recovery");
+
+  if (error || !data) {
+    return { success: false, error: "Invalid or expired reset code. Please try again." };
+  }
+
+  // Use the token from verification to update the password
+  const { error: updateError } = await insforgeAuth.updatePassword(
+    newPassword,
+    data.access_token
+  );
+
+  if (updateError) {
+    return { success: false, error: "Failed to update password. Please try again." };
+  }
+
+  return { success: true };
+}
+
+// ---------------------------------------------------------------------------
+// Logout
+// ---------------------------------------------------------------------------
+
+export async function logoutAction(): Promise<ActionResult> {
+  const cookieStore = await cookies();
+
+  cookieStore.delete("access_token");
+  cookieStore.delete("refresh_token");
+
+  return { success: true };
+}

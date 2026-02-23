@@ -64,7 +64,14 @@
 - Auth route group at `app/(auth)/` — no sidebar, centered layout
 - Layout at `app/(auth)/layout.tsx` — offWhite bg, flex-center, no AppLayout wrapping
 - **Signup:** `app/(auth)/signup/page.tsx` — client component with two steps: signup form → OTP verification
-- Server actions in `src/actions/auth.ts` — `signupAction()`, `verifyOtpAction()`
+- **Login:** `app/(auth)/login/page.tsx` — email + password form, redirects to `/dashboard` on success
+- **Reset Password:** `app/(auth)/reset-password/page.tsx` — three-step flow: enter email → enter code + new password → success confirmation
+- Server actions in `src/actions/auth.ts`:
+  - `signupAction()`, `verifyOtpAction()` — signup flow
+  - `loginAction()` — login with email/password, sets JWT cookies
+  - `requestPasswordResetAction()` — sends reset code (always returns success to prevent email enumeration)
+  - `confirmPasswordResetAction()` — verifies recovery OTP + updates password
+  - `logoutAction()` — deletes auth cookies
 - JWT tokens stored in httpOnly cookies (`access_token`, `refresh_token`)
 - Password validation: 8+ chars, 1 uppercase, 1 number — inline validation shown
 - Industry dropdown options: Financial Services, Healthcare, Professional Services, Technology, Retail/E-commerce, Government/Non-profit, Other
@@ -72,6 +79,15 @@
 - After successful login → redirect to `/dashboard`
 - Form inputs use: `border-paleGray rounded-md focus:ring-skyBlue` pattern
 - Buttons use: `bg-navy text-white rounded-md hover:bg-navy/90` pattern
+
+## Auth Middleware (`src/middleware.ts`)
+- Runs on all routes except static files, images, and favicon
+- Public routes (no auth required): `/`, `/login`, `/signup`, `/reset-password`
+- Auth-only routes: `/login`, `/signup`, `/reset-password` — redirect to `/dashboard` if already logged in
+- Protected routes: all others — redirect to `/login?redirect={path}` if no auth token
+- Checks `access_token` cookie for auth state
+- If only `refresh_token` exists (expired access token), request passes through for server-side refresh
+- Matcher excludes: `_next/static`, `_next/image`, `favicon.ico`, image file extensions
 
 ## Quality Checks
 - `npm run typecheck` — TypeScript strict mode
