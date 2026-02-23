@@ -165,6 +165,21 @@
 - Import: `import ImpactTracker from "@/components/trackers/ImpactTracker"`
 - Import: `import SuccessNuggetsLibrary from "@/components/trackers/SuccessNuggetsLibrary"`
 
+## Success Dashboard (`src/app/(dashboard)/success-dashboard/page.tsx`)
+- Client component that displays CI Done Right Success Dashboard with milestone cards
+- Page title: "CI Done Right Success Dashboard" with subtitle
+- Reuses `JourneyProgressBar` component from dashboard for journey progress visualization
+- 2 milestone cards in responsive grid (1 col mobile, 2 cols desktop):
+  - Card 1: "Most Valuable Workplace Waste Eliminator" — blue-to-teal gradient, star icon, requires 4 modules + battle 1
+  - Card 2: "Certified CI Done Right Consultant" — teal-to-mint gradient, shield icon, requires battles 2 + 3
+- Each card shows: icon, lock/unlock indicator, title, subtitle, requirement text, progress bar, progress count
+- Unlocked milestones show celebration overlay with backdrop blur
+- Milestone unlock check runs on page load via `checkAndUnlockMilestones()` — fire-and-forget, re-fetches data if newly unlocked
+- Server actions in `src/actions/success-dashboard.ts`:
+  - `getSuccessDashboardData()` — fetches user profile, progress records, and milestones
+  - `checkAndUnlockMilestones()` — checks progress, creates/updates milestone records, notifies Dana
+- Import: `import { getSuccessDashboardData, checkAndUnlockMilestones } from "@/actions/success-dashboard"`
+
 ## Email Notifications (`src/actions/notifications.ts`)
 - Sends branded HTML emails to Dana via Insforge Email (AWS SES) for key platform events
 - `notifySessionCompleted(params)` — WAR Battle session completed (includes user, company, session details, PowerPoint link)

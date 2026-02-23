@@ -466,3 +466,119 @@ Session: Improvement Opportunities tracker
   - Removed unused `StatusBadge` — lint caught it in build; inline `<select>` dropdowns used instead for status changes
   - Opportunity CRUD actions follow same `getToken() → getUserId() → insforgeClient.from()` pattern as WAR Battle actions
 ---
+
+## 2026-02-23 - US-017
+Session: Winning Solutions Impact tracker with ROI calculation
+- Added 3 server actions to `src/actions/trackers.ts`:
+  - `getWinningSolutions()` — fetches all winning solutions for user, ordered by created_at desc
+  - `createWinningSolution(fields)` — creates new solution with title, problem, description, metric_type, before/after values, unit, date, notes
+  - `deleteWinningSolution(id)` — deletes a solution by ID
+- Created `src/components/trackers/ImpactTracker.tsx` — client component with:
+  - "Add Solution" modal with fields: title, problem addressed, description, metric type dropdown, unit, before/after values, date, notes
+  - Live ROI preview in modal: auto-calculated improvement displayed after entering before/after values
+  - ROI formula: ((Before-After)/Before)*100 for reductions (time_saved, cost_reduced), ((After-Before)/Before)*100 for gains (quality_improved, other)
+  - Solutions displayed as cards showing title, metric type badge, before→after values, improvement percentage
+  - Summary stats bar at top: Total Solutions count + aggregate improvements per metric type with colored backgrounds
+  - Delete button with confirmation dialog
+  - Empty state with icon, message, and "Add Solution" CTA
+  - Loading skeleton while data fetches
+- Updated `src/app/(dashboard)/trackers/page.tsx`:
+  - Imported `ImpactTracker` component
+  - Replaced `ImpactTrackerPlaceholder` in Impact Tracker tab
+  - Removed unused `ImpactTrackerPlaceholder` function
+- Updated AGENTS.md (root, trackers components, actions)
+- Files changed: src/actions/trackers.ts, src/components/trackers/ImpactTracker.tsx, src/app/(dashboard)/trackers/page.tsx, AGENTS.md, src/components/trackers/AGENTS.md, src/actions/AGENTS.md
+- **Learnings for future iterations:**
+  - Use `Array.from(set)` instead of `[...set]` spread syntax for Set iteration — TypeScript without `downlevelIteration` flag doesn't support Set spread
+  - `METRIC_CONFIG` map pattern: `Record<MetricType, { label, color, bg }>` — consistent metric badge styling across summary stats and solution cards
+  - ROI calculation splits into reduction vs gain logic based on metric_type — time_saved and cost_reduced use (before-after)/before, quality_improved and other use (after-before)/before
+  - Summary stats `aggregates` uses `reduce()` with a Set to track unique units per metric type — avoids showing mixed units
+  - Modal form uses string values for number inputs (`before_value`, `after_value`) — parse to float only on submit to avoid NaN display issues
+  - Winning Solutions CRUD follows same `getToken() → getUserId() → insforgeClient.from()` pattern as all other tracker actions
+---
+
+## 2026-02-23 - US-018
+Session: Success Nuggets library with manual entry
+- Added 4 server actions to `src/actions/trackers.ts`:
+  - `getSuccessNuggets()` — fetches all success nuggets for user, ordered by created_at desc
+  - `createSuccessNugget(fields)` — creates new nugget with achievement_statement, supporting_metrics, talking_points; defaults source to 'manual'
+  - `updateSuccessNugget(id, fields)` — updates a nugget's text fields
+  - `deleteSuccessNugget(id)` — deletes a nugget by ID
+- Created `src/components/trackers/SuccessNuggetsLibrary.tsx` — client component with:
+  - "Add Nugget" button opens Headless UI Dialog modal with form fields
+  - Modal form: Achievement Statement (textarea), Supporting Metrics (textarea), Talking Points (textarea)
+  - Modal supports both add (empty form) and edit (pre-populated) modes via `editNugget` prop
+  - Nuggets displayed as cards showing achievement statement, supporting metrics, and talking points
+  - Source badge on each card: "Manual" (teal) or "AI Generated" (sky blue) with matching icon
+  - Edit and delete action icons on each nugget card header
+  - Delete with confirmation dialog
+  - Empty state: "Build your success nuggets library for performance reviews and career conversations"
+  - Loading skeleton while data fetches
+  - Cards in 2-column responsive grid (sm:grid-cols-2)
+  - Date shown on each card in "MMM DD, YYYY" format
+- Updated `src/app/(dashboard)/trackers/page.tsx`:
+  - Imported `SuccessNuggetsLibrary` component
+  - Replaced `SuccessNuggetsPlaceholder` in Success Nuggets tab
+  - Removed unused `SuccessNuggetsPlaceholder` function
+- Updated AGENTS.md (root, trackers components, actions)
+- Files changed: src/actions/trackers.ts, src/components/trackers/SuccessNuggetsLibrary.tsx, src/app/(dashboard)/trackers/page.tsx, AGENTS.md, src/components/trackers/AGENTS.md, src/actions/AGENTS.md
+- **Learnings for future iterations:**
+  - Edit modal pattern: pass `editNugget` prop + use `useEffect` keyed on `[open, editNugget]` to populate/reset form
+  - `createSuccessNugget` sets `source: "manual"` as default, spread `...fields` can override for AI-generated nuggets (US-019)
+  - `updateSuccessNugget` only updates text fields — doesn't change source or user_id
+  - SuccessNuggetsLibrary uses `handleEdit` which sets `editTarget` state then opens the form modal — reuses same modal for add/edit
+  - `NuggetSource` type imported from `@/db/types` but unused in component (only needed in server actions)
+  - Nugget cards use `whitespace-pre-line` on metrics/talking points to preserve user line breaks
+---
+
+## 2026-02-23 - US-019
+Session: AI-powered nugget generation
+- Added `insforgeAI.chatCompletion()` helper to `src/lib/insforge.ts` — calls Insforge OpenRouter endpoint `/ai/v1/chat/completions`
+- Added 2 server actions to `src/actions/trackers.ts`:
+  - `generateSuccessNuggets()` — collects completed opportunities, winning solutions (with metrics), and done WAR Battle sessions; sends context to GPT-4o with career-advancement prompt; returns 3-5 `GeneratedNugget[]` for review
+  - `saveGeneratedNuggets(nuggets)` — saves array of AI-generated nuggets with `source='ai_generated'` to success_nuggets table
+- Exported `GeneratedNugget` interface from trackers.ts: `{ achievement_statement, supporting_metrics, talking_points }`
+- Updated `src/components/trackers/SuccessNuggetsLibrary.tsx`:
+  - Added "Generate Nuggets" button (sky blue) next to "Add Nugget" in toolbar and empty state
+  - Loading spinner during AI generation
+  - Error message display for no tracker data or AI failure
+  - Added `AIReviewModal` component — shows generated nuggets in editable textareas with checkboxes to include/exclude
+  - User can edit achievement_statement, supporting_metrics, and talking_points before saving
+  - "Save X Nuggets" button saves selected nuggets via `saveGeneratedNuggets()`
+  - After save, library refreshes to show new AI-generated nuggets with "AI Generated" source badge
+- Updated AGENTS.md (root, src/lib, src/actions, src/components/trackers)
+- Files changed: src/lib/insforge.ts, src/actions/trackers.ts, src/components/trackers/SuccessNuggetsLibrary.tsx, AGENTS.md, src/lib/AGENTS.md, src/actions/AGENTS.md, src/components/trackers/AGENTS.md
+- **Learnings for future iterations:**
+  - Insforge OpenRouter AI endpoint: POST `/ai/v1/chat/completions` with OpenAI-compatible schema
+  - Default model: `openai/gpt-4o` — passed in body, not as header
+  - AI response parsing: ask for "ONLY valid JSON — no markdown, no code fences" to avoid ```json wrappers
+  - `GeneratedNugget` is a plain interface (not a DB type) — used as intermediary between AI response and save
+  - AIReviewModal uses `selected` boolean array to track which nuggets user wants — cheaper than a Set
+  - Guard against empty tracker data before calling AI — show helpful message about what to do first
+  - `insforgeAI` doesn't need a token (uses API key only) — unlike REST client calls
+---
+
+## 2026-02-23 - US-020
+Session: CI Done Right Success Dashboard - milestone cards
+- Created `src/actions/success-dashboard.ts` with server actions:
+  - `getSuccessDashboardData()` — fetches user profile (name, company), progress records, and milestones
+  - `checkAndUnlockMilestones()` — checks if waste_eliminator or ci_consultant milestones should unlock based on completed progress stages, creates/updates milestone records, sends Dana notification via fire-and-forget
+- Created `src/app/(dashboard)/success-dashboard/page.tsx` — client component with:
+  - Page title: "CI Done Right Success Dashboard" with subtitle "Track your achievements and unlock revenue opportunities"
+  - Reuses `JourneyProgressBar` component from dashboard for journey progress visualization
+  - 2 milestone cards in responsive grid (1 col mobile, 2 cols desktop)
+  - Card 1: "Most Valuable Workplace Waste Eliminator" — blue-to-teal gradient, star icon, requires 4 modules + battle 1 (5 requirements)
+  - Card 2: "Certified CI Done Right Consultant" — teal-to-mint gradient, shield icon, requires battles 2 + 3 (2 requirements)
+  - Each card: icon, lock/unlock indicator, title, subtitle, requirement text, progress bar, progress count
+  - Unlocked milestones show celebration overlay with backdrop blur
+  - Milestone check runs on page load, re-fetches data if newly unlocked
+  - Loading skeleton while data fetches, error state on failure
+- Updated AGENTS.md (root, src/actions)
+- Files changed: src/actions/success-dashboard.ts, src/app/(dashboard)/success-dashboard/page.tsx, AGENTS.md, src/actions/AGENTS.md
+- **Learnings for future iterations:**
+  - When defining arrays of `ProgressStage` values, explicitly type as `ProgressStage[]` — TypeScript infers `string[]` otherwise and `Set<ProgressStage>.has()` rejects `string` arguments
+  - Milestone unlock uses `checkAndUnlockMilestones()` called from the page's useEffect — fire-and-forget with re-fetch on unlock
+  - Milestone configs stored as a typed array of objects for easy iteration — avoids duplicating card rendering logic
+  - `completedStages` computed as `Set` from progress records filtered by `status === "completed"` — efficient for `.has()` lookups
+  - Success Dashboard reuses `JourneyProgressBar` from dashboard — no need to create a separate progress component
+---

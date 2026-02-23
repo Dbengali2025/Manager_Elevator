@@ -350,7 +350,7 @@
         "npm run typecheck passes"
       ],
       "priority": 17,
-      "passes": false,
+      "passes": true,
       "notes": "ROI formula: ((Before-After)/Before)*100 for reductions like time/cost."
     },
     {
@@ -370,7 +370,7 @@
         "npm run typecheck passes"
       ],
       "priority": 18,
-      "passes": false,
+      "passes": true,
       "notes": "AI generation added in a later story. This is the base library UI."
     },
     {
@@ -389,7 +389,7 @@
         "npm run typecheck passes"
       ],
       "priority": 19,
-      "passes": false,
+      "passes": true,
       "notes": "Uses Insforge OpenRouter with GPT-4o. Prompt should emphasize career-advancement framing."
     },
     {
@@ -418,7 +418,7 @@
         "npm run typecheck passes"
       ],
       "priority": 20,
-      "passes": false,
+      "passes": true,
       "notes": "Matches public/CI-done-right-success-dashboard-mockup.png"
     },
     {
