@@ -51,7 +51,7 @@ function TrackersContent() {
             {TABS.map((tab) => (
               <Tab
                 key={tab.key}
-                className="relative pb-md text-body font-medium outline-none transition-colors whitespace-nowrap data-[selected]:text-charcoal data-[selected]:after:absolute data-[selected]:after:bottom-0 data-[selected]:after:left-0 data-[selected]:after:right-0 data-[selected]:after:h-[3px] data-[selected]:after:bg-skyBlue data-[selected]:after:rounded-full text-charcoal/50 hover:text-charcoal/80 cursor-pointer"
+                className="relative pb-md pt-sm min-h-[44px] text-body font-medium outline-none transition-colors whitespace-nowrap data-[selected]:text-charcoal data-[selected]:after:absolute data-[selected]:after:bottom-0 data-[selected]:after:left-0 data-[selected]:after:right-0 data-[selected]:after:h-[3px] data-[selected]:after:bg-skyBlue data-[selected]:after:rounded-full text-charcoal/50 hover:text-charcoal/80 cursor-pointer"
               >
                 {tab.label}
               </Tab>

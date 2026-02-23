@@ -286,6 +286,19 @@
 - `insforgeEmbeddings.create({ input })` available in `src/lib/insforge.ts` for runtime embedding queries
 - For RAG retrieval: embed user question → query pgvector for top-5 similar chunks → include as context in LLM prompt
 
+## Mobile Responsive Patterns
+- **Content padding:** `p-md md:p-lg` (16px mobile, 24px desktop)
+- **Touch targets:** All interactive elements must have minimum 44px height/width (`min-h-[44px] min-w-[44px]`)
+- **Toggle switches:** `h-7 w-12` with `h-5 w-5` knob for accessible touch size
+- **Sticky table columns:** First column uses `sticky left-0 z-10` with matching background colors (dynamic per row for alternating rows)
+- **Chat bubbles:** `max-w-[90%] sm:max-w-[75%]` for wider mobile messages
+- **Tab navigation:** Horizontal scroll with `overflow-x-auto` on mobile, `min-h-[44px]` per tab
+- **Module cards:** Full-width accordion buttons with `min-h-[44px]` touch targets
+- **Grid patterns:** Feature cards `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5`, stat cards `grid-cols-2 lg:grid-cols-4`, milestone cards `grid-cols-1 lg:grid-cols-2`
+- **Sidebar:** Collapses to hamburger menu below 768px (md breakpoint) via Headless UI Dialog
+- **Typography:** Body text `14px` minimum on mobile, captions `12px` for secondary metadata only
+- **Landing page:** Hero text `text-[28px]` mobile → `sm:text-display` → `lg:text-[44px]`
+
 ## Quality Checks
 - `npm run typecheck` — TypeScript strict mode
 - `npm run build` — Full Next.js production build

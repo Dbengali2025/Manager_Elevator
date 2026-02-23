@@ -204,7 +204,7 @@ export default function AdminPage() {
         <table className="w-full min-w-[900px]">
           <thead>
             <tr className="border-b border-paleGray bg-offWhite">
-              <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/60">Name</th>
+              <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/60 sticky left-0 bg-offWhite z-10">Name</th>
               <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/60">Company</th>
               <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/60">Industry</th>
               <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/60">Current Stage</th>
@@ -298,7 +298,7 @@ function UserRow({
         className="border-b border-paleGray cursor-pointer hover:bg-offWhite/50 transition-colors"
         onClick={onToggle}
       >
-        <td className="px-md py-sm">
+        <td className="px-md py-sm sticky left-0 bg-white z-10">
           <div className="flex items-center gap-sm">
             <ChevronIcon expanded={isExpanded} />
             <div>

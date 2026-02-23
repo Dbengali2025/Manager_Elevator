@@ -172,13 +172,13 @@ export default function Home() {
           <div className="flex items-center gap-sm sm:gap-md">
             <Link
               href="/login"
-              className="text-body font-medium text-navy hover:text-teal transition-colors"
+              className="text-body font-medium text-navy hover:text-teal transition-colors min-h-[44px] inline-flex items-center"
             >
               Log In
             </Link>
             <Link
               href="/signup"
-              className="rounded-md bg-navy px-md py-sm text-body font-semibold text-white hover:bg-navy/90 transition-colors"
+              className="rounded-md bg-navy px-md py-sm min-h-[44px] inline-flex items-center text-body font-semibold text-white hover:bg-navy/90 transition-colors"
             >
               Sign Up
             </Link>

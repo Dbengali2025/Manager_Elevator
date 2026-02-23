@@ -732,7 +732,7 @@ export default function SuccessNuggetsLibrary() {
           <button
             onClick={handleGenerate}
             disabled={generating}
-            className="inline-flex items-center gap-xs rounded-md bg-skyBlue px-md py-[6px] text-caption text-white hover:bg-skyBlue/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-xs rounded-md bg-skyBlue px-md py-[6px] min-h-[44px] text-caption text-white hover:bg-skyBlue/90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {generating ? (
               <svg
@@ -776,7 +776,7 @@ export default function SuccessNuggetsLibrary() {
           </button>
           <button
             onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-xs rounded-md bg-navy px-md py-[6px] text-caption text-white hover:bg-navy/90"
+            className="inline-flex items-center gap-xs rounded-md bg-navy px-md py-[6px] min-h-[44px] text-caption text-white hover:bg-navy/90"
           >
             <svg
               width="14"
@@ -812,7 +812,7 @@ export default function SuccessNuggetsLibrary() {
               <div className="flex items-center gap-xs">
                 <button
                   onClick={() => handleEdit(nugget)}
-                  className="text-charcoal/30 hover:text-skyBlue transition-colors"
+                  className="min-h-[44px] min-w-[44px] flex items-center justify-center text-charcoal/30 hover:text-skyBlue transition-colors"
                   title="Edit nugget"
                 >
                   <svg
@@ -831,7 +831,7 @@ export default function SuccessNuggetsLibrary() {
                 </button>
                 <button
                   onClick={() => setDeleteTarget(nugget.id)}
-                  className="text-charcoal/30 hover:text-error transition-colors"
+                  className="min-h-[44px] min-w-[44px] flex items-center justify-center text-charcoal/30 hover:text-error transition-colors"
                   title="Delete nugget"
                 >
                   <svg

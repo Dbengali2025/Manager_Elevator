@@ -195,7 +195,7 @@ function MessageBubble({
         <ProfessorAvatar />
       )}
       <div
-        className={`max-w-[75%] rounded-lg px-md py-sm shadow-sm ${
+        className={`max-w-[90%] sm:max-w-[75%] rounded-lg px-md py-sm shadow-sm ${
           isUser
             ? "bg-skyBlue text-white rounded-tr-none"
             : "bg-white text-charcoal rounded-tl-none border border-paleGray"
@@ -524,7 +524,7 @@ export default function CIProfessorPage() {
           <div className="relative">
             <button
               onClick={() => setHistoryOpen(!historyOpen)}
-              className="flex items-center gap-xs rounded-md border border-paleGray bg-white px-md py-sm text-body text-charcoal hover:bg-paleGray/50 transition-colors"
+              className="flex items-center gap-xs rounded-md border border-paleGray bg-white px-md py-sm min-h-[44px] text-body text-charcoal hover:bg-paleGray/50 transition-colors"
             >
               <HistoryIcon />
               <span className="hidden sm:inline">History</span>
@@ -609,7 +609,7 @@ export default function CIProfessorPage() {
           {/* New Chat button */}
           <button
             onClick={handleNewChat}
-            className="flex items-center gap-xs rounded-md bg-navy px-md py-sm text-body text-white hover:bg-navy/90 transition-colors"
+            className="flex items-center gap-xs rounded-md bg-navy px-md py-sm min-h-[44px] text-body text-white hover:bg-navy/90 transition-colors"
           >
             <PlusIcon />
             <span className="hidden sm:inline">New Chat</span>
@@ -641,7 +641,7 @@ export default function CIProfessorPage() {
                     key={question}
                     onClick={() => handleSend(question)}
                     disabled={isSending}
-                    className="w-full text-left rounded-lg border border-paleGray px-md py-sm text-body text-charcoal hover:bg-skyBlue/5 hover:border-skyBlue/30 transition-colors disabled:opacity-50"
+                    className="w-full text-left rounded-lg border border-paleGray px-md py-sm min-h-[44px] text-body text-charcoal hover:bg-skyBlue/5 hover:border-skyBlue/30 transition-colors disabled:opacity-50"
                   >
                     <span className="text-skyBlue mr-sm">&rarr;</span>
                     {question}
@@ -697,7 +697,7 @@ export default function CIProfessorPage() {
             <button
               onClick={() => handleSend()}
               disabled={!inputValue.trim() || isSending}
-              className="flex h-[42px] w-[42px] flex-shrink-0 items-center justify-center rounded-lg bg-navy text-white hover:bg-navy/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex h-[44px] w-[44px] flex-shrink-0 items-center justify-center rounded-lg bg-navy text-white hover:bg-navy/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               aria-label="Send message"
             >
               <SendIcon />

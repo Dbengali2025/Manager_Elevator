@@ -281,7 +281,7 @@ export default function WarBattleTracker() {
         <table className="w-full min-w-[700px]">
           <thead>
             <tr className="border-b border-paleGray bg-offWhite">
-              <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/70 w-[60px]">
+              <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/70 w-[60px] sticky left-0 bg-offWhite z-10">
                 Week #
               </th>
               <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/70">
@@ -316,7 +316,9 @@ export default function WarBattleTracker() {
                         : "bg-offWhite/50"
                   }`}
                 >
-                  <td className="px-md py-sm text-body text-charcoal font-medium">
+                  <td className={`px-md py-sm text-body text-charcoal font-medium sticky left-0 z-10 ${
+                    isActiveRow ? "bg-skyBlue/5" : isEven ? "bg-white" : "bg-offWhite/50"
+                  }`}>
                     {row.week}
                   </td>
                   <td className="px-md py-sm">
@@ -349,7 +351,7 @@ export default function WarBattleTracker() {
                       <button
                         onClick={() => handleMarkComplete(row.week)}
                         disabled={completing === row.week}
-                        className="inline-flex items-center gap-xs rounded-md bg-navy px-sm py-[4px] text-caption text-white hover:bg-navy/90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+                        className="inline-flex items-center gap-xs rounded-md bg-navy px-sm py-[6px] min-h-[36px] text-caption text-white hover:bg-navy/90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
                       >
                         {completing === row.week ? (
                           <>

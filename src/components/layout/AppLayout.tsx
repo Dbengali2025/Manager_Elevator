@@ -98,7 +98,7 @@ export default function AppLayout({ children, isAdmin = false }: { children: Rea
           {/* Hamburger menu for mobile */}
           <button
             type="button"
-            className="md:hidden p-sm -ml-sm text-charcoal"
+            className="md:hidden min-h-[44px] min-w-[44px] flex items-center justify-center -ml-sm text-charcoal"
             onClick={() => setSidebarOpen(true)}
             aria-label="Open sidebar"
           >
@@ -112,14 +112,14 @@ export default function AppLayout({ children, isAdmin = false }: { children: Rea
           <div className="flex items-center gap-md">
             <button
               type="button"
-              className="rounded-md p-sm text-charcoal/60 hover:text-charcoal hover:bg-paleGray transition-colors"
+              className="rounded-md min-h-[44px] min-w-[44px] flex items-center justify-center text-charcoal/60 hover:text-charcoal hover:bg-paleGray transition-colors"
               aria-label="Notifications"
             >
               <BellIcon />
             </button>
             <Link
               href="/settings"
-              className="rounded-md p-sm text-charcoal/60 hover:text-charcoal hover:bg-paleGray transition-colors"
+              className="rounded-md min-h-[44px] min-w-[44px] flex items-center justify-center text-charcoal/60 hover:text-charcoal hover:bg-paleGray transition-colors"
               aria-label="Settings"
             >
               <GearIcon />
@@ -128,7 +128,7 @@ export default function AppLayout({ children, isAdmin = false }: { children: Rea
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-lg">
+        <main className="flex-1 overflow-y-auto p-md md:p-lg">
           {children}
         </main>
       </div>
@@ -170,7 +170,7 @@ function SidebarContent({
               key={item.name}
               href={item.href}
               onClick={onNavigate}
-              className={`flex items-center gap-md rounded-md px-md py-sm mb-xs text-body transition-colors ${
+              className={`flex items-center gap-md rounded-md px-md py-sm mb-xs text-body transition-colors min-h-[44px] ${
                 isActive
                   ? "bg-white/15 text-white"
                   : "text-white/70 hover:bg-white/10 hover:text-white"

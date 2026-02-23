@@ -534,7 +534,7 @@ export default function OpportunitiesTracker() {
         <table className="w-full min-w-[640px]">
           <thead>
             <tr className="border-b border-paleGray bg-offWhite">
-              <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/70">
+              <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/70 sticky left-0 bg-offWhite z-10">
                 Title
               </th>
               <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/70 w-[100px]">
@@ -559,7 +559,9 @@ export default function OpportunitiesTracker() {
                   i % 2 === 0 ? "bg-white" : "bg-offWhite/50"
                 }`}
               >
-                <td className="px-md py-sm">
+                <td className={`px-md py-sm sticky left-0 z-10 ${
+                  i % 2 === 0 ? "bg-white" : "bg-offWhite/50"
+                }`}>
                   <div>
                     <p className="text-body text-charcoal font-medium truncate max-w-[300px]">
                       {opp.title}
@@ -598,7 +600,7 @@ export default function OpportunitiesTracker() {
                 <td className="px-md py-sm text-right">
                   <button
                     onClick={() => setDeleteTarget(opp.id)}
-                    className="text-charcoal/30 hover:text-error transition-colors"
+                    className="min-h-[44px] min-w-[44px] flex items-center justify-center text-charcoal/30 hover:text-error transition-colors"
                     title="Delete opportunity"
                   >
                     <svg

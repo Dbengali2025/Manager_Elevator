@@ -520,7 +520,7 @@ function SolutionCard({
         </div>
         <button
           onClick={() => onDelete(solution.id)}
-          className="text-charcoal/30 hover:text-error transition-colors flex-shrink-0"
+          className="min-h-[44px] min-w-[44px] flex items-center justify-center text-charcoal/30 hover:text-error transition-colors flex-shrink-0"
           title="Delete solution"
         >
           <svg
@@ -742,7 +742,7 @@ export default function ImpactTracker() {
         </p>
         <button
           onClick={() => setShowAdd(true)}
-          className="inline-flex items-center gap-xs rounded-md bg-navy px-md py-[6px] text-caption text-white hover:bg-navy/90"
+          className="inline-flex items-center gap-xs rounded-md bg-navy px-md py-[6px] min-h-[44px] text-caption text-white hover:bg-navy/90"
         >
           <svg
             width="14"

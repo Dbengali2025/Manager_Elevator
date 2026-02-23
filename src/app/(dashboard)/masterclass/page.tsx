@@ -166,7 +166,7 @@ function ModuleCard({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between p-lg text-left"
+        className="flex w-full items-center justify-between p-lg text-left min-h-[44px]"
       >
         <div className="flex items-center gap-md">
           <div
@@ -258,7 +258,7 @@ function SessionChecklist({
           return (
             <label
               key={session.week}
-              className={`flex items-center gap-md px-lg py-md cursor-pointer transition-colors hover:bg-offWhite ${
+              className={`flex items-center gap-md px-lg py-md min-h-[44px] cursor-pointer transition-colors hover:bg-offWhite ${
                 done ? "bg-success/[0.03]" : ""
               }`}
             >
@@ -464,7 +464,7 @@ export default function MasterclassPage() {
           href="https://miestro.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-sm rounded-md bg-navy px-lg py-sm text-body font-medium text-white transition-colors hover:bg-navy/90"
+          className="inline-flex items-center gap-sm rounded-md bg-navy px-lg py-sm min-h-[44px] text-body font-medium text-white transition-colors hover:bg-navy/90"
         >
           <BookIcon />
           Go to Miestro

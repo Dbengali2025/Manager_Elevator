@@ -362,7 +362,7 @@ export default function SettingsPage() {
             <button
               type="submit"
               disabled={saving}
-              className="bg-navy text-white font-medium text-body py-sm px-lg rounded-md hover:bg-navy/90 focus:outline-none focus:ring-2 focus:ring-skyBlue disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="bg-navy text-white font-medium text-body py-sm px-lg min-h-[44px] rounded-md hover:bg-navy/90 focus:outline-none focus:ring-2 focus:ring-skyBlue disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {saving ? "Saving..." : "Save Changes"}
             </button>
@@ -386,12 +386,12 @@ export default function SettingsPage() {
               role="switch"
               aria-checked={notifyMilestones}
               onClick={() => setNotifyMilestones(!notifyMilestones)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
                 notifyMilestones ? "bg-skyBlue" : "bg-paleGray"
               }`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
                   notifyMilestones ? "translate-x-6" : "translate-x-1"
                 }`}
               />
@@ -412,12 +412,12 @@ export default function SettingsPage() {
               role="switch"
               aria-checked={notifyWeeklyDigest}
               onClick={() => setNotifyWeeklyDigest(!notifyWeeklyDigest)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
                 notifyWeeklyDigest ? "bg-skyBlue" : "bg-paleGray"
               }`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
                   notifyWeeklyDigest ? "translate-x-6" : "translate-x-1"
                 }`}
               />
@@ -484,7 +484,7 @@ export default function SettingsPage() {
           <button
             type="button"
             onClick={() => setPasswordModalOpen(true)}
-            className="bg-white text-navy font-medium text-body py-sm px-md rounded-md border border-navy hover:bg-navy/5 focus:outline-none focus:ring-2 focus:ring-skyBlue transition-colors"
+            className="bg-white text-navy font-medium text-body py-sm px-md min-h-[44px] rounded-md border border-navy hover:bg-navy/5 focus:outline-none focus:ring-2 focus:ring-skyBlue transition-colors"
           >
             Change Password
           </button>
