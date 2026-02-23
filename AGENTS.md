@@ -33,7 +33,10 @@
 ## Database (`src/db/`)
 - **Migrations:** SQL files in `src/db/migrations/` — run via Insforge admin panel
 - **Types:** `src/db/types.ts` — TypeScript interfaces for all tables
-- Import types: `import { User, UserProgress, Milestone } from "@/db/types"`
+- Import core types: `import { User, UserProgress, Milestone } from "@/db/types"`
+- Import tracker types: `import { ImprovementOpportunity, WarBattleSession, WinningSolution, SuccessNugget } from "@/db/types"`
+- Import chat types: `import { Conversation, Message, BookEmbedding } from "@/db/types"`
+- Insert types available: `ImprovementOpportunityInsert`, `WarBattleSessionInsert`, `WinningSolutionInsert`, `SuccessNuggetInsert`, `ConversationInsert`, `MessageInsert`, `BookEmbeddingInsert`
 - Stage order constant: `import { STAGE_ORDER } from "@/db/types"`
 - See `src/db/AGENTS.md` for detailed patterns
 

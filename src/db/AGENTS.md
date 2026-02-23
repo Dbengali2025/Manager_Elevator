@@ -24,8 +24,30 @@
 ## Key Relationships
 - `user_progress.user_id` → `users.id` (CASCADE delete)
 - `milestones.user_id` → `users.id` (CASCADE delete)
+- `improvement_opportunities.user_id` → `users.id` (CASCADE delete)
+- `war_battle_sessions.user_id` → `users.id` (CASCADE delete)
+- `winning_solutions.user_id` → `users.id` (CASCADE delete)
+- `success_nuggets.user_id` → `users.id` (CASCADE delete)
+- `conversations.user_id` → `users.id` (CASCADE delete)
+- `messages.conversation_id` → `conversations.id` (CASCADE delete)
 - `UNIQUE(user_id, stage)` on user_progress — one row per user per stage
 - `UNIQUE(user_id, milestone_type)` on milestones — one row per user per milestone
+
+## Tracker Tables (migration 002)
+- **improvement_opportunities** — CRUD with filtering by status/priority. Has `updated_at` auto-trigger.
+- **war_battle_sessions** — Pre-populated 14 rows per battle. `battle_number` (1-3), `week_number` (1-14).
+- **winning_solutions** — Before/after metrics with `metric_type`. `before_value`/`after_value` are NUMERIC.
+- **success_nuggets** — `source` field distinguishes manual vs AI-generated. Has `updated_at` auto-trigger.
+
+## Chat Tables (migration 002)
+- **conversations** — Thread container, one per user chat session.
+- **messages** — RLS checks via parent `conversations.user_id` (join-based policy).
+
+## Book Embeddings (migration 002)
+- **book_embeddings** — Uses pgvector `vector(1536)` type for OpenAI-compatible embeddings.
+- HNSW index on `embedding` column for cosine similarity search.
+- No `user_id` — shared read for all authenticated users, insert restricted to admin.
+- Import type: `BookEmbedding` / `BookEmbeddingInsert` from `@/db/types`
 
 ## Stage Progression
 - Use `STAGE_ORDER` constant from `types.ts` for ordered stage logic
