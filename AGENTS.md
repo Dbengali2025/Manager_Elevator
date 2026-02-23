@@ -101,6 +101,15 @@
 - Migration `003_add_onboarding_step.sql` adds `onboarding_step INTEGER DEFAULT 1` to users table
 - Import pattern: `import { getOnboardingUserInfo, completeOnboarding } from "@/actions/onboarding"`
 
+## Dashboard (`src/app/(dashboard)/dashboard/page.tsx`)
+- Server Component — fetches data via `getDashboardData()` server action
+- Shows welcome header with user's first name (extracted from `full_name`)
+- `JourneyProgressBar` component renders 8-stage progress visualization
+- Import: `import { getDashboardData } from "@/actions/dashboard"`
+- Import: `import JourneyProgressBar from "@/components/dashboard/JourneyProgressBar"`
+- Progress data comes from `user_progress` table — each row has `stage` and `status`
+- Stage order: onboarding → module_1-4 → battle_1-3 (defined in `STAGE_ORDER`)
+
 ## Quality Checks
 - `npm run typecheck` — TypeScript strict mode
 - `npm run build` — Full Next.js production build

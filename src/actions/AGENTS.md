@@ -28,6 +28,13 @@ Server actions for Manager Elevator. These run on the server only (`"use server"
 - Helper `getToken()` — Reads access_token from cookies for auth
 - Helper `deriveExperienceLevel(answers)` — Scores answers to determine beginner/intermediate/advanced
 
+## Dashboard Actions (`dashboard.ts`)
+- `getDashboardData()` — Returns user name + all progress records from `user_progress` table
+- Returns `{ success, error?, data?: { userName, progressRecords } }`
+- Progress records used by `JourneyProgressBar` to determine stage states
+- Helper `getToken()` — same pattern as onboarding (reads access_token from cookies)
+- Import: `import { getDashboardData } from "@/actions/dashboard"`
+
 ## Gotchas
 - `cookies()` must be awaited in Next.js 14 — `const cookieStore = await cookies()`
 - Server actions can't redirect directly — return success and let client `router.push()`
