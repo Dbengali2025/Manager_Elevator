@@ -49,6 +49,11 @@
 - No `user_id` — shared read for all authenticated users, insert restricted to admin.
 - Import type: `BookEmbedding` / `BookEmbeddingInsert` from `@/db/types`
 
+## Onboarding Step (migration 003)
+- `users.onboarding_step` — Integer column (default 1) tracking which wizard step the user is on
+- Values 1-5 map to the 5 onboarding wizard steps
+- Set to 6 when onboarding completes (past last step)
+
 ## Stage Progression
 - Use `STAGE_ORDER` constant from `types.ts` for ordered stage logic
 - Stages: onboarding → module_1 → module_2 → module_3 → module_4 → battle_1 → battle_2 → battle_3

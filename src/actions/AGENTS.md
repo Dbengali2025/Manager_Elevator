@@ -20,6 +20,14 @@ Server actions for Manager Elevator. These run on the server only (`"use server"
 - Secure flag set only in production (`process.env.NODE_ENV === "production"`)
 - Password reset uses `verifyOtp(email, code, "recovery")` type — different from signup which uses `"signup"` type
 
+## Onboarding Actions (`onboarding.ts`)
+- `getOnboardingUserInfo()` — Returns user name, onboarding state, CI experience level, and current step
+- `saveOnboardingStep(step)` — Saves current wizard step (1-5) for resume support
+- `saveAssessmentAnswers(answers)` — Saves CI assessment, derives experience level, advances step
+- `completeOnboarding()` — Sets `onboarding_completed=true`, creates `user_progress` record for onboarding stage
+- Helper `getToken()` — Reads access_token from cookies for auth
+- Helper `deriveExperienceLevel(answers)` — Scores answers to determine beginner/intermediate/advanced
+
 ## Gotchas
 - `cookies()` must be awaited in Next.js 14 — `const cookieStore = await cookies()`
 - Server actions can't redirect directly — return success and let client `router.push()`

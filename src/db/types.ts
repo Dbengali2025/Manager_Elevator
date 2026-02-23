@@ -49,6 +49,7 @@ export interface User {
   ci_experience_level: string | null;
   miestro_linked: boolean;
   role: UserRole;
+  onboarding_step: number;
   created_at: string;
   updated_at: string;
 }

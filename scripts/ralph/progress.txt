@@ -194,3 +194,69 @@ Session: Registration page with Insforge Auth
   - Button styling pattern: `bg-navy text-white rounded-md hover:bg-navy/90`
   - Industry dropdown uses `<select>` with `required` + disabled empty `<option>` for placeholder
 ---
+
+## 2026-02-23 - US-008
+Session: Login page, password reset, and auth middleware
+- Created `src/app/(auth)/login/page.tsx` — client component with:
+  - Email + password fields with submit button
+  - "Forgot Password?" link to /reset-password
+  - Successful login redirects to /dashboard via `loginAction()`
+  - "Don't have an account?" link to /signup
+- Created `src/app/(auth)/reset-password/page.tsx` — client component with three-step flow:
+  - Step 1: Enter email → calls `requestPasswordResetAction()`
+  - Step 2: Enter code + new password + confirm password → calls `confirmPasswordResetAction()`
+  - Step 3: Success confirmation with "Go to Login" button
+  - Password validation with inline check/x icons (same pattern as signup)
+  - Passwords must match validation
+- Added server actions to `src/actions/auth.ts`:
+  - `loginAction(email, password)` — authenticates via Insforge Auth, sets JWT cookies
+  - `requestPasswordResetAction(email)` — sends recovery code, always returns success (prevents email enumeration)
+  - `confirmPasswordResetAction(email, code, newPassword)` — verifies recovery OTP, updates password
+  - `logoutAction()` — deletes auth cookies
+- Created `src/middleware.ts` — auth middleware:
+  - Public routes: `/`, `/login`, `/signup`, `/reset-password`
+  - Auth-only routes redirect to `/dashboard` if already logged in
+  - Protected routes redirect to `/login?redirect={path}` if no auth token
+  - Skips static files, API routes, images
+  - If only refresh_token exists, request passes through for server-side refresh
+- Updated AGENTS.md (root + actions)
+- Files changed: src/app/(auth)/login/page.tsx, src/app/(auth)/reset-password/page.tsx, src/middleware.ts, src/actions/auth.ts, AGENTS.md, src/actions/AGENTS.md
+- **Learnings for future iterations:**
+  - Middleware matcher regex: `"/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"` excludes static assets
+  - `requestPasswordResetAction()` always returns success to prevent email enumeration — important security pattern
+  - Password reset uses `verifyOtp(email, code, "recovery")` type — different from signup's `"signup"` type
+  - Login redirect parameter: `loginUrl.searchParams.set("redirect", pathname)` — can use this later for post-login redirect
+  - Auth-only routes (login/signup/reset) redirect authenticated users to dashboard to prevent confusion
+---
+
+## 2026-02-23 - US-009
+Session: Onboarding flow - welcome and assessment steps
+- Created `src/actions/onboarding.ts` with server actions:
+  - `getOnboardingUserInfo()` — fetches user name, onboarding state, current step from users table
+  - `saveOnboardingStep(step)` — persists current wizard step for resume support
+  - `saveAssessmentAnswers(answers)` — saves CI assessment, derives experience level (beginner/intermediate/advanced)
+  - `completeOnboarding()` — marks onboarding complete, creates user_progress record
+  - Helper `getToken()` — reads access_token from cookies
+  - Helper `deriveExperienceLevel(answers)` — scores 3 assessment questions
+- Created `src/app/(dashboard)/onboarding/page.tsx` — client component with 5-step wizard:
+  - Step 1: Welcome message with user's first name, overview of what's ahead
+  - Step 2: CI experience assessment — 3 multiple-choice questions about Lean Six Sigma, CI event experience, metrics tracking
+  - Step 3: Feature tour — 5 cards showing Masterclass, CI Trackers, Success Dashboard, CI Professor, Success Nuggets
+  - Step 4: Miestro account link — instructions and "Go to Miestro" button (placeholder URL)
+  - Step 5: Dashboard preview — journey progress bar, milestone card previews
+- Progress indicator: "Step X of 5" with segmented bar
+- "Skip onboarding" text link available on every step
+- Resume support: step saved per change, loaded on page visit
+- Already-completed users redirected to /dashboard
+- Created SQL migration `src/db/migrations/003_add_onboarding_step.sql` — adds `onboarding_step INTEGER DEFAULT 1` to users table
+- Updated `src/db/types.ts` — added `onboarding_step: number` to User interface
+- Updated AGENTS.md (root + actions + db)
+- Files changed: src/actions/onboarding.ts, src/app/(dashboard)/onboarding/page.tsx, src/db/migrations/003_add_onboarding_step.sql, src/db/types.ts, AGENTS.md, src/actions/AGENTS.md, src/db/AGENTS.md
+- **Learnings for future iterations:**
+  - Onboarding page is inside `(dashboard)` route group — it gets the AppLayout sidebar wrapper
+  - Server actions use `insforgeAuth.getUser(token)` to get auth user ID, then query users table for profile data
+  - `saveOnboardingStep` is fire-and-forget (.catch(console.error)) — don't block UI navigation
+  - Assessment derives experience level: score 0 = beginner, 1-2 = intermediate, 3 = advanced
+  - User type updated to include `onboarding_step` field — migration 003 adds this column
+  - Onboarding uses emojis (&#127775; &#128737;) for milestone card previews — rendered as HTML entities
+---

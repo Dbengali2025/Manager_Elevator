@@ -89,6 +89,18 @@
 - If only `refresh_token` exists (expired access token), request passes through for server-side refresh
 - Matcher excludes: `_next/static`, `_next/image`, `favicon.ico`, image file extensions
 
+## Onboarding (`src/app/(dashboard)/onboarding/page.tsx`)
+- 5-step wizard: Welcome → Assessment → Feature Tour → Miestro Link → Dashboard Preview
+- Progress indicator shows "Step X of 5" with segmented bar
+- "Skip onboarding" text link available on every step
+- State resumes from saved `onboarding_step` in users table (user can leave and come back)
+- Assessment saves CI experience level (beginner/intermediate/advanced) derived from 3 questions
+- On completion: sets `onboarding_completed=true`, creates `user_progress` record for onboarding stage, redirects to `/dashboard`
+- Already-completed users redirected to `/dashboard` on page load
+- Server actions in `src/actions/onboarding.ts`: `getOnboardingUserInfo`, `saveOnboardingStep`, `saveAssessmentAnswers`, `completeOnboarding`
+- Migration `003_add_onboarding_step.sql` adds `onboarding_step INTEGER DEFAULT 1` to users table
+- Import pattern: `import { getOnboardingUserInfo, completeOnboarding } from "@/actions/onboarding"`
+
 ## Quality Checks
 - `npm run typecheck` — TypeScript strict mode
 - `npm run build` — Full Next.js production build
