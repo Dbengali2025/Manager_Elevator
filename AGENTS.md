@@ -115,6 +115,22 @@
 - `DashboardData` type includes: userName, onboardingCompleted, progressRecords, sessionsCompleted, activeProjects, milestones
 - Stage order: onboarding → module_1-4 → battle_1-3 (defined in `STAGE_ORDER`)
 
+## Masterclass (`src/app/(dashboard)/masterclass/page.tsx`)
+- Client component with expandable module cards and session checklist
+- Page title: "Leading Bulletproof Continuous Improvement Masterclass"
+- 4 expandable module cards showing lesson titles from TGE Offerings doc
+- Current module highlighted (auto-expanded) based on progress records
+- Module status: Complete (green), In Progress (blue), Not Started (gray)
+- "Go to Miestro" CTA button opens placeholder URL in new tab
+- 14-week session checklist with checkboxes — persists to `war_battle_sessions` table
+- Checking sessions updates module/battle progress in `user_progress` table
+- Downloads section: placeholder "Tools coming soon"
+- Server actions in `src/actions/masterclass.ts`:
+  - `getMasterclassData()` — fetches user name, progress records, and session data
+  - `toggleSessionCompletion(week, name, battle, done)` — toggles session done/pending, updates battle progress
+- Exports: `MODULES` (4 modules with lesson arrays), `WAR_BATTLE_SESSIONS` (14 session definitions)
+- Import: `import { getMasterclassData, toggleSessionCompletion, MODULES, WAR_BATTLE_SESSIONS } from "@/actions/masterclass"`
+
 ## Quality Checks
 - `npm run typecheck` — TypeScript strict mode
 - `npm run build` — Full Next.js production build

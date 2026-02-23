@@ -40,6 +40,15 @@ Server actions for Manager Elevator. These run on the server only (`"use server"
 - Helper `getToken()` — same pattern as onboarding (reads access_token from cookies)
 - Import: `import { getDashboardData } from "@/actions/dashboard"`
 
+## Masterclass Actions (`masterclass.ts`)
+- `getMasterclassData()` — Returns user name, progress records, and WAR battle sessions
+- `toggleSessionCompletion(week, name, battle, done)` — Toggles session done/pending, auto-updates battle progress in user_progress
+- Exports `MODULES` constant — 4 modules with lesson title arrays (from TGE Offerings doc)
+- Exports `WAR_BATTLE_SESSIONS` constant — 14 session definitions with week, name, battle number
+- `updateModuleProgress(userId, token)` — internal helper that syncs battle stage progress based on session completions
+- Import: `import { getMasterclassData, toggleSessionCompletion, MODULES, WAR_BATTLE_SESSIONS } from "@/actions/masterclass"`
+- Import types: `import type { MasterclassData } from "@/actions/masterclass"`
+
 ## Gotchas
 - `cookies()` must be awaited in Next.js 14 — `const cookieStore = await cookies()`
 - Server actions can't redirect directly — return success and let client `router.push()`

@@ -320,3 +320,32 @@ Session: Dashboard stat cards and feature navigation cards
   - Milestones filtered client-side with `.filter(m => m.unlocked).length` for badge count
   - SVG icons inline as React components — icon per feature card with matching brand colors
 ---
+
+## 2026-02-23 - US-012
+Session: Masterclass access page with module overview and session checklist
+- Created `src/actions/masterclass.ts` with server actions:
+  - `getMasterclassData()` — fetches user name, progress records, and WAR battle sessions
+  - `toggleSessionCompletion(week, name, battle, done)` — toggles session done/pending, auto-updates battle progress
+  - `updateModuleProgress(userId, token)` — internal helper that syncs battle stage progress
+  - Exports `MODULES` constant (4 modules with lesson title arrays from TGE Offerings)
+  - Exports `WAR_BATTLE_SESSIONS` constant (14 session definitions with week/name/battle)
+- Created `src/app/(dashboard)/masterclass/page.tsx` — client component with:
+  - Page title: "Leading Bulletproof Continuous Improvement Masterclass"
+  - "Go to Miestro" CTA button (placeholder URL, opens in new tab)
+  - Current progress indicator showing module number and sessions completed count
+  - 4 expandable module cards with lesson titles (current module auto-expanded)
+  - Module status badges: Complete (green), In Progress (blue), Not Started (gray)
+  - 14-week session checklist with checkboxes, battle badges, and date completed
+  - Optimistic UI updates on checkbox toggle with server sync
+  - Downloads section placeholder ("Tools coming soon")
+- Updated root AGENTS.md with Masterclass section
+- Updated src/actions/AGENTS.md with Masterclass Actions section
+- Files changed: src/actions/masterclass.ts, src/app/(dashboard)/masterclass/page.tsx, AGENTS.md, src/actions/AGENTS.md
+- **Learnings for future iterations:**
+  - Masterclass page is a client component (needs state for toggling sessions, expanding modules)
+  - WAR_BATTLE_SESSIONS maps weeks to battle numbers: battle 1 = weeks 1-6, battle 2 = weeks 7-12, battle 3 = weeks 13-14
+  - Module cards use useState for expand/collapse — isCurrentModule prop sets initial open state
+  - Optimistic updates: update local state immediately, then fire server action, reload on completion
+  - `toggleSessionCompletion` both creates/updates session records AND updates battle progress in user_progress
+  - The 14 sessions in the checklist are the same as the WAR Battle sessions tracked in the tracker
+---
