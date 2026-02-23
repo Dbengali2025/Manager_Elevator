@@ -3,6 +3,10 @@ Started: 2026-02-23
 Feature: Manager Elevator MVP - Full Product Build
 
 ## Codebase Patterns
+- AppLayout at `src/components/layout/AppLayout.tsx` — wraps all `(dashboard)` routes
+- Route group `app/(dashboard)/layout.tsx` applies AppLayout to all authenticated pages
+- Sidebar nav items defined in `navigation` array in AppLayout — add new routes there
+- Mobile sidebar uses Headless UI Dialog + Transition (breakpoint: md/768px)
 - Insforge client at `src/lib/insforge.ts` — use `insforgeClient.from("table")` for REST, `insforgeAuth` for auth
 - All Insforge methods return `{ data, error }` — always check error first
 - PostgREST query syntax for filtering: `"?column=eq.value&other=gt.5"`
@@ -86,4 +90,57 @@ Session: Core database schema
   - UNIQUE(user_id, stage) prevents duplicate progress rows per stage
   - `auth.uid()` is used in RLS policies to reference the authenticated user's UUID
   - CASCADE delete on FK means deleting a user cleans up their progress and milestones
+---
+
+## 2026-02-23 - US-004
+Session: Tracker and chat database schema
+- Created SQL migration at `src/db/migrations/002_tracker_tables.sql` with:
+  - `improvement_opportunities` table: CRUD for workplace waste tracking, priority/status filters, updated_at trigger
+  - `war_battle_sessions` table: 14-week battle tracking with battle_number (1-3), week_number (1-14), powerpoint_link, status
+  - `winning_solutions` table: before/after metrics with metric_type enum, NUMERIC values for calculations
+  - `success_nuggets` table: achievement statements with source (manual/ai_generated), updated_at trigger
+  - `conversations` table: CI Professor chat threads
+  - `messages` table: chat messages with role (user/assistant), FK to conversations with CASCADE
+  - `book_embeddings` table: pgvector(1536) for RAG, HNSW index for cosine similarity
+  - RLS policies: all tables — users CRUD own rows, admin can read all
+  - Messages RLS uses join-based policy checking parent conversation's user_id
+  - Book embeddings: read for all authenticated users, insert restricted to admin
+  - Indexes on all foreign keys, status/priority columns, and HNSW on embeddings
+- Updated `src/db/types.ts` with new interfaces and insert types:
+  - ImprovementOpportunity, WarBattleSession, WinningSolution, SuccessNugget
+  - Conversation, Message, BookEmbedding
+  - All corresponding Insert types and union types for enums
+- Updated `src/db/AGENTS.md` with tracker, chat, and embeddings sections
+- Updated root `AGENTS.md` with new import patterns
+- Files changed: src/db/migrations/002_tracker_tables.sql, src/db/types.ts, src/db/AGENTS.md, AGENTS.md
+- **Learnings for future iterations:**
+  - pgvector uses `vector(1536)` type — 1536 dimensions matches OpenAI embedding models
+  - HNSW index with `vector_cosine_ops` is preferred for cosine similarity search (faster than IVFFlat)
+  - Messages RLS requires join to conversations table — use EXISTS subquery pattern
+  - Book embeddings have no user_id — shared resource, authenticated read, admin-only write
+  - `NUMERIC` type used for before/after values (not FLOAT) to avoid floating point precision issues
+  - Reuse `update_updated_at_column()` trigger function from migration 001 — no need to recreate
+---
+
+## 2026-02-23 - US-005
+Session: Sidebar navigation and app layout shell
+- Created `src/components/layout/AppLayout.tsx` — client component with:
+  - Left sidebar (240px, navy bg) with logo, 5 nav items, user avatar at bottom
+  - Top header bar (64px) with notification bell and settings gear icons
+  - Mobile responsive: sidebar collapses to hamburger menu below 768px using Headless UI Dialog + Transition
+  - Active route highlighting via `usePathname()` comparison
+  - SVG icons for all nav items (Dashboard, Masterclass, CI Trackers, Success Dashboard, CI Professor)
+- Created `src/app/(dashboard)/layout.tsx` — wraps all authenticated routes with AppLayout
+- Created `src/app/(dashboard)/dashboard/page.tsx` — placeholder dashboard page
+- Created directory structure for all dashboard routes: masterclass, trackers, success-dashboard, ci-professor, settings, onboarding, admin
+- Created `src/components/layout/AGENTS.md` with component patterns
+- Updated root `AGENTS.md` with App Layout section
+- Files changed: src/components/layout/AppLayout.tsx, src/app/(dashboard)/layout.tsx, src/app/(dashboard)/dashboard/page.tsx, src/components/layout/AGENTS.md, AGENTS.md
+- **Learnings for future iterations:**
+  - Headless UI v2 uses `Dialog` + `Transition` pattern for animated overlays — wrap Dialog in Transition.Show
+  - `usePathname()` returns the path without query params — good for nav highlighting
+  - Use `pathname.startsWith(item.href + "/")` to handle nested route active states
+  - SVG icons as inline React components keep co-location simple — no icon library needed
+  - `flex-shrink-0` on sidebar prevents it from shrinking when content is wide
+  - `overflow-hidden` on root container prevents double scrollbars — only content area scrolls
 ---

@@ -40,6 +40,16 @@
 - Stage order constant: `import { STAGE_ORDER } from "@/db/types"`
 - See `src/db/AGENTS.md` for detailed patterns
 
+## App Layout (`src/components/layout/AppLayout.tsx`)
+- All authenticated pages wrapped via `app/(dashboard)/layout.tsx` which renders `AppLayout`
+- Sidebar: 240px wide, navy background, logo at top, 5 nav items, user avatar at bottom
+- Navigation items: Dashboard, Masterclass, CI Trackers, Success Dashboard, CI Professor
+- Active route detected via `usePathname()` — highlighted with `bg-white/15`
+- Top header: 64px tall, white background, notification bell + settings gear on right
+- Mobile (<768px): sidebar collapses to hamburger menu using Headless UI `Dialog` + `Transition`
+- Content area: off-white background, `overflow-y-auto`, padded with `p-lg`
+- Import: `import AppLayout from "@/components/layout/AppLayout"`
+
 ## Quality Checks
 - `npm run typecheck` — TypeScript strict mode
 - `npm run build` — Full Next.js production build
