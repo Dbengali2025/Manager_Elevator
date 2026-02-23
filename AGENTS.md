@@ -230,6 +230,20 @@
 - Email template: navy header with logo, white content area, off-white footer with TGE LLC branding
 - Import: `import { notifySessionCompleted, notifyMilestoneUnlocked, notifyNewUserRegistered } from "@/actions/notifications"`
 
+## Settings (`src/app/(dashboard)/settings/page.tsx`)
+- Client component with profile editing, notification toggles, Miestro account status, and password change
+- Profile fields: name, company, industry (dropdown), role/title — email is read-only
+- Notification toggles: milestone notifications, weekly progress digest (toggle switches)
+- Miestro account section: shows linked/unlinked status with "Link Account" link (placeholder URL)
+- "Change Password" button opens Headless UI Dialog modal with current password, new password, confirm password
+- Password validation: 8+ chars, 1 uppercase, 1 number — inline check/x icons (same as signup)
+- Success toast on profile save (3s auto-dismiss)
+- Server actions in `src/actions/settings.ts`:
+  - `getProfileData()` — fetches user profile fields for the settings page
+  - `updateProfile(fields)` — updates name, company, industry, role in users table
+  - `changePassword(currentPassword, newPassword)` — verifies current password via login, then updates
+- Import: `import { getProfileData, updateProfile, changePassword } from "@/actions/settings"`
+
 ## RAG Chat API (`src/app/api/chat/route.ts`)
 - POST endpoint for streaming AI chat responses with RAG-retrieved book context
 - Flow: authenticate user → embed question → query pgvector (top-5 chunks) → stream GPT-4o response

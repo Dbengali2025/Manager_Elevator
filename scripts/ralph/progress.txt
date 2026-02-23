@@ -721,3 +721,30 @@ Session: Integrate RAG pipeline and streaming AI responses for CI Professor
   - `stream: true` in OpenAI-compatible API returns SSE with `data: {"choices":[{"delta":{"content":"..."}}]}` format
   - Off-topic redirect message defined in system prompt — no client-side filtering needed
 ---
+
+## 2026-02-23 - US-025
+Session: Settings and profile page
+- Created `src/actions/settings.ts` with server actions:
+  - `getProfileData()` — fetches user profile fields for settings page (name, email, company, industry, role, miestro status, notification prefs)
+  - `updateProfile(fields)` — updates name, company, industry, role in users table
+  - `changePassword(currentPassword, newPassword)` — verifies current password via login, then updates
+- Created `src/app/(dashboard)/settings/page.tsx` — client component with:
+  - Profile section: editable fields for name, company, industry (dropdown), role/title. Email read-only.
+  - "Save Changes" button persists profile updates with success toast (3s auto-dismiss)
+  - Notification preferences: toggle switches for milestone notifications and weekly progress digest
+  - Miestro account section: displays linked/unlinked status with "Link Account" link (placeholder URL)
+  - Security section: "Change Password" button opens Headless UI Dialog modal
+  - Password modal: current password, new password (with inline validation), confirm password, Update/Cancel buttons
+  - Password validation: 8+ chars, 1 uppercase, 1 number — inline check/x icons (reuses signup pattern)
+  - Loading skeleton while profile data fetches
+  - Form uses design system styling: md border radius inputs, navy primary buttons
+- Updated AGENTS.md (root, src/actions)
+- Files changed: src/actions/settings.ts, src/app/(dashboard)/settings/page.tsx, AGENTS.md, src/actions/AGENTS.md, scripts/ralph/prd.json
+- **Learnings for future iterations:**
+  - `changePassword` verifies current password by calling `insforgeAuth.login()` — if login succeeds, current password is correct
+  - Email field displayed as read-only with `readOnly` attribute and `bg-offWhite cursor-not-allowed text-charcoal/60` styling
+  - Toggle switch pattern: `role="switch"` + `aria-checked` button with `translate-x-6`/`translate-x-1` for knob position
+  - Notification toggles are UI-only for MVP — not persisted to database (no notification_preferences column yet)
+  - Password modal state resets on open via `useEffect` keyed on `passwordModalOpen`
+  - Success toast uses `setTimeout(() => setSuccessMessage(""), 3000)` for auto-dismiss
+---

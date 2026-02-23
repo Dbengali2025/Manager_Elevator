@@ -103,6 +103,15 @@ Server actions for Manager Elevator. These run on the server only (`"use server"
 - HTML template uses brand colors (navy header, off-white bg) with Manager Elevator logo
 - Import: `import { notifySessionCompleted, notifyMilestoneUnlocked, notifyNewUserRegistered } from "@/actions/notifications"`
 
+## Settings Actions (`settings.ts`)
+- `getProfileData()` — Fetches user profile fields (name, email, company, industry, role, miestro link status, notification prefs) for the settings page
+- `updateProfile(fields)` — Updates user's full_name, company_name, industry, role_title in the users table
+- `changePassword(currentPassword, newPassword)` — Verifies current password by re-authenticating via login, then updates password via `insforgeAuth.updatePassword()`
+- Returns `ActionResult` with `{ success, error? }`
+- Returns `ProfileData` type from `getProfileData()` with all profile fields
+- Import: `import { getProfileData, updateProfile, changePassword } from "@/actions/settings"`
+- Import type: `import type { ProfileData } from "@/actions/settings"`
+
 ## Gotchas
 - `cookies()` must be awaited in Next.js 14 — `const cookieStore = await cookies()`
 - Server actions can't redirect directly — return success and let client `router.push()`
