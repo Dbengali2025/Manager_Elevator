@@ -36,13 +36,25 @@ Components for the CI Done Right Trackers tab panels. Each component manages its
 - Metric type config: `METRIC_CONFIG` maps `time_saved` (sky blue), `cost_reduced` (green), `quality_improved` (teal), `other` (gray)
 - Empty state shown when no solutions exist yet
 
+### SuccessNuggetsLibrary (`SuccessNuggetsLibrary.tsx`)
+- Client component for the "Success Nuggets" tab
+- Full CRUD: Add and edit via modal form, delete with confirmation dialog
+- Nuggets displayed as cards showing achievement statement, supporting metrics, and talking points
+- Source badge on each card: "Manual" (teal) or "AI Generated" (sky blue) with icon
+- Edit and delete icons on each card header
+- NuggetFormModal supports both add (empty form) and edit (pre-populated from `editNugget` prop) modes
+- Empty state shown when no nuggets exist yet
+- Data persists to `success_nuggets` table with `source='manual'` for user-created entries
+- Cards display in responsive 2-column grid on sm+ breakpoints
+
 ## Patterns
 - Import server actions from `@/actions/trackers` for tracker-specific operations
 - Import shared constants from `@/actions/masterclass` (e.g., `WAR_BATTLE_SESSIONS`)
-- Import types from `@/db/types` (e.g., `WarBattleSession`, `BattleSessionStatus`, `ImprovementOpportunity`, `OpportunityPriority`, `OpportunityStatus`, `WinningSolution`, `MetricType`)
+- Import types from `@/db/types` (e.g., `WarBattleSession`, `BattleSessionStatus`, `ImprovementOpportunity`, `OpportunityPriority`, `OpportunityStatus`, `WinningSolution`, `MetricType`, `SuccessNugget`, `NuggetSource`)
 - Components fetch data on mount via `useEffect` + `useCallback` pattern
-- After mutations (mark complete, save link, create/delete opportunity/solution), re-fetch data to refresh UI
+- After mutations (mark complete, save link, create/delete opportunity/solution/nugget), re-fetch data to refresh UI
 - Status config pattern: `Record<Status, { label, bg, text }>` for consistent badge styling
 - Modal pattern: `Transition` > `Dialog` with two `TransitionChild`s (overlay + panel)
 - Form state reset on modal open using `useEffect` keyed on `open` prop
+- Edit modal pattern: pass existing record as prop, populate form in `useEffect` keyed on `[open, editRecord]`
 - Use `Array.from(set)` instead of `[...set]` spread for Set iteration (avoids TypeScript downlevelIteration requirement)

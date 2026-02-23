@@ -9,6 +9,8 @@ import type {
   OpportunityStatus,
   WinningSolution,
   MetricType,
+  SuccessNugget,
+  NuggetSource,
 } from "@/db/types";
 import type { UserRecord } from "@/lib/insforge";
 import { WAR_BATTLE_SESSIONS } from "@/actions/masterclass";
@@ -321,6 +323,88 @@ export async function deleteWinningSolution(
 
   const { error } = await insforgeClient
     .from("winning_solutions")
+    .delete(token, `?id=eq.${id}`);
+
+  if (error) return { success: false, error };
+  return { success: true };
+}
+
+// ---------------------------------------------------------------------------
+// Success Nuggets — CRUD
+// ---------------------------------------------------------------------------
+
+export async function getSuccessNuggets(): Promise<{
+  success: boolean;
+  error?: string;
+  data?: SuccessNugget[];
+}> {
+  const token = await getToken();
+  if (!token) return { success: false, error: "Not authenticated" };
+
+  const userId = await getUserId(token);
+  if (!userId) return { success: false, error: "Failed to get user info" };
+
+  const { data, error } = await insforgeClient
+    .from("success_nuggets")
+    .select<SuccessNugget[]>(
+      token,
+      `?user_id=eq.${userId}&order=created_at.desc`
+    );
+
+  if (error) return { success: false, error };
+  return { success: true, data: data ?? [] };
+}
+
+export async function createSuccessNugget(fields: {
+  achievement_statement: string;
+  supporting_metrics: string;
+  talking_points: string;
+  source?: NuggetSource;
+}): Promise<{ success: boolean; error?: string }> {
+  const token = await getToken();
+  if (!token) return { success: false, error: "Not authenticated" };
+
+  const userId = await getUserId(token);
+  if (!userId) return { success: false, error: "Failed to get user info" };
+
+  const { error } = await insforgeClient
+    .from("success_nuggets")
+    .insert(
+      { user_id: userId, source: "manual", ...fields },
+      token
+    );
+
+  if (error) return { success: false, error };
+  return { success: true };
+}
+
+export async function updateSuccessNugget(
+  id: string,
+  fields: {
+    achievement_statement: string;
+    supporting_metrics: string;
+    talking_points: string;
+  }
+): Promise<{ success: boolean; error?: string }> {
+  const token = await getToken();
+  if (!token) return { success: false, error: "Not authenticated" };
+
+  const { error } = await insforgeClient
+    .from("success_nuggets")
+    .update(fields, token, `?id=eq.${id}`);
+
+  if (error) return { success: false, error };
+  return { success: true };
+}
+
+export async function deleteSuccessNugget(
+  id: string
+): Promise<{ success: boolean; error?: string }> {
+  const token = await getToken();
+  if (!token) return { success: false, error: "Not authenticated" };
+
+  const { error } = await insforgeClient
+    .from("success_nuggets")
     .delete(token, `?id=eq.${id}`);
 
   if (error) return { success: false, error };

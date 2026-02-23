@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import WarBattleTracker from "@/components/trackers/WarBattleTracker";
 import OpportunitiesTracker from "@/components/trackers/OpportunitiesTracker";
 import ImpactTracker from "@/components/trackers/ImpactTracker";
+import SuccessNuggetsLibrary from "@/components/trackers/SuccessNuggetsLibrary";
 
 const TABS = [
   { key: "war-battles", label: "Waste WAR Battles" },
@@ -69,7 +70,7 @@ function TrackersContent() {
             <ImpactTracker />
           </TabPanel>
           <TabPanel>
-            <SuccessNuggetsPlaceholder />
+            <SuccessNuggetsLibrary />
           </TabPanel>
         </TabPanels>
       </TabGroup>
@@ -99,31 +100,3 @@ export default function TrackersPage() {
   );
 }
 
-/* ---------- Placeholder components ---------- */
-
-function SuccessNuggetsPlaceholder() {
-  return (
-    <div className="rounded-lg border border-paleGray bg-white p-2xl text-center">
-      <div className="mx-auto mb-md flex h-[48px] w-[48px] items-center justify-center rounded-full bg-teal/10">
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="text-teal"
-        >
-          <path d="M12 2l2.4 4.8L20 7.6l-4 3.9 1 5.5L12 14.5 6.9 17l1-5.5-4-3.9 5.6-.8z" />
-        </svg>
-      </div>
-      <h3 className="font-heading text-h3 text-charcoal">Success Nuggets</h3>
-      <p className="mt-sm text-body text-charcoal/60">
-        Build your success nuggets library for performance reviews and career
-        conversations.
-      </p>
-    </div>
-  );
-}

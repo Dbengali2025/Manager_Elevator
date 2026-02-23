@@ -151,8 +151,9 @@
 - `WarBattleTracker` — 14-week WAR Battle session tracker table with status tags, mark complete, and link editing
 - `OpportunitiesTracker` — CRUD table for improvement opportunities with modal form, filters, and delete confirmation
 - `ImpactTracker` — Winning Solutions tracker with add modal, card display, summary stats bar, and auto-calculated ROI
+- `SuccessNuggetsLibrary` — Success nuggets library with add/edit/delete, card display, and source badges (Manual/AI Generated)
 - Each tracker component manages its own data fetching — receives no props from the tab shell
-- Server actions in `src/actions/trackers.ts`: `getWarBattleSessions`, `markSessionComplete`, `saveSessionLink`, `getOpportunities`, `createOpportunity`, `updateOpportunityStatus`, `deleteOpportunity`, `getWinningSolutions`, `createWinningSolution`, `deleteWinningSolution`
+- Server actions in `src/actions/trackers.ts`: `getWarBattleSessions`, `markSessionComplete`, `saveSessionLink`, `getOpportunities`, `createOpportunity`, `updateOpportunityStatus`, `deleteOpportunity`, `getWinningSolutions`, `createWinningSolution`, `deleteWinningSolution`, `getSuccessNuggets`, `createSuccessNugget`, `updateSuccessNugget`, `deleteSuccessNugget`
 - Shared constants imported from `src/actions/masterclass.ts`: `WAR_BATTLE_SESSIONS`
 - Status badge pattern: `Record<StatusType, { label, bg, text }>` for consistent styling
 - Modal pattern: Headless UI `Dialog` + `Transition` with `TransitionChild` for overlay + panel animations
@@ -160,6 +161,7 @@
 - Import: `import WarBattleTracker from "@/components/trackers/WarBattleTracker"`
 - Import: `import OpportunitiesTracker from "@/components/trackers/OpportunitiesTracker"`
 - Import: `import ImpactTracker from "@/components/trackers/ImpactTracker"`
+- Import: `import SuccessNuggetsLibrary from "@/components/trackers/SuccessNuggetsLibrary"`
 
 ## Email Notifications (`src/actions/notifications.ts`)
 - Sends branded HTML emails to Dana via Insforge Email (AWS SES) for key platform events

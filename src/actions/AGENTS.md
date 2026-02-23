@@ -60,8 +60,12 @@ Server actions for Manager Elevator. These run on the server only (`"use server"
 - `getWinningSolutions()` — Fetches all winning solutions for the current user, ordered by created_at desc
 - `createWinningSolution(fields)` — Creates a new winning solution with title, problem_addressed, description, metric_type, before/after values, unit, date_implemented, notes
 - `deleteWinningSolution(id)` — Deletes a winning solution by ID
+- `getSuccessNuggets()` — Fetches all success nuggets for the current user, ordered by created_at desc
+- `createSuccessNugget(fields)` — Creates a new success nugget with achievement_statement, supporting_metrics, talking_points; defaults source to 'manual'
+- `updateSuccessNugget(id, fields)` — Updates a nugget's achievement_statement, supporting_metrics, and talking_points
+- `deleteSuccessNugget(id)` — Deletes a success nugget by ID
 - Uses `WAR_BATTLE_SESSIONS` from `masterclass.ts` for session definitions (name, battle number)
-- Import: `import { getWarBattleSessions, markSessionComplete, saveSessionLink, getOpportunities, createOpportunity, updateOpportunityStatus, deleteOpportunity, getWinningSolutions, createWinningSolution, deleteWinningSolution } from "@/actions/trackers"`
+- Import: `import { getWarBattleSessions, markSessionComplete, saveSessionLink, getOpportunities, createOpportunity, updateOpportunityStatus, deleteOpportunity, getWinningSolutions, createWinningSolution, deleteWinningSolution, getSuccessNuggets, createSuccessNugget, updateSuccessNugget, deleteSuccessNugget } from "@/actions/trackers"`
 
 ## Notification Actions (`notifications.ts`)
 - `notifySessionCompleted(params)` — Emails Dana when a WAR Battle session is marked done. Params: userName, company, sessionNumber, sessionName, dateCompleted, powerpointLink
