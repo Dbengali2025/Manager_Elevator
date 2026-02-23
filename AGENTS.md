@@ -22,6 +22,14 @@
 - Headless UI (`@headlessui/react`) available for modals, dropdowns, tabs, etc.
 - Path alias: `@/*` maps to `./src/*`
 
+## Insforge Client (`src/lib/insforge.ts`)
+- **REST API:** `insforgeClient.from("table").select(token)` / `.insert(data, token)` / `.update(data, token, query)` / `.delete(token, query)`
+- **Auth:** `insforgeAuth.signup(email, pw)` / `.login(email, pw)` / `.refreshToken(rt)` / `.getUser(token)` / `.resetPassword(email)` / `.updatePassword(pw, token)` / `.verifyOtp(email, code)`
+- All methods return `InsforgeResponse<T>` with `{ data, error }` pattern
+- Query filtering uses PostgREST syntax (e.g. `"?id=eq.abc&status=eq.active"`)
+- JWT token required for all authenticated requests — pass as `token` parameter
+- Environment: `NEXT_PUBLIC_INSFORGE_URL` (public, client-safe), `INSFORGE_API_KEY` (server-only)
+
 ## Quality Checks
 - `npm run typecheck` — TypeScript strict mode
 - `npm run build` — Full Next.js production build

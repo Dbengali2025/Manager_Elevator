@@ -3,7 +3,9 @@ Started: 2026-02-23
 Feature: Manager Elevator MVP - Full Product Build
 
 ## Codebase Patterns
-(Patterns discovered during this build)
+- Insforge client at `src/lib/insforge.ts` — use `insforgeClient.from("table")` for REST, `insforgeAuth` for auth
+- All Insforge methods return `{ data, error }` — always check error first
+- PostgREST query syntax for filtering: `"?column=eq.value&other=gt.5"`
 
 ## Key References
 - PRD: /tasks/prd-manager-elevator-mvp.md
@@ -43,4 +45,22 @@ Session: Initial setup
   - Project dir has space ("Manager Elevator") — always quote paths
   - next/font/google uses CSS variables (--font-montserrat, --font-tenor-sans) applied via Tailwind fontFamily config
   - `font-body` class applies Montserrat, `font-heading` applies Tenor Sans
+---
+
+## 2026-02-23 - US-002
+Session: Insforge client setup
+- Created `.env.example` with placeholder values for INSFORGE_URL, INSFORGE_API_KEY, DANA_NOTIFICATION_EMAIL
+- `.gitignore` already covers `.env*.local` — no changes needed
+- Created `src/lib/insforge.ts` with:
+  - TypeScript types: InsforgeResponse<T>, InsforgeError, AuthTokens, UserRecord, Row
+  - `insforgeClient` — REST client with `.from(table).select/insert/update/delete`
+  - `insforgeAuth` — auth helpers for signup, login, refreshToken, getUser, resetPassword, updatePassword, verifyOtp
+- Created `src/lib/AGENTS.md` with import patterns and usage notes
+- Updated root `AGENTS.md` with Insforge client section
+- Files changed: .env.example, src/lib/insforge.ts, src/lib/AGENTS.md, AGENTS.md
+- **Learnings for future iterations:**
+  - Insforge uses PostgREST-style query syntax for filtering (e.g. `?id=eq.abc`)
+  - `INSFORGE_API_KEY` is server-only; `NEXT_PUBLIC_INSFORGE_URL` is client-safe
+  - All auth endpoints return `AuthTokens` with `access_token`, `refresh_token`, `expires_in`
+  - Use `Prefer: return=representation` header to get the inserted/updated row back
 ---
