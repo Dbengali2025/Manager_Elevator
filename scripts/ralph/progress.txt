@@ -168,3 +168,29 @@ Session: Landing page (public)
   - In-page anchor links work with `id="pricing"` and `href="#pricing"`
   - SVG icons inline as React components avoid external dependencies
 ---
+
+## 2026-02-23 - US-007
+Session: Registration page with Insforge Auth
+- Created auth route group `app/(auth)/` with centered layout (no sidebar)
+- Created `app/(auth)/layout.tsx` — offWhite bg, flex-center
+- Created `app/(auth)/signup/page.tsx` — client component with two-step flow:
+  - Step 1: Signup form (full name, email, password, company, industry dropdown, role/title)
+  - Step 2: Email verification code input
+- Password validation: 8+ chars, 1 uppercase, 1 number — inline check/x icons
+- Created `src/actions/auth.ts` with server actions:
+  - `signupAction()` — calls Insforge Auth signup + creates user profile in users table
+  - `verifyOtpAction()` — verifies email OTP, sets httpOnly JWT cookies
+- Duplicate email detection with user-friendly error message
+- After successful verification, redirects to /onboarding
+- Form uses design system: navy buttons, md border-radius inputs, Montserrat font
+- Created `src/actions/AGENTS.md` with action patterns
+- Updated root `AGENTS.md` with Auth Pages section
+- Files changed: src/app/(auth)/layout.tsx, src/app/(auth)/signup/page.tsx, src/actions/auth.ts, src/actions/AGENTS.md, AGENTS.md
+- **Learnings for future iterations:**
+  - Auth route group `(auth)` is separate from `(dashboard)` — no AppLayout wrapping
+  - `cookies()` in Next.js 14 must be awaited: `const cookieStore = await cookies()`
+  - Server actions return `{ success, error }` — can't do server-side redirect, client handles navigation
+  - Input styling pattern: `border-paleGray rounded-md focus:ring-skyBlue focus:border-skyBlue`
+  - Button styling pattern: `bg-navy text-white rounded-md hover:bg-navy/90`
+  - Industry dropdown uses `<select>` with `required` + disabled empty `<option>` for placeholder
+---

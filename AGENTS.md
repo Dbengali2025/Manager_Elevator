@@ -60,6 +60,19 @@
 - Footer shows TGE LLC copyright with dynamic year
 - All sections mobile-responsive with Tailwind breakpoints (sm/lg)
 
+## Auth Pages (`src/app/(auth)/`)
+- Auth route group at `app/(auth)/` — no sidebar, centered layout
+- Layout at `app/(auth)/layout.tsx` — offWhite bg, flex-center, no AppLayout wrapping
+- **Signup:** `app/(auth)/signup/page.tsx` — client component with two steps: signup form → OTP verification
+- Server actions in `src/actions/auth.ts` — `signupAction()`, `verifyOtpAction()`
+- JWT tokens stored in httpOnly cookies (`access_token`, `refresh_token`)
+- Password validation: 8+ chars, 1 uppercase, 1 number — inline validation shown
+- Industry dropdown options: Financial Services, Healthcare, Professional Services, Technology, Retail/E-commerce, Government/Non-profit, Other
+- After successful signup+verify → redirect to `/onboarding`
+- After successful login → redirect to `/dashboard`
+- Form inputs use: `border-paleGray rounded-md focus:ring-skyBlue` pattern
+- Buttons use: `bg-navy text-white rounded-md hover:bg-navy/90` pattern
+
 ## Quality Checks
 - `npm run typecheck` — TypeScript strict mode
 - `npm run build` — Full Next.js production build
