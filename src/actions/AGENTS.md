@@ -82,6 +82,16 @@ Server actions for Manager Elevator. These run on the server only (`"use server"
 - Import: `import { getSuccessDashboardData, checkAndUnlockMilestones } from "@/actions/success-dashboard"`
 - Import type: `import type { SuccessDashboardData } from "@/actions/success-dashboard"`
 
+## Chat Actions (`chat.ts`)
+- `getConversations()` — Fetches all conversations for the current user, ordered by created_at desc
+- `getMessages(conversationId)` — Fetches all messages for a conversation, ordered by created_at asc
+- `createConversation(title)` — Creates a new conversation; returns the created `Conversation` record
+- `sendMessage(conversationId, role, content)` — Saves a message (user or assistant); returns the created `Message` record
+- `updateConversationTitle(conversationId, title)` — Updates a conversation's title
+- `deleteConversation(conversationId)` — Deletes a conversation (messages cascade via FK)
+- Insert returns array from Insforge REST API — use `Array.isArray(data) ? data[0] : data` to extract single record
+- Import: `import { getConversations, getMessages, createConversation, sendMessage, updateConversationTitle, deleteConversation } from "@/actions/chat"`
+
 ## Notification Actions (`notifications.ts`)
 - `notifySessionCompleted(params)` — Emails Dana when a WAR Battle session is marked done. Params: userName, company, sessionNumber, sessionName, dateCompleted, powerpointLink
 - `notifyMilestoneUnlocked(params)` — Emails Dana when a milestone is unlocked. Params: userName, company, milestoneType (`waste_eliminator` | `ci_consultant`)

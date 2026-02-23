@@ -185,6 +185,37 @@
 - Import: `import { getSuccessDashboardData, checkAndUnlockMilestones } from "@/actions/success-dashboard"`
 - Import: `import CircularProgressRing from "@/components/dashboard/CircularProgressRing"`
 
+## CI Professor (`src/app/(dashboard)/ci-professor/page.tsx`)
+- Client component with full chat interface for AI-powered CI guidance
+- Chat bubbles: user messages on right (sky blue bg), AI messages on left (white bg with border)
+- Text input at bottom with send button (navy bg) — Enter to send, Shift+Enter for newline
+- Auto-resizing textarea with 150px max height
+- Input placeholder: "Ask the CI Professor a question..."
+- "New Chat" button (navy) in header starts a fresh conversation
+- Empty state shows 3 starter questions: "What is the CI Done Right formula?", "How do I run a Waste WAR Battle?", "How do I document my CI wins?"
+- Clicking a starter question sends it as the first message
+- Chat history dropdown in header showing previous conversations with delete option
+- Inline delete confirmation (Delete/Cancel) on conversation hover
+- Active conversation highlighted in history dropdown
+- Typing indicator (3 animated dots) shown while waiting for AI response
+- Messages persist to `conversations` and `messages` tables via server actions
+- Previous conversations load when selected from history
+- Optimistic UI: user message appears immediately while sending
+- Conversation auto-created on first message with title from message content (truncated to 50 chars)
+- Full-height layout: `h-[calc(100vh-128px)]` fills available space
+- Professor avatar: navy circle with graduation cap icon
+- User avatar: mint green circle with "U" initial
+- Timestamps shown on each message bubble
+- US-023 uses placeholder AI response — actual RAG integration in US-024
+- Server actions in `src/actions/chat.ts`:
+  - `getConversations()` — fetches all conversations for user, ordered by created_at desc
+  - `getMessages(conversationId)` — fetches all messages for a conversation, ordered by created_at asc
+  - `createConversation(title)` — creates a new conversation
+  - `sendMessage(conversationId, role, content)` — saves a user or assistant message
+  - `updateConversationTitle(conversationId, title)` — updates a conversation's title
+  - `deleteConversation(conversationId)` — deletes a conversation (cascades messages)
+- Import: `import { getConversations, getMessages, createConversation, sendMessage, deleteConversation } from "@/actions/chat"`
+
 ## Email Notifications (`src/actions/notifications.ts`)
 - Sends branded HTML emails to Dana via Insforge Email (AWS SES) for key platform events
 - `notifySessionCompleted(params)` — WAR Battle session completed (includes user, company, session details, PowerPoint link)
