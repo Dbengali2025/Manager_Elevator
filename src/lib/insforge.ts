@@ -251,3 +251,24 @@ export const insforgeAuth = {
     });
   },
 };
+
+// ---------------------------------------------------------------------------
+// Email Client
+// ---------------------------------------------------------------------------
+
+/**
+ * Insforge Email (AWS SES) helpers for sending transactional emails.
+ */
+export const insforgeEmail = {
+  /** Send an email via Insforge Email (AWS SES) */
+  async send(params: {
+    to: string;
+    subject: string;
+    html: string;
+  }): Promise<InsforgeResponse<{ message_id: string }>> {
+    return request<{ message_id: string }>("/email/v1/send", {
+      method: "POST",
+      body: params,
+    });
+  },
+};

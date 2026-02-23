@@ -22,13 +22,14 @@
 - Headless UI (`@headlessui/react`) available for modals, dropdowns, tabs, etc.
 - Path alias: `@/*` maps to `./src/*`
 
-## Insforge Client (`src/lib/insforge.ts`)
+## Insforge Client (`src/lib/insforge.ts`) and Email
 - **REST API:** `insforgeClient.from("table").select(token)` / `.insert(data, token)` / `.update(data, token, query)` / `.delete(token, query)`
 - **Auth:** `insforgeAuth.signup(email, pw)` / `.login(email, pw)` / `.refreshToken(rt)` / `.getUser(token)` / `.resetPassword(email)` / `.updatePassword(pw, token)` / `.verifyOtp(email, code)`
 - All methods return `InsforgeResponse<T>` with `{ data, error }` pattern
 - Query filtering uses PostgREST syntax (e.g. `"?id=eq.abc&status=eq.active"`)
 - JWT token required for all authenticated requests — pass as `token` parameter
-- Environment: `NEXT_PUBLIC_INSFORGE_URL` (public, client-safe), `INSFORGE_API_KEY` (server-only)
+- **Email:** `insforgeEmail.send({ to, subject, html })` — sends transactional email via Insforge Email (AWS SES)
+- Environment: `NEXT_PUBLIC_INSFORGE_URL` (public, client-safe), `INSFORGE_API_KEY` (server-only), `DANA_NOTIFICATION_EMAIL` (admin notification recipient)
 
 ## Database (`src/db/`)
 - **Migrations:** SQL files in `src/db/migrations/` — run via Insforge admin panel
@@ -153,6 +154,18 @@
 - Shared constants imported from `src/actions/masterclass.ts`: `WAR_BATTLE_SESSIONS`
 - Status badge pattern: `Record<BattleSessionStatus, { label, bg, text }>` for consistent styling
 - Import: `import WarBattleTracker from "@/components/trackers/WarBattleTracker"`
+
+## Email Notifications (`src/actions/notifications.ts`)
+- Sends branded HTML emails to Dana via Insforge Email (AWS SES) for key platform events
+- `notifySessionCompleted(params)` — WAR Battle session completed (includes user, company, session details, PowerPoint link)
+- `notifyMilestoneUnlocked(params)` — Milestone unlocked (waste_eliminator or ci_consultant)
+- `notifyNewUserRegistered(params)` — New user registration (includes name, email, company, industry, role)
+- All notifications are **fire-and-forget** — call with `.catch()` so they never block user actions
+- Integrated into: `markSessionComplete` (trackers.ts), `signupAction` (auth.ts)
+- Milestone notifications called when milestones are unlocked (from success dashboard logic)
+- Dana's email: `DANA_NOTIFICATION_EMAIL` env var (default: `danat4lssplus@gmail.com`)
+- Email template: navy header with logo, white content area, off-white footer with TGE LLC branding
+- Import: `import { notifySessionCompleted, notifyMilestoneUnlocked, notifyNewUserRegistered } from "@/actions/notifications"`
 
 ## Quality Checks
 - `npm run typecheck` — TypeScript strict mode

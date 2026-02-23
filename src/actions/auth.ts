@@ -2,6 +2,7 @@
 
 import { insforgeAuth, insforgeClient } from "@/lib/insforge";
 import { cookies } from "next/headers";
+import { notifyNewUserRegistered } from "@/actions/notifications";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -68,6 +69,15 @@ export async function signupAction(input: SignupInput): Promise<ActionResult> {
     console.error("Failed to create user profile:", insertError);
     // Don't fail signup — the auth account exists, profile can be created later
   }
+
+  // Fire-and-forget: notify Dana of new user registration
+  notifyNewUserRegistered({
+    fullName,
+    email,
+    company: companyName,
+    industry,
+    roleTitle,
+  }).catch((err) => console.error("Notification error:", err));
 
   return { success: true };
 }

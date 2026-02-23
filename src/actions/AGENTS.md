@@ -56,6 +56,15 @@ Server actions for Manager Elevator. These run on the server only (`"use server"
 - Uses `WAR_BATTLE_SESSIONS` from `masterclass.ts` for session definitions (name, battle number)
 - Import: `import { getWarBattleSessions, markSessionComplete, saveSessionLink } from "@/actions/trackers"`
 
+## Notification Actions (`notifications.ts`)
+- `notifySessionCompleted(params)` — Emails Dana when a WAR Battle session is marked done. Params: userName, company, sessionNumber, sessionName, dateCompleted, powerpointLink
+- `notifyMilestoneUnlocked(params)` — Emails Dana when a milestone is unlocked. Params: userName, company, milestoneType (`waste_eliminator` | `ci_consultant`)
+- `notifyNewUserRegistered(params)` — Emails Dana when a new user registers. Params: fullName, email, company, industry, roleTitle
+- All notifications are fire-and-forget — call with `.catch()` to avoid blocking user actions
+- Dana's email from `DANA_NOTIFICATION_EMAIL` env var (default: danat4lssplus@gmail.com)
+- HTML template uses brand colors (navy header, off-white bg) with Manager Elevator logo
+- Import: `import { notifySessionCompleted, notifyMilestoneUnlocked, notifyNewUserRegistered } from "@/actions/notifications"`
+
 ## Gotchas
 - `cookies()` must be awaited in Next.js 14 — `const cookieStore = await cookies()`
 - Server actions can't redirect directly — return success and let client `router.push()`
