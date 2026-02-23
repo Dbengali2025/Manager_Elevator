@@ -18,6 +18,11 @@ Feature: Manager Elevator MVP - Full Product Build
 - Tracker tab components at `src/components/trackers/` — each manages own data fetching
 - Standalone scripts in `src/scripts/` — run with `npx tsx --env-file=.env.local` (no dotenv needed)
 - Embeddings: `insforgeEmbeddings.create({ input })` in `src/lib/insforge.ts` — 1536-dim vectors for pgvector
+- Chat actions at `src/actions/chat.ts` — CRUD for conversations and messages tables
+- CI Professor page at `src/app/(dashboard)/ci-professor/page.tsx` — full chat UI with history, starter questions, typing indicator
+- RAG chat API at `src/app/api/chat/route.ts` — streaming SSE endpoint for AI responses with book context
+- RPC function `match_book_embeddings` for pgvector semantic search — migration 004
+- Streaming pattern: fetch → ReadableStream reader → parse SSE `data:` lines → accumulate content
 
 ## Key References
 - PRD: /tasks/prd-manager-elevator-mvp.md
@@ -644,4 +649,75 @@ Session: Ingest book content into pgvector for RAG
   - pgvector embedding column requires JSON-stringified array for insert via REST API
   - `book_embeddings` RLS: SELECT for authenticated users, INSERT restricted to admin role
   - For RAG queries (US-024): embed question → cosine similarity search → top-5 chunks as context
+---
+
+## 2026-02-23 - US-023
+Session: CI Professor chat UI
+- Created `src/actions/chat.ts` with server actions:
+  - `getConversations()` — fetches all conversations for user, ordered by created_at desc
+  - `getMessages(conversationId)` — fetches messages for a conversation, ordered by created_at asc
+  - `createConversation(title)` — creates a new conversation, returns the created record
+  - `sendMessage(conversationId, role, content)` — saves a user or assistant message
+  - `updateConversationTitle(conversationId, title)` — updates conversation title
+  - `deleteConversation(conversationId)` — deletes conversation (messages cascade via FK)
+- Created `src/app/(dashboard)/ci-professor/page.tsx` — client component with:
+  - Full chat interface with message bubbles: user (sky blue, right) and AI (white, left)
+  - Text input at bottom with send button (navy), Enter to send, Shift+Enter for newline
+  - Auto-resizing textarea (max 150px height)
+  - "New Chat" button in header to start fresh conversation
+  - Empty state with 3 starter questions — clicking sends as first message
+  - Chat history dropdown in header with conversation list, active highlighting, and inline delete confirmation
+  - Typing indicator (3 animated dots) while waiting for AI response
+  - Optimistic message display — user message appears immediately
+  - Conversation auto-created on first message with truncated title (50 chars)
+  - Full-height layout: `h-[calc(100vh-128px)]`
+  - Professor avatar (navy circle, graduation cap) and user avatar (mint green, "U")
+  - Timestamps on each message bubble
+  - Placeholder AI response for UI-only phase — actual RAG integration in US-024
+- Updated AGENTS.md (root, src/actions) with CI Professor and Chat Actions sections
+- Files changed: src/actions/chat.ts, src/app/(dashboard)/ci-professor/page.tsx, AGENTS.md, src/actions/AGENTS.md
+- **Learnings for future iterations:**
+  - Insforge REST API insert returns array by default with `Prefer: return=representation` — use `Array.isArray(data) ? data[0] : data` to extract single record
+  - Chat page uses `h-[calc(100vh-128px)]` to fill available space (64px header + 64px app header = 128px)
+  - `useRef` for both messagesEnd (auto-scroll) and textarea (focus management after send)
+  - Textarea auto-resize: set `height: auto` then `height: scrollHeight` on change, cap at 150px
+  - History dropdown uses `fixed inset-0` invisible overlay to close on outside click — lightweight alternative to Headless UI Dialog for simple dropdowns
+  - Delete confirmation uses inline pattern (Delete/Cancel buttons) instead of a separate modal — less overhead for simple confirmations
+  - Conversation created lazily on first message send — avoids empty conversation records
+  - Placeholder AI response in US-023 will be replaced by actual RAG pipeline in US-024
+---
+
+## 2026-02-23 - US-024
+Session: Integrate RAG pipeline and streaming AI responses for CI Professor
+- Created `src/app/api/chat/route.ts` — POST endpoint with full RAG pipeline:
+  - Authenticates user via `access_token` cookie + `insforgeAuth.getUser()`
+  - Embeds user question via `insforgeEmbeddings.create()` (openai/text-embedding-3-small, 1536 dims)
+  - Queries pgvector for top-5 similar book chunks via RPC `match_book_embeddings`
+  - Fallback direct pgvector query if RPC function not available
+  - Builds LLM messages: system prompt (CI Professor personality) + book context + last 10 history messages + user question
+  - Streams GPT-4o response via Insforge OpenRouter `/ai/v1/chat/completions` with `stream: true`
+  - TransformStream extracts `choices[0].delta.content` from OpenAI-compatible SSE stream
+  - Returns cleaned SSE stream with `data: {"content": "token"}\n\n` format
+- Created `src/db/migrations/004_match_book_embeddings_fn.sql` — RPC function for semantic search:
+  - `match_book_embeddings(query_embedding vector(1536), match_count int)` returns chunks with similarity scores
+  - Uses `1 - (embedding <=> query_embedding)` for cosine similarity
+- Updated `src/app/(dashboard)/ci-professor/page.tsx`:
+  - Replaced placeholder AI response with streaming fetch to `/api/chat`
+  - Added `isStreaming` and `streamingContent` state for live token display
+  - Streaming message bubble with blinking cursor indicator during token arrival
+  - Error state display below messages if AI call fails
+  - SSE stream parsed via ReadableStream reader with buffer for split chunks
+  - After streaming completes, full content saved to messages table via `sendMessage()`
+  - Falls back to optimistic message display if save fails
+  - Conversation history passed to API for multi-turn context
+- Updated AGENTS.md files: root, src/app/api/chat/, src/actions/, src/db/
+- Files changed: src/app/api/chat/route.ts, src/app/api/chat/AGENTS.md, src/db/migrations/004_match_book_embeddings_fn.sql, src/app/(dashboard)/ci-professor/page.tsx, AGENTS.md, src/actions/AGENTS.md, src/db/AGENTS.md, scripts/ralph/prd.json
+- **Learnings for future iterations:**
+  - Next.js Route Handlers support `cookies()` from `next/headers` — same as server actions
+  - Streaming requires both server-side TransformStream (to process upstream SSE) and client-side ReadableStream reader (to parse downstream SSE)
+  - SSE chunks can be split across multiple reads — must use a buffer pattern: `buffer += decode, split on \n, keep last incomplete line`
+  - `insforgeEmbeddings` and `insforgeAI` use API key only (no JWT needed) — unlike REST client which requires user token
+  - RPC functions called via POST to `/rest/v1/rpc/{function_name}` — input as JSON body
+  - `stream: true` in OpenAI-compatible API returns SSE with `data: {"choices":[{"delta":{"content":"..."}}]}` format
+  - Off-topic redirect message defined in system prompt — no client-side filtering needed
 ---

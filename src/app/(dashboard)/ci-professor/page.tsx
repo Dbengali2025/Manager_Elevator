@@ -176,7 +176,13 @@ function TypingIndicator() {
 // Message bubble
 // ---------------------------------------------------------------------------
 
-function MessageBubble({ message }: { message: Message }) {
+function MessageBubble({
+  message,
+  isStreaming,
+}: {
+  message: Message;
+  isStreaming?: boolean;
+}) {
   const isUser = message.role === "user";
 
   return (
@@ -195,17 +201,24 @@ function MessageBubble({ message }: { message: Message }) {
             : "bg-white text-charcoal rounded-tl-none border border-paleGray"
         }`}
       >
-        <p className="text-body whitespace-pre-wrap">{message.content}</p>
-        <p
-          className={`text-[11px] mt-xs ${
-            isUser ? "text-white/60" : "text-charcoal/40"
-          }`}
-        >
-          {new Date(message.created_at).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
+        <p className="text-body whitespace-pre-wrap">
+          {message.content}
+          {isStreaming && (
+            <span className="inline-block w-1 h-4 ml-0.5 bg-charcoal/60 animate-pulse align-text-bottom" />
+          )}
         </p>
+        {!isStreaming && (
+          <p
+            className={`text-[11px] mt-xs ${
+              isUser ? "text-white/60" : "text-charcoal/40"
+            }`}
+          >
+            {new Date(message.created_at).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -238,8 +251,11 @@ export default function CIProfessorPage() {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingContent, setStreamingContent] = useState("");
   const [historyOpen, setHistoryOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [chatError, setChatError] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -251,7 +267,7 @@ export default function CIProfessorPage() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isSending, scrollToBottom]);
+  }, [messages, isSending, streamingContent, scrollToBottom]);
 
   // Load conversations on mount
   const fetchConversations = useCallback(async () => {
@@ -311,7 +327,7 @@ export default function CIProfessorPage() {
     [activeConversationId]
   );
 
-  // Send a message
+  // Send a message with streaming AI response
   const handleSend = useCallback(
     async (text?: string) => {
       const content = (text ?? inputValue).trim();
@@ -319,6 +335,7 @@ export default function CIProfessorPage() {
 
       setInputValue("");
       setIsSending(true);
+      setChatError(null);
 
       let conversationId = activeConversationId;
 
@@ -329,6 +346,7 @@ export default function CIProfessorPage() {
         const result = await createConversation(title);
         if (!result.success || !result.data) {
           setIsSending(false);
+          setChatError("Failed to create conversation. Please try again.");
           return;
         }
         conversationId = result.data.id;
@@ -350,36 +368,113 @@ export default function CIProfessorPage() {
       const userResult = await sendMessage(conversationId, "user", content);
 
       if (userResult.success && userResult.data) {
-        // Replace optimistic message with real one
         setMessages((prev) =>
           prev.map((m) => (m.id === optimisticUserMsg.id ? userResult.data! : m))
         );
       }
 
-      // Show typing indicator by keeping isSending=true
-      // For US-023 (UI only), we simulate an AI response placeholder.
-      // Actual AI integration happens in US-024.
-      const placeholderResponse =
-        "I'm the CI Done Right Professor. I'll be fully connected to the book knowledge base soon! In the meantime, ask me anything about continuous improvement methodology.";
+      // Build conversation history for context
+      const history = messages
+        .filter((m) => !m.id.startsWith("temp-"))
+        .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
 
-      // Simulate brief delay for natural feel
-      await new Promise((resolve) => setTimeout(resolve, 1200));
+      // Start streaming AI response
+      setIsStreaming(true);
+      setStreamingContent("");
 
-      // Save assistant response
-      const assistantResult = await sendMessage(
-        conversationId,
-        "assistant",
-        placeholderResponse
-      );
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: content,
+            conversationId,
+            history,
+          }),
+        });
 
-      if (assistantResult.success && assistantResult.data) {
-        setMessages((prev) => [...prev, assistantResult.data!]);
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || "Failed to get AI response");
+        }
+
+        if (!res.body) {
+          throw new Error("No response stream available");
+        }
+
+        // Read the SSE stream
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let fullContent = "";
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          // Keep last incomplete line in buffer
+          buffer = lines.pop() ?? "";
+
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            const data = line.slice(6).trim();
+            if (data === "[DONE]") continue;
+
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.content) {
+                fullContent += parsed.content;
+                setStreamingContent(fullContent);
+              }
+            } catch {
+              // Skip unparseable SSE data
+            }
+          }
+        }
+
+        // Streaming complete — save assistant message and add to messages
+        setIsStreaming(false);
+        setStreamingContent("");
+
+        if (fullContent) {
+          const assistantResult = await sendMessage(
+            conversationId,
+            "assistant",
+            fullContent
+          );
+
+          if (assistantResult.success && assistantResult.data) {
+            setMessages((prev) => [...prev, assistantResult.data!]);
+          } else {
+            // Still show the message even if save fails
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: `temp-ai-${Date.now()}`,
+                conversation_id: conversationId,
+                role: "assistant" as const,
+                content: fullContent,
+                created_at: new Date().toISOString(),
+              },
+            ]);
+          }
+        }
+      } catch (err) {
+        setIsStreaming(false);
+        setStreamingContent("");
+        setChatError(
+          err instanceof Error
+            ? err.message
+            : "Something went wrong. Please try again."
+        );
       }
 
       setIsSending(false);
       inputRef.current?.focus();
     },
-    [inputValue, isSending, activeConversationId]
+    [inputValue, isSending, activeConversationId, messages]
   );
 
   // Handle Enter key (Shift+Enter for newline)
@@ -560,7 +655,26 @@ export default function CIProfessorPage() {
               {messages.map((msg) => (
                 <MessageBubble key={msg.id} message={msg} />
               ))}
-              {isSending && <TypingIndicator />}
+              {isStreaming && streamingContent && (
+                <MessageBubble
+                  message={{
+                    id: "streaming",
+                    conversation_id: "",
+                    role: "assistant",
+                    content: streamingContent,
+                    created_at: new Date().toISOString(),
+                  }}
+                  isStreaming
+                />
+              )}
+              {isSending && !isStreaming && <TypingIndicator />}
+              {chatError && (
+                <div className="flex justify-center">
+                  <div className="rounded-lg bg-error/10 border border-error/20 px-md py-sm text-body text-error max-w-md text-center">
+                    {chatError}
+                  </div>
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </>
           )}

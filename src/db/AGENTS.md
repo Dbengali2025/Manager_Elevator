@@ -54,6 +54,12 @@
 - Values 1-5 map to the 5 onboarding wizard steps
 - Set to 6 when onboarding completes (past last step)
 
+## Semantic Search RPC (migration 004)
+- `match_book_embeddings(query_embedding, match_count)` — RPC function for RAG retrieval
+- Returns: id, chunk_text, chapter, section, page_range, similarity (1 - cosine distance)
+- Called via POST to `/rest/v1/rpc/match_book_embeddings` with `{ query_embedding: number[], match_count: int }`
+- Used by `/api/chat` route for CI Professor RAG pipeline
+
 ## Stage Progression
 - Use `STAGE_ORDER` constant from `types.ts` for ordered stage logic
 - Stages: onboarding → module_1 → module_2 → module_3 → module_4 → battle_1 → battle_2 → battle_3

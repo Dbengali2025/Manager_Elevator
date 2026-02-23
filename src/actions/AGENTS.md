@@ -90,6 +90,8 @@ Server actions for Manager Elevator. These run on the server only (`"use server"
 - `updateConversationTitle(conversationId, title)` — Updates a conversation's title
 - `deleteConversation(conversationId)` — Deletes a conversation (messages cascade via FK)
 - Insert returns array from Insforge REST API — use `Array.isArray(data) ? data[0] : data` to extract single record
+- AI responses are streamed from `/api/chat` route (not via server actions) — see `src/app/api/chat/AGENTS.md`
+- `sendMessage` is called after streaming completes to persist the full AI response
 - Import: `import { getConversations, getMessages, createConversation, sendMessage, updateConversationTitle, deleteConversation } from "@/actions/chat"`
 
 ## Notification Actions (`notifications.ts`)

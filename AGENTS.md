@@ -206,7 +206,9 @@
 - Professor avatar: navy circle with graduation cap icon
 - User avatar: mint green circle with "U" initial
 - Timestamps shown on each message bubble
-- US-023 uses placeholder AI response — actual RAG integration in US-024
+- Streaming AI responses via `/api/chat` — RAG pipeline embeds question, retrieves top-5 book chunks, streams GPT-4o response
+- Streaming message bubble shows blinking cursor during token arrival
+- Error state shown below messages if AI call fails
 - Server actions in `src/actions/chat.ts`:
   - `getConversations()` — fetches all conversations for user, ordered by created_at desc
   - `getMessages(conversationId)` — fetches all messages for a conversation, ordered by created_at asc
@@ -227,6 +229,20 @@
 - Dana's email: `DANA_NOTIFICATION_EMAIL` env var (default: `danat4lssplus@gmail.com`)
 - Email template: navy header with logo, white content area, off-white footer with TGE LLC branding
 - Import: `import { notifySessionCompleted, notifyMilestoneUnlocked, notifyNewUserRegistered } from "@/actions/notifications"`
+
+## RAG Chat API (`src/app/api/chat/route.ts`)
+- POST endpoint for streaming AI chat responses with RAG-retrieved book context
+- Flow: authenticate user → embed question → query pgvector (top-5 chunks) → stream GPT-4o response
+- System prompt: CI Done Right Professor personality — professorial, supportive, references book chapters
+- Off-topic questions politely redirected to CI topics
+- Embeddings via `insforgeEmbeddings.create()` (openai/text-embedding-3-small, 1536 dims)
+- Primary retrieval: Insforge RPC function `match_book_embeddings` (cosine similarity)
+- Fallback retrieval: direct pgvector query via PostgREST if RPC not available
+- Conversation history (last 10 messages) included for multi-turn context
+- Streaming: SSE format, TransformStream extracts content deltas from OpenAI-compatible stream
+- Client reads stream via `ReadableStream` reader, parses `data: {content}` events
+- Migration `004_match_book_embeddings_fn.sql` creates the RPC function for semantic search
+- No auth token needed for AI/embeddings calls (uses API key only)
 
 ## Book Ingestion / RAG (`src/scripts/ingest-book.ts`)
 - Script ingests "Bulletproof Your Manager Career" book (2059 lines, 15 chapters, 5 parts) into pgvector for RAG

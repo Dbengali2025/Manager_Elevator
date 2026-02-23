@@ -477,7 +477,7 @@
         "npm run typecheck passes"
       ],
       "priority": 23,
-      "passes": false,
+      "passes": true,
       "notes": "UI only in this story. AI integration in next story."
     },
     {
@@ -498,7 +498,7 @@
         "npm run typecheck passes"
       ],
       "priority": 24,
-      "passes": false,
+      "passes": true,
       "notes": "RAG flow: embed question \u2192 retrieve chunks \u2192 prompt with context \u2192 stream response."
     },
     {
