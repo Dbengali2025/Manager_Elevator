@@ -105,9 +105,14 @@
 - Server Component — fetches data via `getDashboardData()` server action
 - Shows welcome header with user's first name (extracted from `full_name`)
 - `JourneyProgressBar` component renders 8-stage progress visualization
+- `StatCards` renders 4 stat cards: Current Module, Sessions Done, Active Projects, Badges Earned
+- `FeatureNavigationCards` renders 5 clickable feature cards with unlock logic and status tags
+- Feature unlock rules based on onboarding completion and progress records
 - Import: `import { getDashboardData } from "@/actions/dashboard"`
 - Import: `import JourneyProgressBar from "@/components/dashboard/JourneyProgressBar"`
-- Progress data comes from `user_progress` table — each row has `stage` and `status`
+- Import: `import StatCards from "@/components/dashboard/StatCards"`
+- Import: `import FeatureNavigationCards from "@/components/dashboard/FeatureNavigationCards"`
+- `DashboardData` type includes: userName, onboardingCompleted, progressRecords, sessionsCompleted, activeProjects, milestones
 - Stage order: onboarding → module_1-4 → battle_1-3 (defined in `STAGE_ORDER`)
 
 ## Quality Checks

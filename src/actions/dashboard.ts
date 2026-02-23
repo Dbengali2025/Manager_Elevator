@@ -2,7 +2,7 @@
 
 import { insforgeClient, insforgeAuth } from "@/lib/insforge";
 import { cookies } from "next/headers";
-import type { UserProgress } from "@/db/types";
+import type { UserProgress, Milestone } from "@/db/types";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -10,7 +10,11 @@ import type { UserProgress } from "@/db/types";
 
 export interface DashboardData {
   userName: string;
+  onboardingCompleted: boolean;
   progressRecords: UserProgress[];
+  sessionsCompleted: number;
+  activeProjects: number;
+  milestones: Milestone[];
 }
 
 // ---------------------------------------------------------------------------
@@ -41,12 +45,12 @@ export async function getDashboardData(): Promise<{
     return { success: false, error: "Failed to get user info" };
   }
 
-  // Fetch user name
+  // Fetch user name and onboarding status
   const { data: users, error: userError } = await insforgeClient
     .from("users")
-    .select<Array<{ full_name: string }>>(
+    .select<Array<{ full_name: string; onboarding_completed: boolean }>>(
       token,
-      `?id=eq.${authUser.id}&select=full_name`
+      `?id=eq.${authUser.id}&select=full_name,onboarding_completed`
     );
 
   if (userError || !users || users.length === 0) {
@@ -65,11 +69,39 @@ export async function getDashboardData(): Promise<{
     console.error("Failed to fetch progress:", progressError);
   }
 
+  // Fetch completed WAR battle sessions count
+  const { data: sessions } = await insforgeClient
+    .from("war_battle_sessions")
+    .select<Array<{ id: string }>>(
+      token,
+      `?user_id=eq.${authUser.id}&status=eq.done&select=id`
+    );
+
+  // Fetch active improvement opportunities count
+  const { data: opportunities } = await insforgeClient
+    .from("improvement_opportunities")
+    .select<Array<{ id: string }>>(
+      token,
+      `?user_id=eq.${authUser.id}&status=eq.active&select=id`
+    );
+
+  // Fetch milestones
+  const { data: milestones } = await insforgeClient
+    .from("milestones")
+    .select<Milestone[]>(
+      token,
+      `?user_id=eq.${authUser.id}`
+    );
+
   return {
     success: true,
     data: {
       userName: users[0].full_name,
+      onboardingCompleted: users[0].onboarding_completed,
       progressRecords: progress ?? [],
+      sessionsCompleted: sessions?.length ?? 0,
+      activeProjects: opportunities?.length ?? 0,
+      milestones: milestones ?? [],
     },
   };
 }

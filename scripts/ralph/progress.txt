@@ -10,6 +10,8 @@ Feature: Manager Elevator MVP - Full Product Build
 - Insforge client at `src/lib/insforge.ts` — use `insforgeClient.from("table")` for REST, `insforgeAuth` for auth
 - All Insforge methods return `{ data, error }` — always check error first
 - PostgREST query syntax for filtering: `"?column=eq.value&other=gt.5"`
+- Dashboard page is a Server Component — `getDashboardData()` fetches user name + progress records
+- Dashboard components in `src/components/dashboard/` — import as `@/components/dashboard/ComponentName`
 - Database types at `src/db/types.ts` — import `User`, `UserProgress`, `Milestone`, `STAGE_ORDER`
 - SQL migrations in `src/db/migrations/` — named `NNN_description.sql`, use `IF NOT EXISTS`
 
@@ -259,4 +261,62 @@ Session: Onboarding flow - welcome and assessment steps
   - Assessment derives experience level: score 0 = beginner, 1-2 = intermediate, 3 = advanced
   - User type updated to include `onboarding_step` field — migration 003 adds this column
   - Onboarding uses emojis (&#127775; &#128737;) for milestone card previews — rendered as HTML entities
+---
+
+## 2026-02-23 - US-010
+Session: Main dashboard - journey progress bar
+- Created `src/actions/dashboard.ts` with `getDashboardData()` server action:
+  - Fetches user name from users table (for welcome header)
+  - Fetches all user_progress records (for journey progress bar)
+  - Returns `{ success, data: { userName, progressRecords } }`
+- Created `src/components/dashboard/JourneyProgressBar.tsx` — client component:
+  - 8-stage progress visualization: Onboarding → Module 1-4 → Battle 1-3
+  - Stage status logic: completed (filled sky-blue + checkmark), active (sky-blue border + number/trophy), future (gray border)
+  - Battle stages show trophy icon instead of number
+  - Connector lines: solid sky-blue for completed, dashed gray for future
+  - Horizontally scrollable on mobile (min-width 600px)
+- Updated `src/app/(dashboard)/dashboard/page.tsx`:
+  - Converted to Server Component (async, calls getDashboardData())
+  - Welcome header with user's first name
+  - JourneyProgressBar with progress records
+- Created `src/components/dashboard/AGENTS.md`
+- Updated root AGENTS.md and src/actions/AGENTS.md
+- Files changed: src/actions/dashboard.ts, src/components/dashboard/JourneyProgressBar.tsx, src/components/dashboard/AGENTS.md, src/app/(dashboard)/dashboard/page.tsx, AGENTS.md, src/actions/AGENTS.md
+- **Learnings for future iterations:**
+  - Dashboard page is a Server Component (async function) — data fetching happens server-side, no "use client"
+  - JourneyProgressBar is a client component (needs no interactivity but imports are simpler this way)
+  - `getStageStatus` determines active stage by checking if all prior stages are completed — doesn't require an explicit "in_progress" record
+  - `contents` CSS class lets flex items render flat without an extra wrapper div
+  - Connector line offset uses `mt-[-12px]` to align with circle centers vertically
+---
+
+## 2026-02-23 - US-011
+Session: Dashboard stat cards and feature navigation cards
+- Expanded `getDashboardData()` server action to fetch:
+  - `onboarding_completed` from users table
+  - `sessionsCompleted` count from war_battle_sessions (status=done)
+  - `activeProjects` count from improvement_opportunities (status=active)
+  - `milestones` from milestones table (for badges earned)
+- Created `src/components/dashboard/StatCards.tsx` — 4 stat cards:
+  - Current Module (derived from progress), Sessions Done, Active Projects, Badges Earned
+  - 2x2 grid on mobile, 4 across on desktop
+  - White bg, rounded-lg, shadow-sm, large number display
+- Created `src/components/dashboard/FeatureNavigationCards.tsx` — 5 feature nav cards:
+  - Onboarding, Masterclass, CI Trackers, Success Dashboard, CI Professor
+  - Status tags: Complete (green), In Progress (blue), Up Next (orange), Locked (gray)
+  - Feature unlock rules per acceptance criteria
+  - Locked cards disabled with lock icon and opacity-60
+  - Unlocked cards navigate via router.push()
+  - Top border accent for complete (green) and in_progress (blue)
+  - Responsive grid: 1 col mobile → 2 cols tablet → 5 cols desktop
+- Updated dashboard page to render all three sections: progress bar, stat cards, feature cards
+- Updated AGENTS.md (root, dashboard components, actions)
+- Files changed: src/actions/dashboard.ts, src/components/dashboard/StatCards.tsx, src/components/dashboard/FeatureNavigationCards.tsx, src/app/(dashboard)/dashboard/page.tsx, src/components/dashboard/AGENTS.md, src/actions/AGENTS.md, AGENTS.md
+- **Learnings for future iterations:**
+  - `DashboardData` type expanded — other dashboard components should use this same server action
+  - Feature unlock logic is per-card via `getStatus()` callback — easy to modify rules per feature
+  - Status config map pattern: define all visual variants in a const object, look up by status key
+  - Insforge `select` with `&select=id` returns minimal data — good for count queries
+  - Milestones filtered client-side with `.filter(m => m.unlocked).length` for badge count
+  - SVG icons inline as React components — icon per feature card with matching brand colors
 ---

@@ -1,5 +1,7 @@
 import { getDashboardData } from "@/actions/dashboard";
 import JourneyProgressBar from "@/components/dashboard/JourneyProgressBar";
+import StatCards from "@/components/dashboard/StatCards";
+import FeatureNavigationCards from "@/components/dashboard/FeatureNavigationCards";
 
 export default async function DashboardPage() {
   const result = await getDashboardData();
@@ -7,6 +9,11 @@ export default async function DashboardPage() {
   const userName = result.data?.userName ?? "there";
   const firstName = userName.split(" ")[0];
   const progressRecords = result.data?.progressRecords ?? [];
+  const onboardingCompleted = result.data?.onboardingCompleted ?? false;
+  const sessionsCompleted = result.data?.sessionsCompleted ?? 0;
+  const activeProjects = result.data?.activeProjects ?? 0;
+  const milestones = result.data?.milestones ?? [];
+  const badgesEarned = milestones.filter((m) => m.unlocked).length;
 
   return (
     <div className="space-y-lg">
@@ -22,6 +29,20 @@ export default async function DashboardPage() {
 
       {/* Journey progress bar */}
       <JourneyProgressBar progressRecords={progressRecords} />
+
+      {/* Stat cards */}
+      <StatCards
+        progressRecords={progressRecords}
+        sessionsCompleted={sessionsCompleted}
+        activeProjects={activeProjects}
+        badgesEarned={badgesEarned}
+      />
+
+      {/* Feature navigation cards */}
+      <FeatureNavigationCards
+        onboardingCompleted={onboardingCompleted}
+        progressRecords={progressRecords}
+      />
     </div>
   );
 }

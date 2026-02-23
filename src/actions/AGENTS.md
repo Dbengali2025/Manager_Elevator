@@ -29,9 +29,14 @@ Server actions for Manager Elevator. These run on the server only (`"use server"
 - Helper `deriveExperienceLevel(answers)` — Scores answers to determine beginner/intermediate/advanced
 
 ## Dashboard Actions (`dashboard.ts`)
-- `getDashboardData()` — Returns user name + all progress records from `user_progress` table
-- Returns `{ success, error?, data?: { userName, progressRecords } }`
-- Progress records used by `JourneyProgressBar` to determine stage states
+- `getDashboardData()` — Returns user info, progress records, session/project counts, and milestones
+- Returns `{ success, error?, data?: DashboardData }` where `DashboardData` includes:
+  - `userName` — full name from users table
+  - `onboardingCompleted` — boolean from users table
+  - `progressRecords` — all user_progress records (for journey bar + feature unlock logic)
+  - `sessionsCompleted` — count of war_battle_sessions with status=done
+  - `activeProjects` — count of improvement_opportunities with status=active
+  - `milestones` — all milestone records (for badges earned count)
 - Helper `getToken()` — same pattern as onboarding (reads access_token from cookies)
 - Import: `import { getDashboardData } from "@/actions/dashboard"`
 
