@@ -19,7 +19,7 @@
         "npm run build passes"
       ],
       "priority": 1,
-      "passes": false,
+      "passes": true,
       "notes": "Foundation task. All subsequent tasks depend on this."
     },
     {

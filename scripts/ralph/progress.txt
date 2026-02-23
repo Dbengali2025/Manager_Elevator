@@ -26,3 +26,21 @@ Feature: Manager Elevator MVP - Full Product Build
 - Breakpoints: 640px, 768px, 1024px, 1280px
 
 ---
+
+## 2026-02-23 - US-001
+Session: Initial setup
+- Scaffolded Next.js 14 with App Router, TypeScript, Tailwind CSS
+- Configured Tailwind with all design system tokens (colors, spacing, radius, fonts, typography)
+- Loaded Google Fonts: Tenor Sans (headings) and Montserrat (body) via next/font/google
+- Installed Headless UI (@headlessui/react)
+- Set up base layout.tsx with font CSS variables and font-body default
+- Added typecheck script to package.json
+- Removed default Geist fonts and boilerplate page
+- Created root AGENTS.md with project patterns
+- Files changed: package.json, tailwind.config.ts, src/app/layout.tsx, src/app/globals.css, src/app/page.tsx, AGENTS.md
+- **Learnings for future iterations:**
+  - Tenor Sans only has weight 400 — must specify `weight: "400"` explicitly
+  - Project dir has space ("Manager Elevator") — always quote paths
+  - next/font/google uses CSS variables (--font-montserrat, --font-tenor-sans) applied via Tailwind fontFamily config
+  - `font-body` class applies Montserrat, `font-heading` applies Tenor Sans
+---
