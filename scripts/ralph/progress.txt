@@ -144,3 +144,27 @@ Session: Sidebar navigation and app layout shell
   - `flex-shrink-0` on sidebar prevents it from shrinking when content is wide
   - `overflow-hidden` on root container prevents double scrollbars — only content area scrolls
 ---
+
+## 2026-02-23 - US-006
+Session: Landing page (public)
+- Replaced placeholder `src/app/page.tsx` with full landing page
+- Sections: sticky header, hero (navy-to-teal gradient), value props (4 cards), features list with milestone previews, pricing (monthly $97 / annual $1,000), CTA, footer
+- Hero headline: "Finally Execute Continuous Improvement the Right Way — Without the Expensive Consultant."
+- Subheadline about practical step-by-step guidance for Black middle managers
+- 4 value prop cards: Practical Implementation, 14-Week Methodology, Career Advancement, Affordable Access
+- Pricing section with monthly and annual plans, "Best Value" badge on annual
+- Primary CTA: "Start Your Journey" linking to /signup throughout
+- Manager Elevator logo in header and footer via next/image
+- TGE brand colors throughout (navy, sky blue, mint green, teal)
+- Mobile-responsive with Tailwind sm/lg breakpoints
+- Tenor Sans for headings, Montserrat for body text
+- Updated root AGENTS.md with Landing Page section
+- Files changed: src/app/page.tsx, AGENTS.md
+- **Learnings for future iterations:**
+  - Landing page is a Server Component (no `"use client"`) — keeps JS bundle small (186 B route size)
+  - Use `next/image` with `priority` for above-the-fold images (logo in header)
+  - Gradient backgrounds: `bg-gradient-to-br from-navy via-navy to-teal` for hero sections
+  - Decorative blur circles: absolute positioned divs with `blur-3xl` and low opacity for subtle background effects
+  - In-page anchor links work with `id="pricing"` and `href="#pricing"`
+  - SVG icons inline as React components avoid external dependencies
+---

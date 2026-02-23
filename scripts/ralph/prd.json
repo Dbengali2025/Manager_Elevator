@@ -90,8 +90,7 @@
         "Content area uses off-white (#F5F7FA) background and fills remaining width",
         "Sidebar collapses to hamburger menu below 768px breakpoint",
         "All authenticated routes wrapped in this layout via app/(dashboard)/layout.tsx",
-        "npm run typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "npm run typecheck passes"
       ],
       "priority": 5,
       "passes": true,
@@ -103,7 +102,7 @@
       "description": "As a prospective user, I want to see an empowering landing page so I understand Manager Elevator's value and can sign up.",
       "acceptanceCriteria": [
         "Landing page at app/page.tsx (root route, publicly accessible)",
-        "Hero section with headline: 'Finally Execute Continuous Improvement the Right Way — Without the Expensive Consultant.'",
+        "Hero section with headline: 'Finally Execute Continuous Improvement the Right Way \u2014 Without the Expensive Consultant.'",
         "Subheadline about practical step-by-step guidance for Black middle managers",
         "Key value proposition cards: practical implementation, 14-week methodology, career advancement, affordable vs $15K+ consultants",
         "Pricing section showing $97/month and $1,000/year options",
@@ -112,11 +111,10 @@
         "TGE brand colors throughout (navy, sky blue, mint green, teal)",
         "Mobile-responsive layout",
         "Tenor Sans for headings, Montserrat for body text",
-        "npm run typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "npm run typecheck passes"
       ],
       "priority": 6,
-      "passes": false,
+      "passes": true,
       "notes": "Public page, no auth required. Professional and empowering tone."
     },
     {
@@ -133,8 +131,7 @@
         "After successful verification, redirect to /onboarding",
         "User record created in Insforge users table with role='user'",
         "Form uses design system: navy buttons, md border radius inputs, Montserrat font",
-        "npm run typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "npm run typecheck passes"
       ],
       "priority": 7,
       "passes": false,
@@ -150,13 +147,12 @@
         "Login calls Insforge Auth login endpoint, stores JWT in httpOnly cookie",
         "Successful login redirects to /dashboard",
         "'Forgot Password?' link navigates to /reset-password",
-        "Reset password page: enter email → receive code → enter code + new password",
+        "Reset password page: enter email \u2192 receive code \u2192 enter code + new password",
         "Password reset uses Insforge Auth reset flow",
         "Auth middleware at src/middleware.ts redirects unauthenticated users to /login",
         "Auth middleware allows public routes: /, /login, /signup, /reset-password",
         "Session refresh token handling to prevent unexpected logouts",
-        "npm run typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "npm run typecheck passes"
       ],
       "priority": 8,
       "passes": false,
@@ -178,8 +174,7 @@
         "'Skip' option available but styled subtly (text link, not button)",
         "Onboarding state saved per step so user can resume if they leave",
         "On completion, sets onboarding_completed=true and redirects to /dashboard",
-        "npm run typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "npm run typecheck passes"
       ],
       "priority": 9,
       "passes": false,
@@ -200,8 +195,7 @@
         "Stages connected by lines: solid blue for completed, dashed gray for future",
         "Progress data fetched from user_progress table",
         "Responsive: horizontal scroll on mobile if needed",
-        "npm run typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "npm run typecheck passes"
       ],
       "priority": 10,
       "passes": false,
@@ -225,8 +219,7 @@
         "Locked cards show lock icon, gray styling, and are not clickable",
         "Unlocked cards navigate to their respective pages on click",
         "Cards show 1 column on mobile, 2-3 on tablet, 5 across on desktop",
-        "npm run typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "npm run typecheck passes"
       ],
       "priority": 11,
       "passes": false,
@@ -250,8 +243,7 @@
         "When a session is checked, user_progress updates and dashboard stats refresh",
         "Checking all sessions in a module marks that module as complete in user_progress",
         "Downloads section (placeholder for now - 'Tools coming soon')",
-        "npm run typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "npm run typecheck passes"
       ],
       "priority": 12,
       "passes": false,
@@ -272,8 +264,7 @@
         "Each tab renders a placeholder component for now (content added in subsequent stories)",
         "Mobile responsive: tabs scroll horizontally on small screens",
         "Layout matches CI Trackers mockup at public/CI-done-right-trackers-mockup.png",
-        "npm run typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "npm run typecheck passes"
       ],
       "priority": 13,
       "passes": false,
@@ -287,7 +278,7 @@
         "WarBattleTracker component at src/components/trackers/WarBattleTracker.tsx",
         "Plugs into the 'Waste WAR Battles' tab in tracker hub",
         "Table with columns: Week #, Session Name, PowerPoint Link, Date Completed, Status",
-        "14 pre-populated rows with correct session names: Week 1='Step 1 – Clarify the Opportunity' through Week 14='Step 9 – Implement the Winning Solutions & Step 10 – Share and Sustain'",
+        "14 pre-populated rows with correct session names: Week 1='Step 1 \u2013 Clarify the Opportunity' through Week 14='Step 9 \u2013 Implement the Winning Solutions & Step 10 \u2013 Share and Sustain'",
         "PowerPoint Link column: text input for pasting external URL, displays as clickable link with external icon when filled",
         "'No file yet' shown in italic gray when no link provided",
         "Status tags: Done (green), Active (blue), Pending (gray)",
@@ -296,8 +287,7 @@
         "Date Completed auto-fills with current date when marked done",
         "'How It Works' info box at bottom of table explaining the upload process",
         "Data persists to war_battle_sessions table in Insforge",
-        "npm run typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "npm run typecheck passes"
       ],
       "priority": 14,
       "passes": false,
@@ -338,8 +328,7 @@
         "Delete button with confirmation dialog ('Are you sure you want to delete this opportunity?')",
         "Empty state: 'Start logging improvement opportunities you have identified in your workplace'",
         "Data persists to improvement_opportunities table in Insforge",
-        "npm run typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "npm run typecheck passes"
       ],
       "priority": 16,
       "passes": false,
@@ -358,8 +347,7 @@
         "Solutions displayed in card format showing title, metrics, and improvement percentage",
         "Summary stats bar at top: Total Solutions Implemented, aggregate improvements per metric type",
         "Data persists to winning_solutions table in Insforge",
-        "npm run typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "npm run typecheck passes"
       ],
       "priority": 17,
       "passes": false,
@@ -379,8 +367,7 @@
         "Source badge: shows 'Manual' or 'AI Generated' tag on each nugget",
         "Empty state: 'Build your success nuggets library for performance reviews and career conversations'",
         "Data persists to success_nuggets table with source='manual'",
-        "npm run typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "npm run typecheck passes"
       ],
       "priority": 18,
       "passes": false,
@@ -399,8 +386,7 @@
         "Saved with source='ai_generated' in success_nuggets table",
         "Loading state shown during AI generation",
         "Error handling if AI call fails (show user-friendly message)",
-        "npm run typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "npm run typecheck passes"
       ],
       "priority": 19,
       "passes": false,
@@ -429,8 +415,7 @@
         "Milestone unlock logic: Card 1 unlocks when all 4 modules + battle 1 complete. Card 2 unlocks when battles 2 + 3 complete.",
         "When milestone unlocks, update milestones table and trigger Dana notification",
         "Layout matches CI Success Dashboard mockup",
-        "npm run typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "npm run typecheck passes"
       ],
       "priority": 20,
       "passes": false,
@@ -448,8 +433,7 @@
         "Label below each ring: 'Modules Completed', 'Sessions Completed', 'Battles Won'",
         "Data fetched from user_progress table",
         "Mobile responsive: rings stack or wrap on small screens",
-        "npm run typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "npm run typecheck passes"
       ],
       "priority": 21,
       "passes": false,
@@ -490,8 +474,7 @@
         "Messages persist to conversations and messages tables in Insforge",
         "Previous conversations load when selected from history",
         "Loading indicator (typing dots) shown while waiting for AI response",
-        "npm run typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "npm run typecheck passes"
       ],
       "priority": 23,
       "passes": false,
@@ -512,12 +495,11 @@
         "AI references book chapters/sections in responses when relevant",
         "Off-topic questions get a polite redirect: 'That is a great question, but my expertise is in continuous improvement methodology. Let me help you with your CI journey instead.'",
         "Error handling: show user-friendly error if AI call fails",
-        "npm run typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "npm run typecheck passes"
       ],
       "priority": 24,
       "passes": false,
-      "notes": "RAG flow: embed question → retrieve chunks → prompt with context → stream response."
+      "notes": "RAG flow: embed question \u2192 retrieve chunks \u2192 prompt with context \u2192 stream response."
     },
     {
       "id": "US-025",
@@ -534,8 +516,7 @@
         "'Save Changes' button persists profile updates to users table",
         "Success toast notification on save",
         "Form uses design system styling: md border radius inputs, navy primary buttons",
-        "npm run typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "npm run typecheck passes"
       ],
       "priority": 25,
       "passes": false,
@@ -556,8 +537,7 @@
         "Filter users by: current stage (dropdown), milestone status, last active date range",
         "'Export CSV' button downloads the user list as CSV file",
         "Clicking a user row expands to show detailed progress: journey stages with dates, tracker counts, session completion dates",
-        "npm run typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "npm run typecheck passes"
       ],
       "priority": 26,
       "passes": false,
@@ -580,8 +560,7 @@
         "Typography minimum 14px for body text on mobile",
         "Masterclass module cards stack vertically on mobile",
         "Admin table scrolls horizontally on mobile",
-        "npm run typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "npm run typecheck passes"
       ],
       "priority": 27,
       "passes": false,

@@ -50,6 +50,16 @@
 - Content area: off-white background, `overflow-y-auto`, padded with `p-lg`
 - Import: `import AppLayout from "@/components/layout/AppLayout"`
 
+## Landing Page (`src/app/page.tsx`)
+- Public page at root route `/` — no auth required
+- Uses `next/image` for logo with priority loading
+- Sticky header with logo, Log In, and Sign Up links
+- Hero section with navy-to-teal gradient background and decorative blur circles
+- Links to `/signup` for CTAs and `/login` for returning users
+- Pricing section uses `id="pricing"` anchor for in-page linking from hero
+- Footer shows TGE LLC copyright with dynamic year
+- All sections mobile-responsive with Tailwind breakpoints (sm/lg)
+
 ## Quality Checks
 - `npm run typecheck` — TypeScript strict mode
 - `npm run build` — Full Next.js production build
