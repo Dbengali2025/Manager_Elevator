@@ -112,6 +112,19 @@ Server actions for Manager Elevator. These run on the server only (`"use server"
 - Import: `import { getProfileData, updateProfile, changePassword } from "@/actions/settings"`
 - Import type: `import type { ProfileData } from "@/actions/settings"`
 
+## Admin Actions (`admin.ts`)
+- `getAdminDashboardData()` — Fetches all users (role=user), their progress records, milestones, and WAR battle sessions; computes overview stats
+- `checkIsAdmin()` — Returns boolean indicating if the current user has admin role
+- Helper `verifyAdmin(token)` — Checks user role in users table; returns `{ userId, isAdmin }`
+- Helper `groupBy(items, key)` — Groups array items by a key field into Record<string, T[]>
+- Helper `formatStageName(stage)` — Converts stage key to display name (e.g., "module_1" → "Module 1")
+- Returns `AdminDashboardData` with `stats` (totalUsers, activeUsersLast7Days, averageOnboardingRate) and `users` (AdminUser[])
+- `AdminUser` type includes: id, full_name, email, company_name, industry, role_title, current_stage, sessions_completed, last_active, milestones[], progress_records[], war_sessions[]
+- Admin check uses users table `role` column (not auth metadata)
+- Non-admin users are redirected to /dashboard by the page component
+- Import: `import { getAdminDashboardData, checkIsAdmin } from "@/actions/admin"`
+- Import types: `import type { AdminUser, AdminOverviewStats, AdminDashboardData } from "@/actions/admin"`
+
 ## Gotchas
 - `cookies()` must be awaited in Next.js 14 — `const cookieStore = await cookies()`
 - Server actions can't redirect directly — return success and let client `router.push()`

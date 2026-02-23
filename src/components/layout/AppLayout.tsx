@@ -6,7 +6,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Dialog, Transition } from "@headlessui/react";
 
-const navigation = [
+interface NavItem {
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ active: boolean }>;
+  adminOnly?: boolean;
+}
+
+const navigation: NavItem[] = [
   {
     name: "Dashboard",
     href: "/dashboard",
@@ -32,9 +39,15 @@ const navigation = [
     href: "/ci-professor",
     icon: CIProfessorIcon,
   },
+  {
+    name: "Admin",
+    href: "/admin",
+    icon: AdminIcon,
+    adminOnly: true,
+  },
 ];
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default function AppLayout({ children, isAdmin = false }: { children: React.ReactNode; isAdmin?: boolean }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -66,7 +79,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               leaveTo="-translate-x-full"
             >
               <Dialog.Panel className="relative flex w-[240px] flex-col">
-                <SidebarContent pathname={pathname} onNavigate={() => setSidebarOpen(false)} />
+                <SidebarContent pathname={pathname} isAdmin={isAdmin} onNavigate={() => setSidebarOpen(false)} />
               </Dialog.Panel>
             </Transition.Child>
           </div>
@@ -75,7 +88,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* Desktop sidebar */}
       <div className="hidden md:flex md:w-[240px] md:flex-shrink-0">
-        <SidebarContent pathname={pathname} />
+        <SidebarContent pathname={pathname} isAdmin={isAdmin} />
       </div>
 
       {/* Main content area */}
@@ -125,11 +138,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
 function SidebarContent({
   pathname,
+  isAdmin = false,
   onNavigate,
 }: {
   pathname: string;
+  isAdmin?: boolean;
   onNavigate?: () => void;
 }) {
+  const visibleNavItems = navigation.filter((item) => !item.adminOnly || isAdmin);
+
   return (
     <div className="flex h-full flex-col bg-navy">
       {/* Logo */}
@@ -146,7 +163,7 @@ function SidebarContent({
 
       {/* Navigation */}
       <nav className="mt-md flex-1 px-sm">
-        {navigation.map((item) => {
+        {visibleNavItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link
@@ -235,6 +252,15 @@ function CIProfessorIcon({ active }: { active: boolean }) {
       <path d="M4 6a6 6 0 0112 0v4a4 4 0 01-4 4H8a4 4 0 01-4-4V6z" />
       <circle cx="8" cy="8" r="1" fill="currentColor" />
       <circle cx="12" cy="8" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+function AdminIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={active ? "text-white" : "text-white/70"}>
+      <path d="M10 1L3 5v6c0 5.5 3 8.3 7 9 4-.7 7-3.5 7-9V5l-7-4z" />
+      <path d="M8 10l2 2 4-4" />
     </svg>
   );
 }

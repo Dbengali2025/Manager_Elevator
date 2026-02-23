@@ -244,6 +244,24 @@
   - `changePassword(currentPassword, newPassword)` — verifies current password via login, then updates
 - Import: `import { getProfileData, updateProfile, changePassword } from "@/actions/settings"`
 
+## Admin Dashboard (`src/app/(dashboard)/admin/page.tsx`)
+- Client component with admin-only access (redirects non-admins to /dashboard)
+- Overview stats: total users, active users (7 days), onboarding completion rate
+- User list table with columns: Name, Company, Industry, Current Stage, Sessions Completed, Last Active, Milestones
+- Filter dropdowns: current stage, milestone status, last active date range
+- "Export CSV" button downloads filtered user list as CSV
+- Clickable rows expand to show detailed user progress: journey stages with dates, completed sessions, tracker summary
+- Stage badges with color coding: Not Started (gray), Onboarding (orange), Modules (blue), Battles (teal), Battle 3 (green)
+- Milestone badges: WE (Waste Eliminator, sky blue), CC (CI Consultant, mint green)
+- Admin nav item in sidebar only visible for admin users (via `isAdmin` prop from layout)
+- Route protection: `checkIsAdmin()` called in page useEffect, redirects if false
+- `(dashboard)/layout.tsx` checks admin status server-side and passes `isAdmin` prop to `AppLayout`
+- Server actions in `src/actions/admin.ts`:
+  - `getAdminDashboardData()` — fetches all users with progress, milestones, and sessions
+  - `checkIsAdmin()` — boolean check for current user's admin role
+- Import: `import { getAdminDashboardData, checkIsAdmin } from "@/actions/admin"`
+- Import types: `import type { AdminUser, AdminOverviewStats } from "@/actions/admin"`
+
 ## RAG Chat API (`src/app/api/chat/route.ts`)
 - POST endpoint for streaming AI chat responses with RAG-retrieved book context
 - Flow: authenticate user → embed question → query pgvector (top-5 chunks) → stream GPT-4o response

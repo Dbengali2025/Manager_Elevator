@@ -540,7 +540,7 @@
         "npm run typecheck passes"
       ],
       "priority": 26,
-      "passes": false,
+      "passes": true,
       "notes": "Admin-only page. Dana's account flagged with role='admin'."
     },
     {

@@ -748,3 +748,41 @@ Session: Settings and profile page
   - Password modal state resets on open via `useEffect` keyed on `passwordModalOpen`
   - Success toast uses `setTimeout(() => setSuccessMessage(""), 3000)` for auto-dismiss
 ---
+
+## 2026-02-23 - US-026
+Session: Admin dashboard - user list and overview stats
+- Created `src/actions/admin.ts` with server actions:
+  - `getAdminDashboardData()` — fetches all users (role=user) with progress records, milestones, and WAR battle sessions; groups by user_id; computes overview stats
+  - `checkIsAdmin()` — returns boolean for current user's admin role (checks users table, not auth metadata)
+  - `verifyAdmin(token)` — internal helper that validates admin access
+  - `groupBy(items, key)` — typed generic utility to group arrays by a field
+  - `formatStageName(stage)` — converts "module_1" to "Module 1" etc.
+- Created `src/app/(dashboard)/admin/page.tsx` — client component with:
+  - Route protection: checks `checkIsAdmin()` on mount, redirects non-admins to /dashboard
+  - Overview stats: 3 stat cards — Total Registered Users, Active Users (7 days), Onboarding Completion Rate (%)
+  - User list table: Name (with email), Company, Industry, Current Stage (badge), Sessions (X/14), Last Active, Milestones (badge icons)
+  - Filters: current stage dropdown, milestone status dropdown, "active since" date picker
+  - "Export CSV" button — generates CSV blob with filtered user data and triggers download
+  - Expandable rows: clicking a user row shows detailed panel with journey stages (color-coded grid), completed session list, and tracker summary
+  - Loading skeleton, error state, and empty filter state
+  - Stage badges with color coding per stage (gray/orange/blue/teal/green)
+  - Milestone badges: WE (Waste Eliminator, star icon) and CC (CI Consultant, shield icon)
+- Updated `src/components/layout/AppLayout.tsx`:
+  - Added `isAdmin` prop (default false) to `AppLayout` and `SidebarContent`
+  - Added `adminOnly: boolean` flag to nav items; Admin nav filtered by `isAdmin`
+  - Added `AdminIcon` SVG icon (shield with checkmark)
+  - Added `NavItem` interface to type the navigation array
+- Updated `src/app/(dashboard)/layout.tsx`:
+  - Made layout async, calls `checkIsAdmin()` server-side
+  - Passes `isAdmin` prop to `AppLayout`
+- Updated AGENTS.md files: root, src/actions, src/components/layout
+- Files changed: src/actions/admin.ts, src/app/(dashboard)/admin/page.tsx, src/components/layout/AppLayout.tsx, src/app/(dashboard)/layout.tsx, AGENTS.md, src/actions/AGENTS.md, src/components/layout/AGENTS.md, scripts/ralph/prd.json
+- **Learnings for future iterations:**
+  - TypeScript `groupBy` function must use `keyof T` constraint (not `Record<string, unknown>`) to work with strict interfaces
+  - Admin check uses users table `role` column, not auth metadata — consistent with RLS policies
+  - `(dashboard)/layout.tsx` is now async to support server-side admin check — passes isAdmin as prop
+  - CSV export creates Blob → Object URL → programmatic click on anchor element → revoke URL
+  - Expandable table rows use Fragment (`<>`) to render two `<tr>` elements for the same user
+  - Nav items use `adminOnly` flag + filter rather than separate array — keeps all nav in one place
+  - Date filter uses native `<input type="date">` — simpler than a date picker library for this use case
+---

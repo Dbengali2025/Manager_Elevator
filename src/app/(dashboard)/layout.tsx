@@ -1,9 +1,11 @@
 import AppLayout from "@/components/layout/AppLayout";
+import { checkIsAdmin } from "@/actions/admin";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <AppLayout>{children}</AppLayout>;
+  const isAdmin = await checkIsAdmin();
+  return <AppLayout isAdmin={isAdmin}>{children}</AppLayout>;
 }
