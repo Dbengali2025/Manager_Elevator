@@ -6,6 +6,8 @@ Feature: Manager Elevator MVP - Full Product Build
 - Insforge client at `src/lib/insforge.ts` — use `insforgeClient.from("table")` for REST, `insforgeAuth` for auth
 - All Insforge methods return `{ data, error }` — always check error first
 - PostgREST query syntax for filtering: `"?column=eq.value&other=gt.5"`
+- Database types at `src/db/types.ts` — import `User`, `UserProgress`, `Milestone`, `STAGE_ORDER`
+- SQL migrations in `src/db/migrations/` — named `NNN_description.sql`, use `IF NOT EXISTS`
 
 ## Key References
 - PRD: /tasks/prd-manager-elevator-mvp.md
@@ -63,4 +65,25 @@ Session: Insforge client setup
   - `INSFORGE_API_KEY` is server-only; `NEXT_PUBLIC_INSFORGE_URL` is client-safe
   - All auth endpoints return `AuthTokens` with `access_token`, `refresh_token`, `expires_in`
   - Use `Prefer: return=representation` header to get the inserted/updated row back
+---
+
+## 2026-02-23 - US-003
+Session: Core database schema
+- Created SQL migration at `src/db/migrations/001_core_tables.sql` with:
+  - `users` table: id, email, full_name, company_name, industry, role_title, onboarding_completed, ci_experience_level, miestro_linked, role, created_at, updated_at
+  - `user_progress` table: id, user_id (FK), stage (enum), status (enum), completed_at, created_at — UNIQUE(user_id, stage)
+  - `milestones` table: id, user_id (FK), milestone_type (enum), unlocked, unlocked_at, created_at — UNIQUE(user_id, milestone_type)
+  - RLS policies: users read/write own rows, admin can read all
+  - Auto-update trigger for `users.updated_at`
+  - Indexes on foreign keys, email, role, and stage
+- Created `src/db/types.ts` with TypeScript interfaces: User, UserProgress, Milestone, and insert types
+- Exported `STAGE_ORDER` constant for ordered progression logic
+- Created `src/db/AGENTS.md` with database patterns
+- Updated root `AGENTS.md` with database section
+- Files changed: src/db/migrations/001_core_tables.sql, src/db/types.ts, src/db/AGENTS.md, AGENTS.md
+- **Learnings for future iterations:**
+  - Use CHECK constraints for enum-like columns in PostgreSQL (not actual ENUM types) — easier to extend later
+  - UNIQUE(user_id, stage) prevents duplicate progress rows per stage
+  - `auth.uid()` is used in RLS policies to reference the authenticated user's UUID
+  - CASCADE delete on FK means deleting a user cleans up their progress and milestones
 ---

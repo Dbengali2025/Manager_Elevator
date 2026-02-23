@@ -30,6 +30,13 @@
 - JWT token required for all authenticated requests — pass as `token` parameter
 - Environment: `NEXT_PUBLIC_INSFORGE_URL` (public, client-safe), `INSFORGE_API_KEY` (server-only)
 
+## Database (`src/db/`)
+- **Migrations:** SQL files in `src/db/migrations/` — run via Insforge admin panel
+- **Types:** `src/db/types.ts` — TypeScript interfaces for all tables
+- Import types: `import { User, UserProgress, Milestone } from "@/db/types"`
+- Stage order constant: `import { STAGE_ORDER } from "@/db/types"`
+- See `src/db/AGENTS.md` for detailed patterns
+
 ## Quality Checks
 - `npm run typecheck` — TypeScript strict mode
 - `npm run build` — Full Next.js production build
