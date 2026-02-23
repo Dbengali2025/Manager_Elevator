@@ -16,6 +16,8 @@ Feature: Manager Elevator MVP - Full Product Build
 - SQL migrations in `src/db/migrations/` — named `NNN_description.sql`, use `IF NOT EXISTS`
 - Headless UI v2 Tab: use `data-[selected]` for selected styling, wrap `useSearchParams()` in `<Suspense>`
 - Tracker tab components at `src/components/trackers/` — each manages own data fetching
+- Standalone scripts in `src/scripts/` — run with `npx tsx --env-file=.env.local` (no dotenv needed)
+- Embeddings: `insforgeEmbeddings.create({ input })` in `src/lib/insforge.ts` — 1536-dim vectors for pgvector
 
 ## Key References
 - PRD: /tasks/prd-manager-elevator-mvp.md
@@ -581,4 +583,65 @@ Session: CI Done Right Success Dashboard - milestone cards
   - Milestone configs stored as a typed array of objects for easy iteration — avoids duplicating card rendering logic
   - `completedStages` computed as `Set` from progress records filtered by `status === "completed"` — efficient for `.has()` lookups
   - Success Dashboard reuses `JourneyProgressBar` from dashboard — no need to create a separate progress component
+---
+
+## 2026-02-23 - US-021
+Session: Success Dashboard - quick stats with circular progress rings
+- Created `src/components/dashboard/CircularProgressRing.tsx` — client component with:
+  - SVG-based circular progress ring using `strokeDasharray` + `strokeDashoffset` technique
+  - Animated fill on mount via `useEffect` + `setTimeout` (starts undrawn, animates to target)
+  - Center displays value number with "of {total}" below, label below ring
+  - Props: value, total, label, color (Tailwind class), colorHex (for SVG stroke)
+  - Ring size: 120x120px, stroke width 10px, background ring in paleGray
+- Updated `src/actions/success-dashboard.ts`:
+  - Added `sessionsCompleted` field to `SuccessDashboardData` interface
+  - Added war_battle_sessions query (status=done count) to `getSuccessDashboardData()`
+- Updated `src/app/(dashboard)/success-dashboard/page.tsx`:
+  - Imported `CircularProgressRing` component
+  - Computed `modulesCompleted` (from module_1..module_4 in progressRecords) and `battlesWon` (from battle_1..battle_3)
+  - Added Quick Stats section below milestone cards with 3 rings:
+    - Modules Completed (X/4, sky blue #35C0ED)
+    - Sessions Completed (X/14, teal #2F90B0)
+    - Battles Won (X/3, mint green #9AEBA6)
+  - Rings wrapped in white card with `flex-wrap justify-center` for mobile responsiveness
+- Updated AGENTS.md (root, dashboard components, actions)
+- Files changed: src/components/dashboard/CircularProgressRing.tsx, src/actions/success-dashboard.ts, src/app/(dashboard)/success-dashboard/page.tsx, AGENTS.md, src/components/dashboard/AGENTS.md, src/actions/AGENTS.md
+- **Learnings for future iterations:**
+  - SVG circle progress: use `strokeDasharray={circumference}` + `strokeDashoffset={circumference * (1 - percent)}` for partial arc
+  - Rotate SVG `-90deg` to start progress from top (12 o'clock position) instead of 3 o'clock
+  - `strokeLinecap="round"` gives rounded ends on the progress arc
+  - Both Tailwind class (`color`) and hex value (`colorHex`) needed — class for transition, hex for SVG stroke attribute
+  - Modules/battles can be computed from `progressRecords` using `completedStages.has()` — no additional server query needed
+  - Sessions count needs separate query on `war_battle_sessions` table (status=done) — not derivable from `user_progress`
+---
+
+## 2026-02-23 - US-022
+Session: Ingest book content into pgvector for RAG
+- Created `src/scripts/ingest-book.ts` — standalone script that:
+  - Reads the book markdown file (2059 lines, 15 chapters across 5 parts)
+  - Parses chapter boundaries via regex on `## **Chapter N:` headings
+  - Strips base64 images, markdown formatting, anchor IDs, and non-content noise
+  - Chunks text to ~500 tokens per chunk with 50-token overlap, respecting paragraph boundaries
+  - Each chunk tagged with metadata: chapter name, part/section name, approximate page range
+  - Generates embeddings via Insforge OpenRouter (`openai/text-embedding-3-small`, 1536 dims)
+  - Stores chunks in `book_embeddings` table via Insforge REST API
+  - Rate limited: 1s pause every 10 chunks
+  - Logs progress: chunk counts, token estimates, success/error totals
+- Added `insforgeEmbeddings.create({ input, model? })` to `src/lib/insforge.ts`:
+  - Calls Insforge OpenRouter embeddings endpoint (`/ai/v1/embeddings`)
+  - Default model: `openai/text-embedding-3-small` (1536 dimensions, matches pgvector schema)
+- Run command: `npx tsx --env-file=.env.local src/scripts/ingest-book.ts`
+- Created `src/scripts/AGENTS.md` with script documentation
+- Updated root `AGENTS.md` with Book Ingestion / RAG section and embeddings client
+- Updated `src/lib/AGENTS.md` with embeddings import pattern
+- Files changed: src/scripts/ingest-book.ts, src/lib/insforge.ts, src/scripts/AGENTS.md, src/lib/AGENTS.md, AGENTS.md
+- **Learnings for future iterations:**
+  - Node v22 supports `--env-file` flag natively — avoids `dotenv` dependency for standalone scripts
+  - Script uses direct `fetch()` calls (not `insforgeClient`) since it runs outside the Next.js runtime
+  - Book markdown has base64 images embedded at the bottom — must strip these before chunking
+  - Chapter boundaries found via `## **Chapter N:` regex — no `###` sub-section headings in this book
+  - `Prefer: return=minimal` header for inserts when we don't need the response body back
+  - pgvector embedding column requires JSON-stringified array for insert via REST API
+  - `book_embeddings` RLS: SELECT for authenticated users, INSERT restricted to admin role
+  - For RAG queries (US-024): embed question → cosine similarity search → top-5 chunks as context
 ---

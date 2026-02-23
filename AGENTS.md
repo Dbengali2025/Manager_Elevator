@@ -26,6 +26,7 @@
 - **REST API:** `insforgeClient.from("table").select(token)` / `.insert(data, token)` / `.update(data, token, query)` / `.delete(token, query)`
 - **Auth:** `insforgeAuth.signup(email, pw)` / `.login(email, pw)` / `.refreshToken(rt)` / `.getUser(token)` / `.resetPassword(email)` / `.updatePassword(pw, token)` / `.verifyOtp(email, code)`
 - **AI:** `insforgeAI.chatCompletion({ messages, temperature?, max_tokens?, model? })` — calls Insforge OpenRouter (default: GPT-4o via `openai/gpt-4o`)
+- **Embeddings:** `insforgeEmbeddings.create({ input, model? })` — generates text embeddings (default: `openai/text-embedding-3-small`, 1536 dimensions)
 - **Email:** `insforgeEmail.send({ to, subject, html })` — sends transactional email via Insforge Email (AWS SES)
 - All methods return `InsforgeResponse<T>` with `{ data, error }` pattern
 - Query filtering uses PostgREST syntax (e.g. `"?id=eq.abc&status=eq.active"`)
@@ -195,6 +196,16 @@
 - Dana's email: `DANA_NOTIFICATION_EMAIL` env var (default: `danat4lssplus@gmail.com`)
 - Email template: navy header with logo, white content area, off-white footer with TGE LLC branding
 - Import: `import { notifySessionCompleted, notifyMilestoneUnlocked, notifyNewUserRegistered } from "@/actions/notifications"`
+
+## Book Ingestion / RAG (`src/scripts/ingest-book.ts`)
+- Script ingests "Bulletproof Your Manager Career" book (2059 lines, 15 chapters, 5 parts) into pgvector for RAG
+- Run: `npx tsx --env-file=.env.local src/scripts/ingest-book.ts`
+- Chunks book to ~500 tokens per chunk with 50-token overlap, respecting paragraph boundaries
+- Each chunk stored with metadata: chapter name, part/section, approximate page range
+- Embeddings generated via Insforge OpenRouter (`openai/text-embedding-3-small`, 1536 dimensions)
+- Stored in `book_embeddings` table with `vector(1536)` column and HNSW cosine similarity index
+- `insforgeEmbeddings.create({ input })` available in `src/lib/insforge.ts` for runtime embedding queries
+- For RAG retrieval: embed user question → query pgvector for top-5 similar chunks → include as context in LLM prompt
 
 ## Quality Checks
 - `npm run typecheck` — TypeScript strict mode

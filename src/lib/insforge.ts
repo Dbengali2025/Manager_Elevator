@@ -284,6 +284,33 @@ export const insforgeAI = {
 };
 
 // ---------------------------------------------------------------------------
+// Embeddings Client
+// ---------------------------------------------------------------------------
+
+/**
+ * Insforge OpenRouter helpers for generating text embeddings.
+ */
+export const insforgeEmbeddings = {
+  /** Generate an embedding vector for the given text */
+  async create(params: {
+    input: string;
+    model?: string;
+  }): Promise<
+    InsforgeResponse<{
+      data: { embedding: number[]; index: number }[];
+    }>
+  > {
+    return request("/ai/v1/embeddings", {
+      method: "POST",
+      body: {
+        model: params.model ?? "openai/text-embedding-3-small",
+        input: params.input,
+      },
+    });
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Email Client
 // ---------------------------------------------------------------------------
 
