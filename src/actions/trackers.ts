@@ -7,6 +7,8 @@ import type {
   ImprovementOpportunity,
   OpportunityPriority,
   OpportunityStatus,
+  WinningSolution,
+  MetricType,
 } from "@/db/types";
 import type { UserRecord } from "@/lib/insforge";
 import { WAR_BATTLE_SESSIONS } from "@/actions/masterclass";
@@ -254,6 +256,71 @@ export async function deleteOpportunity(
 
   const { error } = await insforgeClient
     .from("improvement_opportunities")
+    .delete(token, `?id=eq.${id}`);
+
+  if (error) return { success: false, error };
+  return { success: true };
+}
+
+// ---------------------------------------------------------------------------
+// Winning Solutions — CRUD
+// ---------------------------------------------------------------------------
+
+export async function getWinningSolutions(): Promise<{
+  success: boolean;
+  error?: string;
+  data?: WinningSolution[];
+}> {
+  const token = await getToken();
+  if (!token) return { success: false, error: "Not authenticated" };
+
+  const userId = await getUserId(token);
+  if (!userId) return { success: false, error: "Failed to get user info" };
+
+  const { data, error } = await insforgeClient
+    .from("winning_solutions")
+    .select<WinningSolution[]>(
+      token,
+      `?user_id=eq.${userId}&order=created_at.desc`
+    );
+
+  if (error) return { success: false, error };
+  return { success: true, data: data ?? [] };
+}
+
+export async function createWinningSolution(fields: {
+  title: string;
+  problem_addressed: string;
+  description: string;
+  metric_type: MetricType;
+  before_value: number | null;
+  after_value: number | null;
+  unit: string;
+  date_implemented: string | null;
+  notes: string;
+}): Promise<{ success: boolean; error?: string }> {
+  const token = await getToken();
+  if (!token) return { success: false, error: "Not authenticated" };
+
+  const userId = await getUserId(token);
+  if (!userId) return { success: false, error: "Failed to get user info" };
+
+  const { error } = await insforgeClient
+    .from("winning_solutions")
+    .insert({ user_id: userId, ...fields }, token);
+
+  if (error) return { success: false, error };
+  return { success: true };
+}
+
+export async function deleteWinningSolution(
+  id: string
+): Promise<{ success: boolean; error?: string }> {
+  const token = await getToken();
+  if (!token) return { success: false, error: "Not authenticated" };
+
+  const { error } = await insforgeClient
+    .from("winning_solutions")
     .delete(token, `?id=eq.${id}`);
 
   if (error) return { success: false, error };

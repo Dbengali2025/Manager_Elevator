@@ -5,6 +5,7 @@ import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { Suspense } from "react";
 import WarBattleTracker from "@/components/trackers/WarBattleTracker";
 import OpportunitiesTracker from "@/components/trackers/OpportunitiesTracker";
+import ImpactTracker from "@/components/trackers/ImpactTracker";
 
 const TABS = [
   { key: "war-battles", label: "Waste WAR Battles" },
@@ -65,7 +66,7 @@ function TrackersContent() {
             <OpportunitiesTracker />
           </TabPanel>
           <TabPanel>
-            <ImpactTrackerPlaceholder />
+            <ImpactTracker />
           </TabPanel>
           <TabPanel>
             <SuccessNuggetsPlaceholder />
@@ -99,33 +100,6 @@ export default function TrackersPage() {
 }
 
 /* ---------- Placeholder components ---------- */
-
-
-function ImpactTrackerPlaceholder() {
-  return (
-    <div className="rounded-lg border border-paleGray bg-white p-2xl text-center">
-      <div className="mx-auto mb-md flex h-[48px] w-[48px] items-center justify-center rounded-full bg-success/10">
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="text-success"
-        >
-          <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-        </svg>
-      </div>
-      <h3 className="font-heading text-h3 text-charcoal">Impact Tracker</h3>
-      <p className="mt-sm text-body text-charcoal/60">
-        Document measurable results and auto-calculate improvement metrics.
-      </p>
-    </div>
-  );
-}
 
 function SuccessNuggetsPlaceholder() {
   return (
