@@ -49,6 +49,13 @@ Server actions for Manager Elevator. These run on the server only (`"use server"
 - Import: `import { getMasterclassData, toggleSessionCompletion, MODULES, WAR_BATTLE_SESSIONS } from "@/actions/masterclass"`
 - Import types: `import type { MasterclassData } from "@/actions/masterclass"`
 
+## Tracker Actions (`trackers.ts`)
+- `getWarBattleSessions()` — Fetches all WAR battle session records for the current user
+- `markSessionComplete(weekNumber)` — Marks a session as done with current timestamp; creates record if none exists
+- `saveSessionLink(weekNumber, link)` — Saves/updates the PowerPoint link for a session; creates pending record if none exists
+- Uses `WAR_BATTLE_SESSIONS` from `masterclass.ts` for session definitions (name, battle number)
+- Import: `import { getWarBattleSessions, markSessionComplete, saveSessionLink } from "@/actions/trackers"`
+
 ## Gotchas
 - `cookies()` must be awaited in Next.js 14 — `const cookieStore = await cookies()`
 - Server actions can't redirect directly — return success and let client `router.push()`

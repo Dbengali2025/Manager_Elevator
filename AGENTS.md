@@ -146,6 +146,14 @@
 - Import Headless UI Tab: `import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react"`
 - Headless UI v2 uses `data-[selected]` attribute for styling selected tabs (not `aria-selected`)
 
+## Tracker Components (`src/components/trackers/`)
+- `WarBattleTracker` — 14-week WAR Battle session tracker table with status tags, mark complete, and link editing
+- Each tracker component manages its own data fetching — receives no props from the tab shell
+- Server actions in `src/actions/trackers.ts`: `getWarBattleSessions`, `markSessionComplete`, `saveSessionLink`
+- Shared constants imported from `src/actions/masterclass.ts`: `WAR_BATTLE_SESSIONS`
+- Status badge pattern: `Record<BattleSessionStatus, { label, bg, text }>` for consistent styling
+- Import: `import WarBattleTracker from "@/components/trackers/WarBattleTracker"`
+
 ## Quality Checks
 - `npm run typecheck` — TypeScript strict mode
 - `npm run build` — Full Next.js production build

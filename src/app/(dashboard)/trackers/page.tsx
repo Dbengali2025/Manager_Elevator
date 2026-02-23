@@ -3,6 +3,7 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { Suspense } from "react";
+import WarBattleTracker from "@/components/trackers/WarBattleTracker";
 
 const TABS = [
   { key: "war-battles", label: "Waste WAR Battles" },
@@ -57,7 +58,7 @@ function TrackersContent() {
 
         <TabPanels className="mt-lg">
           <TabPanel>
-            <WarBattlesPlaceholder />
+            <WarBattleTracker />
           </TabPanel>
           <TabPanel>
             <OpportunitiesPlaceholder />
@@ -97,35 +98,6 @@ export default function TrackersPage() {
 }
 
 /* ---------- Placeholder components ---------- */
-
-function WarBattlesPlaceholder() {
-  return (
-    <div className="rounded-lg border border-paleGray bg-white p-2xl text-center">
-      <div className="mx-auto mb-md flex h-[48px] w-[48px] items-center justify-center rounded-full bg-skyBlue/10">
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="text-skyBlue"
-        >
-          <path d="M4 6h16M4 12h16M4 18h10" />
-        </svg>
-      </div>
-      <h3 className="font-heading text-h3 text-charcoal">
-        Waste WAR Battles
-      </h3>
-      <p className="mt-sm text-body text-charcoal/60">
-        Track your 14-week Waste WAR Battle sessions, upload PowerPoints, and
-        monitor your progress.
-      </p>
-    </div>
-  );
-}
 
 function OpportunitiesPlaceholder() {
   return (

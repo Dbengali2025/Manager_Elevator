@@ -14,6 +14,8 @@ Feature: Manager Elevator MVP - Full Product Build
 - Dashboard components in `src/components/dashboard/` — import as `@/components/dashboard/ComponentName`
 - Database types at `src/db/types.ts` — import `User`, `UserProgress`, `Milestone`, `STAGE_ORDER`
 - SQL migrations in `src/db/migrations/` — named `NNN_description.sql`, use `IF NOT EXISTS`
+- Headless UI v2 Tab: use `data-[selected]` for selected styling, wrap `useSearchParams()` in `<Suspense>`
+- Tracker tab components at `src/components/trackers/` — each manages own data fetching
 
 ## Key References
 - PRD: /tasks/prd-manager-elevator-mvp.md
@@ -348,4 +350,63 @@ Session: Masterclass access page with module overview and session checklist
   - Optimistic updates: update local state immediately, then fire server action, reload on completion
   - `toggleSessionCompletion` both creates/updates session records AND updates battle progress in user_progress
   - The 14 sessions in the checklist are the same as the WAR Battle sessions tracked in the tracker
+---
+
+## 2026-02-23 - US-013
+Session: Tracker hub with tabbed navigation shell
+- Created `src/app/(dashboard)/trackers/page.tsx` — client component with:
+  - Page title: "CI Done Right Trackers" with subtitle
+  - 4 horizontal tabs using Headless UI v2 TabGroup: Waste WAR Battles, Opportunities, Impact Tracker, Success Nuggets
+  - Active tab shows sky blue underline indicator (3px)
+  - URL syncs with tab via `?tab=<key>` query param using `useSearchParams()` + `router.replace()`
+  - Default tab: Waste WAR Battles (index 0)
+  - Mobile responsive: tabs scroll horizontally via `overflow-x-auto` container
+  - Each tab renders a styled placeholder component with icon, title, and description
+- Wrapped page content in `<Suspense>` boundary (required by `useSearchParams()`)
+- Fixed pre-existing lint issue: removed unused `doneWeeks` variable in `masterclass.ts`
+- Created `src/app/(dashboard)/trackers/AGENTS.md` with tab patterns and component mapping
+- Updated root `AGENTS.md` with CI Trackers section
+- Files changed: src/app/(dashboard)/trackers/page.tsx, src/app/(dashboard)/trackers/AGENTS.md, AGENTS.md, src/actions/masterclass.ts
+- **Learnings for future iterations:**
+  - Headless UI v2 Tab uses `data-[selected]` attribute for styling (not className render props or `aria-selected`)
+  - `useSearchParams()` in Next.js 14 requires the component to be wrapped in `<Suspense>` — otherwise build fails with static generation
+  - Tab underline pattern: use `after:` pseudo-element with `data-[selected]:after:bg-skyBlue` — clean CSS-only approach
+  - `router.replace()` with `{ scroll: false }` prevents page scroll on tab change
+  - Tab content components should manage their own data fetching — tab shell passes no props
+---
+
+## 2026-02-23 - US-014
+Session: Waste WAR Battle project tracker table
+- Created `src/actions/trackers.ts` with server actions:
+  - `getWarBattleSessions()` — fetches all WAR battle session records for current user
+  - `markSessionComplete(weekNumber)` — marks session as done with current timestamp, creates record if none exists
+  - `saveSessionLink(weekNumber, link)` — saves/updates PowerPoint link for a session
+- Created `src/components/trackers/WarBattleTracker.tsx` — client component with:
+  - 14-row session table with columns: Week #, Session Name, PowerPoint Link, Date Completed, Status, Action
+  - Pre-populated rows merged from `WAR_BATTLE_SESSIONS` constants with DB records
+  - Active session logic: first non-done session is marked active (only one at a time)
+  - Status badges: Done (green), Active (blue), Pending (gray) via `STATUS_CONFIG` map
+  - "Mark Complete" button on active row with loading spinner state
+  - Date auto-fills with current date on completion
+  - PowerPoint Link inline editing: click "No file yet" → text input → Save/Cancel
+  - Filled links show as clickable with edit and external link icons
+  - Battle number badge on sessions from battles 2 and 3
+  - Progress summary bar showing X of 14 sessions completed
+  - "How It Works" info box at bottom explaining the workflow
+  - Loading skeleton while fetching data
+- Updated `src/app/(dashboard)/trackers/page.tsx`:
+  - Imported `WarBattleTracker` component
+  - Replaced `WarBattlesPlaceholder` in first `TabPanel`
+  - Removed unused `WarBattlesPlaceholder` function
+- Created `src/components/trackers/AGENTS.md` with tracker component patterns
+- Updated `src/actions/AGENTS.md` with Tracker Actions section
+- Updated root `AGENTS.md` with Tracker Components section
+- Files changed: src/actions/trackers.ts, src/components/trackers/WarBattleTracker.tsx, src/components/trackers/AGENTS.md, src/app/(dashboard)/trackers/page.tsx, AGENTS.md, src/actions/AGENTS.md
+- **Learnings for future iterations:**
+  - Tracker components manage their own data — fetch on mount via `useEffect` + `useCallback`, re-fetch after mutations
+  - `WAR_BATTLE_SESSIONS` from masterclass.ts is the single source of truth for session definitions
+  - Active session is computed client-side: find first row where status !== "done"
+  - LinkCell uses local editing state — saves on Enter key or Save button, reverts on Escape or Cancel
+  - Use `useCallback` for fetch functions passed to `useEffect` to avoid unnecessary re-renders
+  - Status config map pattern: `Record<StatusType, { label, bg, text }>` keeps badge styling consistent and DRY
 ---
