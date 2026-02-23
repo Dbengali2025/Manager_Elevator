@@ -277,7 +277,6 @@ async function updateModuleProgress(
 
   const sessions = allSessions ?? [];
   const doneSessions = sessions.filter((s) => s.status === "done");
-  const doneWeeks = new Set(doneSessions.map((s) => s.week_number));
 
   // Module completion mapping:
   // Module 1 lessons correspond to sessions 1-6 (weeks 1-6 of battle 1)

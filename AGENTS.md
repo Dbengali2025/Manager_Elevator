@@ -131,6 +131,21 @@
 - Exports: `MODULES` (4 modules with lesson arrays), `WAR_BATTLE_SESSIONS` (14 session definitions)
 - Import: `import { getMasterclassData, toggleSessionCompletion, MODULES, WAR_BATTLE_SESSIONS } from "@/actions/masterclass"`
 
+## CI Trackers (`src/app/(dashboard)/trackers/page.tsx`)
+- Client component with Headless UI `TabGroup` for 4-tab navigation
+- Page title: "CI Done Right Trackers" with subtitle
+- 4 tabs: Waste WAR Battles, Opportunities, Impact Tracker, Success Nuggets
+- Tab keys used in URL query param: `war-battles`, `opportunities`, `impact-tracker`, `success-nuggets`
+- URL syncs with tab selection via `?tab=<key>` query param (e.g. `/trackers?tab=opportunities`)
+- Default tab: Waste WAR Battles (index 0, when no tab param)
+- Active tab shows sky blue underline indicator (3px, `after:bg-skyBlue`)
+- Tabs scroll horizontally on mobile via `overflow-x-auto` container
+- Each tab panel renders a dedicated component (placeholder stubs replaced by later stories)
+- `useSearchParams()` requires `Suspense` boundary — page wraps content in `<Suspense>`
+- Tab constants exported as `TABS` array — use for key lookups
+- Import Headless UI Tab: `import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react"`
+- Headless UI v2 uses `data-[selected]` attribute for styling selected tabs (not `aria-selected`)
+
 ## Quality Checks
 - `npm run typecheck` — TypeScript strict mode
 - `npm run build` — Full Next.js production build
