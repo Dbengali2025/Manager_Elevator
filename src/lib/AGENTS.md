@@ -8,6 +8,7 @@
 - Auth: `insforgeAuth.login(email, password)` returns `InsforgeResponse<AuthTokens>`
 - All methods return `{ data, error }` — always check `error` before using `data`
 - Email: `insforgeEmail.send({ to, subject, html })` — sends via Insforge Email (AWS SES)
-- Import email: `import { insforgeEmail } from "@/lib/insforge"`
+- AI: `insforgeAI.chatCompletion({ messages, temperature?, max_tokens?, model? })` — calls Insforge OpenRouter (default: GPT-4o)
+- Import: `import { insforgeClient, insforgeAuth, insforgeEmail, insforgeAI } from "@/lib/insforge"`
 - `INSFORGE_API_KEY` is server-only — never import in client components
 - `NEXT_PUBLIC_INSFORGE_URL` is safe for client use

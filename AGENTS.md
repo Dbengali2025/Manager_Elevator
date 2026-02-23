@@ -22,13 +22,15 @@
 - Headless UI (`@headlessui/react`) available for modals, dropdowns, tabs, etc.
 - Path alias: `@/*` maps to `./src/*`
 
-## Insforge Client (`src/lib/insforge.ts`) and Email
+## Insforge Client (`src/lib/insforge.ts`) — REST, Auth, Email, AI
 - **REST API:** `insforgeClient.from("table").select(token)` / `.insert(data, token)` / `.update(data, token, query)` / `.delete(token, query)`
 - **Auth:** `insforgeAuth.signup(email, pw)` / `.login(email, pw)` / `.refreshToken(rt)` / `.getUser(token)` / `.resetPassword(email)` / `.updatePassword(pw, token)` / `.verifyOtp(email, code)`
+- **AI:** `insforgeAI.chatCompletion({ messages, temperature?, max_tokens?, model? })` — calls Insforge OpenRouter (default: GPT-4o via `openai/gpt-4o`)
+- **Email:** `insforgeEmail.send({ to, subject, html })` — sends transactional email via Insforge Email (AWS SES)
 - All methods return `InsforgeResponse<T>` with `{ data, error }` pattern
 - Query filtering uses PostgREST syntax (e.g. `"?id=eq.abc&status=eq.active"`)
 - JWT token required for all authenticated requests — pass as `token` parameter
-- **Email:** `insforgeEmail.send({ to, subject, html })` — sends transactional email via Insforge Email (AWS SES)
+- AI endpoint: POST `/ai/v1/chat/completions` with OpenAI-compatible schema (model, messages, temperature, max_tokens)
 - Environment: `NEXT_PUBLIC_INSFORGE_URL` (public, client-safe), `INSFORGE_API_KEY` (server-only), `DANA_NOTIFICATION_EMAIL` (admin notification recipient)
 
 ## Database (`src/db/`)
@@ -151,9 +153,9 @@
 - `WarBattleTracker` — 14-week WAR Battle session tracker table with status tags, mark complete, and link editing
 - `OpportunitiesTracker` — CRUD table for improvement opportunities with modal form, filters, and delete confirmation
 - `ImpactTracker` — Winning Solutions tracker with add modal, card display, summary stats bar, and auto-calculated ROI
-- `SuccessNuggetsLibrary` — Success nuggets library with add/edit/delete, card display, and source badges (Manual/AI Generated)
+- `SuccessNuggetsLibrary` — Success nuggets library with add/edit/delete, AI generation with review modal, card display, and source badges (Manual/AI Generated)
 - Each tracker component manages its own data fetching — receives no props from the tab shell
-- Server actions in `src/actions/trackers.ts`: `getWarBattleSessions`, `markSessionComplete`, `saveSessionLink`, `getOpportunities`, `createOpportunity`, `updateOpportunityStatus`, `deleteOpportunity`, `getWinningSolutions`, `createWinningSolution`, `deleteWinningSolution`, `getSuccessNuggets`, `createSuccessNugget`, `updateSuccessNugget`, `deleteSuccessNugget`
+- Server actions in `src/actions/trackers.ts`: `getWarBattleSessions`, `markSessionComplete`, `saveSessionLink`, `getOpportunities`, `createOpportunity`, `updateOpportunityStatus`, `deleteOpportunity`, `getWinningSolutions`, `createWinningSolution`, `deleteWinningSolution`, `getSuccessNuggets`, `createSuccessNugget`, `updateSuccessNugget`, `deleteSuccessNugget`, `generateSuccessNuggets`, `saveGeneratedNuggets`
 - Shared constants imported from `src/actions/masterclass.ts`: `WAR_BATTLE_SESSIONS`
 - Status badge pattern: `Record<StatusType, { label, bg, text }>` for consistent styling
 - Modal pattern: Headless UI `Dialog` + `Transition` with `TransitionChild` for overlay + panel animations

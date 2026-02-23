@@ -13,7 +13,10 @@ import {
   createSuccessNugget,
   updateSuccessNugget,
   deleteSuccessNugget,
+  generateSuccessNuggets,
+  saveGeneratedNuggets,
 } from "@/actions/trackers";
+import type { GeneratedNugget } from "@/actions/trackers";
 import type { SuccessNugget } from "@/db/types";
 
 // ---------------------------------------------------------------------------
@@ -327,6 +330,208 @@ function DeleteConfirmModal({
 }
 
 // ---------------------------------------------------------------------------
+// AI Review Modal — edit generated nuggets before saving
+// ---------------------------------------------------------------------------
+
+function AIReviewModal({
+  open,
+  onClose,
+  onSaved,
+  generatedNuggets,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSaved: () => void;
+  generatedNuggets: GeneratedNugget[];
+}) {
+  const [nuggets, setNuggets] = useState<GeneratedNugget[]>([]);
+  const [selected, setSelected] = useState<boolean[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (open) {
+      setNuggets(generatedNuggets.map((n) => ({ ...n })));
+      setSelected(generatedNuggets.map(() => true));
+      setError("");
+    }
+  }, [open, generatedNuggets]);
+
+  function updateNugget(
+    index: number,
+    field: keyof GeneratedNugget,
+    value: string
+  ) {
+    setNuggets((prev) =>
+      prev.map((n, i) => (i === index ? { ...n, [field]: value } : n))
+    );
+  }
+
+  function toggleSelect(index: number) {
+    setSelected((prev) => prev.map((s, i) => (i === index ? !s : s)));
+  }
+
+  async function handleSave() {
+    const toSave = nuggets.filter((_, i) => selected[i]);
+    if (toSave.length === 0) {
+      setError("Select at least one nugget to save");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    const result = await saveGeneratedNuggets(toSave);
+    setSaving(false);
+    if (result.success) {
+      onSaved();
+      onClose();
+    } else {
+      setError(result.error ?? "Failed to save nuggets");
+    }
+  }
+
+  const selectedCount = selected.filter(Boolean).length;
+
+  return (
+    <Transition show={open}>
+      <Dialog onClose={onClose} className="relative z-50">
+        <TransitionChild
+          enter="ease-out duration-200"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-150"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-charcoal/40" />
+        </TransitionChild>
+
+        <div className="fixed inset-0 flex items-center justify-center p-md">
+          <TransitionChild
+            enter="ease-out duration-200"
+            enterFrom="opacity-0 scale-95"
+            enterTo="opacity-100 scale-100"
+            leave="ease-in duration-150"
+            leaveFrom="opacity-100 scale-100"
+            leaveTo="opacity-0 scale-95"
+          >
+            <DialogPanel className="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-lg bg-white p-xl shadow-xl">
+              <DialogTitle className="font-heading text-h2 text-charcoal">
+                Review Generated Nuggets
+              </DialogTitle>
+              <p className="mt-xs text-caption text-charcoal/60">
+                Edit and select the nuggets you&apos;d like to save to your
+                library.
+              </p>
+
+              <div className="mt-lg space-y-lg">
+                {nuggets.map((nugget, i) => (
+                  <div
+                    key={i}
+                    className={`rounded-lg border p-md transition-colors ${
+                      selected[i]
+                        ? "border-skyBlue bg-skyBlue/5"
+                        : "border-paleGray bg-paleGray/30 opacity-60"
+                    }`}
+                  >
+                    {/* Select toggle */}
+                    <label className="flex items-center gap-sm mb-md cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selected[i]}
+                        onChange={() => toggleSelect(i)}
+                        className="h-[18px] w-[18px] rounded border-paleGray text-skyBlue focus:ring-skyBlue"
+                      />
+                      <span className="text-caption font-medium text-charcoal/70">
+                        Nugget {i + 1}
+                      </span>
+                    </label>
+
+                    {/* Achievement Statement */}
+                    <div className="mb-sm">
+                      <label className="block text-[11px] font-medium text-charcoal/50 mb-xs">
+                        Achievement Statement
+                      </label>
+                      <textarea
+                        value={nugget.achievement_statement}
+                        onChange={(e) =>
+                          updateNugget(i, "achievement_statement", e.target.value)
+                        }
+                        rows={2}
+                        className="w-full rounded-md border border-paleGray px-sm py-xs text-caption focus:border-skyBlue focus:ring-1 focus:ring-skyBlue outline-none resize-none"
+                      />
+                    </div>
+
+                    {/* Supporting Metrics */}
+                    <div className="mb-sm">
+                      <label className="block text-[11px] font-medium text-charcoal/50 mb-xs">
+                        Supporting Metrics
+                      </label>
+                      <textarea
+                        value={nugget.supporting_metrics}
+                        onChange={(e) =>
+                          updateNugget(i, "supporting_metrics", e.target.value)
+                        }
+                        rows={2}
+                        className="w-full rounded-md border border-paleGray px-sm py-xs text-caption focus:border-skyBlue focus:ring-1 focus:ring-skyBlue outline-none resize-none"
+                      />
+                    </div>
+
+                    {/* Talking Points */}
+                    <div>
+                      <label className="block text-[11px] font-medium text-charcoal/50 mb-xs">
+                        Talking Points
+                      </label>
+                      <textarea
+                        value={nugget.talking_points}
+                        onChange={(e) =>
+                          updateNugget(i, "talking_points", e.target.value)
+                        }
+                        rows={2}
+                        className="w-full rounded-md border border-paleGray px-sm py-xs text-caption focus:border-skyBlue focus:ring-1 focus:ring-skyBlue outline-none resize-none"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {error && (
+                <p className="mt-md text-caption text-error">{error}</p>
+              )}
+
+              {/* Actions */}
+              <div className="mt-lg flex items-center justify-between">
+                <p className="text-caption text-charcoal/50">
+                  {selectedCount} of {nuggets.length} selected
+                </p>
+                <div className="flex gap-sm">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="rounded-md px-lg py-sm text-body text-charcoal/70 hover:text-charcoal"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={saving || selectedCount === 0}
+                    className="rounded-md bg-navy px-lg py-sm text-body text-white hover:bg-navy/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {saving
+                      ? "Saving..."
+                      : `Save ${selectedCount} Nugget${selectedCount !== 1 ? "s" : ""}`}
+                  </button>
+                </div>
+              </div>
+            </DialogPanel>
+          </TransitionChild>
+        </div>
+      </Dialog>
+    </Transition>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
 
@@ -337,6 +542,12 @@ export default function SuccessNuggetsLibrary() {
   const [editTarget, setEditTarget] = useState<SuccessNugget | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [generatedNuggets, setGeneratedNuggets] = useState<GeneratedNugget[]>(
+    []
+  );
+  const [showReview, setShowReview] = useState(false);
+  const [generateError, setGenerateError] = useState("");
 
   const fetchData = useCallback(async () => {
     const result = await getSuccessNuggets();
@@ -369,6 +580,19 @@ export default function SuccessNuggetsLibrary() {
       setNuggets((prev) => prev.filter((n) => n.id !== deleteTarget));
     }
     setDeleteTarget(null);
+  }
+
+  async function handleGenerate() {
+    setGenerating(true);
+    setGenerateError("");
+    const result = await generateSuccessNuggets();
+    setGenerating(false);
+    if (result.success && result.data) {
+      setGeneratedNuggets(result.data);
+      setShowReview(true);
+    } else {
+      setGenerateError(result.error ?? "Generation failed. Please try again.");
+    }
   }
 
   if (loading) {
@@ -409,17 +633,158 @@ export default function SuccessNuggetsLibrary() {
             Build your success nuggets library for performance reviews and career
             conversations.
           </p>
+          <div className="mt-lg flex items-center justify-center gap-sm">
+            <button
+              onClick={() => setShowForm(true)}
+              className="inline-flex items-center gap-xs rounded-md bg-navy px-lg py-sm text-body text-white hover:bg-navy/90"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Add Nugget
+            </button>
+            <button
+              onClick={handleGenerate}
+              disabled={generating}
+              className="inline-flex items-center gap-xs rounded-md bg-skyBlue px-lg py-sm text-body text-white hover:bg-skyBlue/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {generating ? (
+                <svg
+                  className="animate-spin h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    className="opacity-25"
+                  />
+                  <path
+                    d="M4 12a8 8 0 018-8"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z" />
+                  <path d="M9 18h6" />
+                  <path d="M10 22h4" />
+                  <path d="M12 14v4" />
+                </svg>
+              )}
+              {generating ? "Generating..." : "Generate Nuggets"}
+            </button>
+          </div>
+          {generateError && (
+            <p className="mt-md text-caption text-error">{generateError}</p>
+          )}
+        </div>
+
+        <NuggetFormModal
+          open={showForm}
+          onClose={handleCloseForm}
+          onSaved={fetchData}
+          editNugget={editTarget}
+        />
+
+        <AIReviewModal
+          open={showReview}
+          onClose={() => setShowReview(false)}
+          onSaved={fetchData}
+          generatedNuggets={generatedNuggets}
+        />
+      </>
+    );
+  }
+
+  return (
+    <div className="space-y-lg">
+      {/* Toolbar */}
+      <div className="flex items-center justify-between flex-wrap gap-sm">
+        <p className="text-caption text-charcoal/50">
+          {nuggets.length} nugget{nuggets.length !== 1 ? "s" : ""}
+        </p>
+        <div className="flex items-center gap-sm">
+          <button
+            onClick={handleGenerate}
+            disabled={generating}
+            className="inline-flex items-center gap-xs rounded-md bg-skyBlue px-md py-[6px] text-caption text-white hover:bg-skyBlue/90 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {generating ? (
+              <svg
+                className="animate-spin h-[14px] w-[14px]"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  className="opacity-25"
+                />
+                <path
+                  d="M4 12a8 8 0 018-8"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                />
+              </svg>
+            ) : (
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z" />
+                <path d="M9 18h6" />
+                <path d="M10 22h4" />
+                <path d="M12 14v4" />
+              </svg>
+            )}
+            {generating ? "Generating..." : "Generate Nuggets"}
+          </button>
           <button
             onClick={() => setShowForm(true)}
-            className="mt-lg inline-flex items-center gap-xs rounded-md bg-navy px-lg py-sm text-body text-white hover:bg-navy/90"
+            className="inline-flex items-center gap-xs rounded-md bg-navy px-md py-[6px] text-caption text-white hover:bg-navy/90"
           >
             <svg
-              width="16"
-              height="16"
+              width="14"
+              height="14"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             >
@@ -429,44 +794,10 @@ export default function SuccessNuggetsLibrary() {
             Add Nugget
           </button>
         </div>
-
-        <NuggetFormModal
-          open={showForm}
-          onClose={handleCloseForm}
-          onSaved={fetchData}
-          editNugget={editTarget}
-        />
-      </>
-    );
-  }
-
-  return (
-    <div className="space-y-lg">
-      {/* Toolbar */}
-      <div className="flex items-center justify-between">
-        <p className="text-caption text-charcoal/50">
-          {nuggets.length} nugget{nuggets.length !== 1 ? "s" : ""}
-        </p>
-        <button
-          onClick={() => setShowForm(true)}
-          className="inline-flex items-center gap-xs rounded-md bg-navy px-md py-[6px] text-caption text-white hover:bg-navy/90"
-        >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          Add Nugget
-        </button>
       </div>
+      {generateError && (
+        <p className="text-caption text-error">{generateError}</p>
+      )}
 
       {/* Nugget cards */}
       <div className="grid gap-md sm:grid-cols-2">
@@ -576,6 +907,13 @@ export default function SuccessNuggetsLibrary() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         deleting={deleting}
+      />
+
+      <AIReviewModal
+        open={showReview}
+        onClose={() => setShowReview(false)}
+        onSaved={fetchData}
+        generatedNuggets={generatedNuggets}
       />
     </div>
   );

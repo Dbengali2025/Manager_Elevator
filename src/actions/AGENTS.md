@@ -64,8 +64,13 @@ Server actions for Manager Elevator. These run on the server only (`"use server"
 - `createSuccessNugget(fields)` — Creates a new success nugget with achievement_statement, supporting_metrics, talking_points; defaults source to 'manual'
 - `updateSuccessNugget(id, fields)` — Updates a nugget's achievement_statement, supporting_metrics, and talking_points
 - `deleteSuccessNugget(id)` — Deletes a success nugget by ID
+- `generateSuccessNuggets()` — Collects completed tracker data (opportunities, solutions, sessions) and sends to Insforge OpenRouter (GPT-4o) to generate 3-5 achievement summaries; returns `GeneratedNugget[]` for user review before saving
+- `saveGeneratedNuggets(nuggets)` — Saves an array of AI-generated nuggets with `source='ai_generated'` to the success_nuggets table
+- Export type: `GeneratedNugget` — `{ achievement_statement, supporting_metrics, talking_points }`
 - Uses `WAR_BATTLE_SESSIONS` from `masterclass.ts` for session definitions (name, battle number)
-- Import: `import { getWarBattleSessions, markSessionComplete, saveSessionLink, getOpportunities, createOpportunity, updateOpportunityStatus, deleteOpportunity, getWinningSolutions, createWinningSolution, deleteWinningSolution, getSuccessNuggets, createSuccessNugget, updateSuccessNugget, deleteSuccessNugget } from "@/actions/trackers"`
+- Uses `insforgeAI.chatCompletion()` from `@/lib/insforge` for AI generation
+- Import: `import { getWarBattleSessions, markSessionComplete, saveSessionLink, getOpportunities, createOpportunity, updateOpportunityStatus, deleteOpportunity, getWinningSolutions, createWinningSolution, deleteWinningSolution, getSuccessNuggets, createSuccessNugget, updateSuccessNugget, deleteSuccessNugget, generateSuccessNuggets, saveGeneratedNuggets } from "@/actions/trackers"`
+- Import type: `import type { GeneratedNugget } from "@/actions/trackers"`
 
 ## Notification Actions (`notifications.ts`)
 - `notifySessionCompleted(params)` — Emails Dana when a WAR Battle session is marked done. Params: userName, company, sessionNumber, sessionName, dateCompleted, powerpointLink

@@ -39,6 +39,10 @@ Components for the CI Done Right Trackers tab panels. Each component manages its
 ### SuccessNuggetsLibrary (`SuccessNuggetsLibrary.tsx`)
 - Client component for the "Success Nuggets" tab
 - Full CRUD: Add and edit via modal form, delete with confirmation dialog
+- AI generation: "Generate Nuggets" button collects tracker data and generates 3-5 achievement summaries via GPT-4o
+- AIReviewModal: shows generated nuggets for editing before saving — each nugget has a checkbox to include/exclude
+- Generated nuggets saved with `source='ai_generated'` via `saveGeneratedNuggets()` server action
+- Loading spinner on Generate button during AI generation; error message shown if no tracker data or AI fails
 - Nuggets displayed as cards showing achievement statement, supporting metrics, and talking points
 - Source badge on each card: "Manual" (teal) or "AI Generated" (sky blue) with icon
 - Edit and delete icons on each card header

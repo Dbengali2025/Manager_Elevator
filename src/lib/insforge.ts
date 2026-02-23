@@ -253,6 +253,37 @@ export const insforgeAuth = {
 };
 
 // ---------------------------------------------------------------------------
+// AI / OpenRouter Client
+// ---------------------------------------------------------------------------
+
+/**
+ * Insforge OpenRouter helpers for AI chat completions (GPT-4o).
+ */
+export const insforgeAI = {
+  /** Send a chat completion request via Insforge OpenRouter */
+  async chatCompletion(params: {
+    model?: string;
+    messages: { role: "system" | "user" | "assistant"; content: string }[];
+    temperature?: number;
+    max_tokens?: number;
+  }): Promise<
+    InsforgeResponse<{
+      choices: { message: { role: string; content: string } }[];
+    }>
+  > {
+    return request("/ai/v1/chat/completions", {
+      method: "POST",
+      body: {
+        model: params.model ?? "openai/gpt-4o",
+        messages: params.messages,
+        temperature: params.temperature ?? 0.7,
+        max_tokens: params.max_tokens ?? 2048,
+      },
+    });
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Email Client
 // ---------------------------------------------------------------------------
 
