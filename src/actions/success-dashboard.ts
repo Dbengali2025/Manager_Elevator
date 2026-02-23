@@ -14,6 +14,7 @@ export interface SuccessDashboardData {
   company: string;
   progressRecords: UserProgress[];
   milestones: Milestone[];
+  sessionsCompleted: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -72,6 +73,14 @@ export async function getSuccessDashboardData(): Promise<{
       `?user_id=eq.${authUser.id}`
     );
 
+  // Fetch completed WAR battle sessions count
+  const { data: doneSessions } = await insforgeClient
+    .from("war_battle_sessions")
+    .select<Array<{ id: string }>>(
+      token,
+      `?user_id=eq.${authUser.id}&status=eq.done&select=id`
+    );
+
   return {
     success: true,
     data: {
@@ -79,6 +88,7 @@ export async function getSuccessDashboardData(): Promise<{
       company: users[0].company_name,
       progressRecords: progress ?? [],
       milestones: milestones ?? [],
+      sessionsCompleted: doneSessions?.length ?? 0,
     },
   };
 }

@@ -20,6 +20,19 @@
 - Card styling: white bg, rounded-lg, shadow-sm, large number display
 - Import: `import StatCards from "@/components/dashboard/StatCards"`
 
+## CircularProgressRing (`CircularProgressRing.tsx`)
+- Client component — renders an SVG-based circular progress indicator with animated fill
+- Props: `{ value: number, total: number, label: string, color: string, colorHex: string }`
+- `color` is a Tailwind stroke class (e.g. `stroke-skyBlue`) — used as CSS class on the progress circle
+- `colorHex` is the hex color value (e.g. `#35C0ED`) — used as the SVG stroke attribute for animation
+- Animation: starts fully undrawn, animates to target offset on mount via `useEffect` + `setTimeout`
+- Circle uses `strokeDasharray` + `strokeDashoffset` technique for partial arc rendering
+- Center displays `value` number with "of {total}" below
+- Label displayed below the ring
+- Ring size: 120x120px, stroke width 10px
+- Background ring uses paleGray (`#E8ECF0`)
+- Import: `import CircularProgressRing from "@/components/dashboard/CircularProgressRing"`
+
 ## FeatureNavigationCards (`FeatureNavigationCards.tsx`)
 - Client component — renders 5 feature navigation cards with unlock logic
 - Props: `{ onboardingCompleted: boolean, progressRecords: UserProgress[] }`

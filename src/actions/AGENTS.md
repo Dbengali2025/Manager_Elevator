@@ -73,7 +73,7 @@ Server actions for Manager Elevator. These run on the server only (`"use server"
 - Import type: `import type { GeneratedNugget } from "@/actions/trackers"`
 
 ## Success Dashboard Actions (`success-dashboard.ts`)
-- `getSuccessDashboardData()` — Returns user name, company, progress records, and milestones for the success dashboard
+- `getSuccessDashboardData()` — Returns user name, company, progress records, milestones, and sessionsCompleted count for the success dashboard
 - `checkAndUnlockMilestones()` — Checks if milestones should be unlocked based on progress, creates/updates milestone records, and sends Dana notification
 - Milestone 1 (waste_eliminator): Unlocks when all 4 modules + battle 1 are completed
 - Milestone 2 (ci_consultant): Unlocks when battle 2 + battle 3 are completed

@@ -174,11 +174,15 @@
   - Card 2: "Certified CI Done Right Consultant" — teal-to-mint gradient, shield icon, requires battles 2 + 3
 - Each card shows: icon, lock/unlock indicator, title, subtitle, requirement text, progress bar, progress count
 - Unlocked milestones show celebration overlay with backdrop blur
+- Quick Stats section with 3 `CircularProgressRing` components: Modules Completed (X/4, sky blue), Sessions Completed (X/14, teal), Battles Won (X/3, mint green)
+- Modules and battles computed from `progressRecords`, sessions from `sessionsCompleted` (war_battle_sessions count)
+- Rings in white card with `flex-wrap justify-center` — wrap/stack on mobile
 - Milestone unlock check runs on page load via `checkAndUnlockMilestones()` — fire-and-forget, re-fetches data if newly unlocked
 - Server actions in `src/actions/success-dashboard.ts`:
-  - `getSuccessDashboardData()` — fetches user profile, progress records, and milestones
+  - `getSuccessDashboardData()` — fetches user profile, progress records, milestones, and sessionsCompleted count
   - `checkAndUnlockMilestones()` — checks progress, creates/updates milestone records, notifies Dana
 - Import: `import { getSuccessDashboardData, checkAndUnlockMilestones } from "@/actions/success-dashboard"`
+- Import: `import CircularProgressRing from "@/components/dashboard/CircularProgressRing"`
 
 ## Email Notifications (`src/actions/notifications.ts`)
 - Sends branded HTML emails to Dana via Insforge Email (AWS SES) for key platform events

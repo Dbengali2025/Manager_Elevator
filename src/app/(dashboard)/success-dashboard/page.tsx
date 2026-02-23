@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import JourneyProgressBar from "@/components/dashboard/JourneyProgressBar";
+import CircularProgressRing from "@/components/dashboard/CircularProgressRing";
 import {
   getSuccessDashboardData,
   checkAndUnlockMilestones,
@@ -275,6 +276,14 @@ export default function SuccessDashboardPage() {
     data.progressRecords.filter((p) => p.status === "completed").map((p) => p.stage)
   );
 
+  // Compute quick stats from progress records
+  const modulesCompleted = (["module_1", "module_2", "module_3", "module_4"] as const).filter(
+    (s) => completedStages.has(s)
+  ).length;
+  const battlesWon = (["battle_1", "battle_2", "battle_3"] as const).filter(
+    (s) => completedStages.has(s)
+  ).length;
+
   return (
     <div className="max-w-6xl mx-auto space-y-lg">
       {/* Page header */}
@@ -310,6 +319,36 @@ export default function SuccessDashboardPage() {
             />
           );
         })}
+      </div>
+
+      {/* Quick Stats - Circular Progress Rings */}
+      <div className="rounded-lg bg-white p-xl shadow-sm">
+        <h2 className="font-heading text-h2 text-charcoal mb-lg text-center">
+          Quick Stats
+        </h2>
+        <div className="flex flex-wrap justify-center gap-xl sm:gap-2xl">
+          <CircularProgressRing
+            value={modulesCompleted}
+            total={4}
+            label="Modules Completed"
+            color="stroke-skyBlue"
+            colorHex="#35C0ED"
+          />
+          <CircularProgressRing
+            value={data.sessionsCompleted}
+            total={14}
+            label="Sessions Completed"
+            color="stroke-teal"
+            colorHex="#2F90B0"
+          />
+          <CircularProgressRing
+            value={battlesWon}
+            total={3}
+            label="Battles Won"
+            color="stroke-mintGreen"
+            colorHex="#9AEBA6"
+          />
+        </div>
       </div>
     </div>
   );
