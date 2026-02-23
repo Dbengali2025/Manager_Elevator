@@ -1,0 +1,28 @@
+# Ralph Progress Log
+Started: 2026-02-23
+Feature: Manager Elevator MVP - Full Product Build
+
+## Codebase Patterns
+(Patterns discovered during this build)
+
+## Key References
+- PRD: /tasks/prd-manager-elevator-mvp.md
+- Design System: /Manager_Elevator_Design_System.pptx.pdf
+- Mockups: /public/main-dashboard-mockup.png, /public/CI-done-right-success-dashboard-mockup.png, /public/CI-done-right-trackers-mockup.png
+- Book (RAG source): /Dana Thompson_Bulletproof Your Manager Career_20260105.md
+- TGE Offerings (lesson titles): /TGE Offerings.md
+- Logo: /public/manager-elevator_logo.png
+- Insforge API Base: https://97k43jb9.us-west.insforge.app
+
+## Design System Quick Ref
+- Navy: #08376B | Sky Blue: #35C0ED | Mint Green: #9AEBA6 | Teal: #2F90B0
+- Off White: #F5F7FA | Pale Gray: #E8ECF0 | Charcoal: #1C2733
+- Success: #2E7D4F | Warning: #D4940A | Error: #C53030
+- Fonts: Tenor Sans (headings), Montserrat (body)
+- Type: Display 36px, H1 28px, H2 22px, H3 16px, Body 14px, Caption 12px
+- Spacing: xs 4px, sm 8px, md 16px, lg 24px, xl 32px, 2xl 48px, 3xl 64px
+- Radius: sm 6px, md 12px, lg 16px
+- Grid: 12-col, 8px base, 24px gutters
+- Breakpoints: 640px, 768px, 1024px, 1280px
+
+---
