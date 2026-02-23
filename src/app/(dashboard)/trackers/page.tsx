@@ -4,6 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { Suspense } from "react";
 import WarBattleTracker from "@/components/trackers/WarBattleTracker";
+import OpportunitiesTracker from "@/components/trackers/OpportunitiesTracker";
 
 const TABS = [
   { key: "war-battles", label: "Waste WAR Battles" },
@@ -61,7 +62,7 @@ function TrackersContent() {
             <WarBattleTracker />
           </TabPanel>
           <TabPanel>
-            <OpportunitiesPlaceholder />
+            <OpportunitiesTracker />
           </TabPanel>
           <TabPanel>
             <ImpactTrackerPlaceholder />
@@ -99,34 +100,6 @@ export default function TrackersPage() {
 
 /* ---------- Placeholder components ---------- */
 
-function OpportunitiesPlaceholder() {
-  return (
-    <div className="rounded-lg border border-paleGray bg-white p-2xl text-center">
-      <div className="mx-auto mb-md flex h-[48px] w-[48px] items-center justify-center rounded-full bg-warning/10">
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="text-warning"
-        >
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 8v4M12 16h.01" />
-        </svg>
-      </div>
-      <h3 className="font-heading text-h3 text-charcoal">
-        Improvement Opportunities
-      </h3>
-      <p className="mt-sm text-body text-charcoal/60">
-        Log and prioritize workplace waste and improvement opportunities.
-      </p>
-    </div>
-  );
-}
 
 function ImpactTrackerPlaceholder() {
   return (

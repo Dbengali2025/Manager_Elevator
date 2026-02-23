@@ -2,7 +2,12 @@
 
 import { insforgeClient, insforgeAuth } from "@/lib/insforge";
 import { cookies } from "next/headers";
-import type { WarBattleSession } from "@/db/types";
+import type {
+  WarBattleSession,
+  ImprovementOpportunity,
+  OpportunityPriority,
+  OpportunityStatus,
+} from "@/db/types";
 import type { UserRecord } from "@/lib/insforge";
 import { WAR_BATTLE_SESSIONS } from "@/actions/masterclass";
 import { notifySessionCompleted } from "@/actions/notifications";
@@ -176,5 +181,81 @@ export async function saveSessionLink(
       );
   }
 
+  return { success: true };
+}
+
+// ---------------------------------------------------------------------------
+// Improvement Opportunities — CRUD
+// ---------------------------------------------------------------------------
+
+export async function getOpportunities(): Promise<{
+  success: boolean;
+  error?: string;
+  data?: ImprovementOpportunity[];
+}> {
+  const token = await getToken();
+  if (!token) return { success: false, error: "Not authenticated" };
+
+  const userId = await getUserId(token);
+  if (!userId) return { success: false, error: "Failed to get user info" };
+
+  const { data, error } = await insforgeClient
+    .from("improvement_opportunities")
+    .select<ImprovementOpportunity[]>(
+      token,
+      `?user_id=eq.${userId}&order=created_at.desc`
+    );
+
+  if (error) return { success: false, error };
+  return { success: true, data: data ?? [] };
+}
+
+export async function createOpportunity(fields: {
+  title: string;
+  description: string;
+  priority: OpportunityPriority;
+  category: string;
+  status: OpportunityStatus;
+}): Promise<{ success: boolean; error?: string }> {
+  const token = await getToken();
+  if (!token) return { success: false, error: "Not authenticated" };
+
+  const userId = await getUserId(token);
+  if (!userId) return { success: false, error: "Failed to get user info" };
+
+  const { error } = await insforgeClient
+    .from("improvement_opportunities")
+    .insert({ user_id: userId, ...fields }, token);
+
+  if (error) return { success: false, error };
+  return { success: true };
+}
+
+export async function updateOpportunityStatus(
+  id: string,
+  status: OpportunityStatus
+): Promise<{ success: boolean; error?: string }> {
+  const token = await getToken();
+  if (!token) return { success: false, error: "Not authenticated" };
+
+  const { error } = await insforgeClient
+    .from("improvement_opportunities")
+    .update({ status }, token, `?id=eq.${id}`);
+
+  if (error) return { success: false, error };
+  return { success: true };
+}
+
+export async function deleteOpportunity(
+  id: string
+): Promise<{ success: boolean; error?: string }> {
+  const token = await getToken();
+  if (!token) return { success: false, error: "Not authenticated" };
+
+  const { error } = await insforgeClient
+    .from("improvement_opportunities")
+    .delete(token, `?id=eq.${id}`);
+
+  if (error) return { success: false, error };
   return { success: true };
 }

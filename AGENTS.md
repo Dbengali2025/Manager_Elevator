@@ -149,11 +149,14 @@
 
 ## Tracker Components (`src/components/trackers/`)
 - `WarBattleTracker` — 14-week WAR Battle session tracker table with status tags, mark complete, and link editing
+- `OpportunitiesTracker` — CRUD table for improvement opportunities with modal form, filters, and delete confirmation
 - Each tracker component manages its own data fetching — receives no props from the tab shell
-- Server actions in `src/actions/trackers.ts`: `getWarBattleSessions`, `markSessionComplete`, `saveSessionLink`
+- Server actions in `src/actions/trackers.ts`: `getWarBattleSessions`, `markSessionComplete`, `saveSessionLink`, `getOpportunities`, `createOpportunity`, `updateOpportunityStatus`, `deleteOpportunity`
 - Shared constants imported from `src/actions/masterclass.ts`: `WAR_BATTLE_SESSIONS`
-- Status badge pattern: `Record<BattleSessionStatus, { label, bg, text }>` for consistent styling
+- Status badge pattern: `Record<StatusType, { label, bg, text }>` for consistent styling
+- Modal pattern: Headless UI `Dialog` + `Transition` with `TransitionChild` for overlay + panel animations
 - Import: `import WarBattleTracker from "@/components/trackers/WarBattleTracker"`
+- Import: `import OpportunitiesTracker from "@/components/trackers/OpportunitiesTracker"`
 
 ## Email Notifications (`src/actions/notifications.ts`)
 - Sends branded HTML emails to Dana via Insforge Email (AWS SES) for key platform events

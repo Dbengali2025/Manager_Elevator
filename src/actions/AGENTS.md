@@ -53,8 +53,12 @@ Server actions for Manager Elevator. These run on the server only (`"use server"
 - `getWarBattleSessions()` — Fetches all WAR battle session records for the current user
 - `markSessionComplete(weekNumber)` — Marks a session as done with current timestamp; creates record if none exists
 - `saveSessionLink(weekNumber, link)` — Saves/updates the PowerPoint link for a session; creates pending record if none exists
+- `getOpportunities()` — Fetches all improvement opportunities for the current user, ordered by created_at desc
+- `createOpportunity(fields)` — Creates a new improvement opportunity with title, description, priority, category, status
+- `updateOpportunityStatus(id, status)` — Updates the status of an opportunity (active/completed/deferred)
+- `deleteOpportunity(id)` — Deletes an opportunity by ID
 - Uses `WAR_BATTLE_SESSIONS` from `masterclass.ts` for session definitions (name, battle number)
-- Import: `import { getWarBattleSessions, markSessionComplete, saveSessionLink } from "@/actions/trackers"`
+- Import: `import { getWarBattleSessions, markSessionComplete, saveSessionLink, getOpportunities, createOpportunity, updateOpportunityStatus, deleteOpportunity } from "@/actions/trackers"`
 
 ## Notification Actions (`notifications.ts`)
 - `notifySessionCompleted(params)` — Emails Dana when a WAR Battle session is marked done. Params: userName, company, sessionNumber, sessionName, dateCompleted, powerpointLink

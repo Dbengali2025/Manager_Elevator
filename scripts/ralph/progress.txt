@@ -410,3 +410,59 @@ Session: Waste WAR Battle project tracker table
   - Use `useCallback` for fetch functions passed to `useEffect` to avoid unnecessary re-renders
   - Status config map pattern: `Record<StatusType, { label, bg, text }>` keeps badge styling consistent and DRY
 ---
+
+## 2026-02-23 - US-015
+Session: Email notification to Dana on session completion
+- Added `insforgeEmail.send()` helper to `src/lib/insforge.ts` — sends via Insforge Email (AWS SES) endpoint `/email/v1/send`
+- Created `src/actions/notifications.ts` with 3 notification functions:
+  - `notifySessionCompleted()` — WAR Battle session completed (user name, company, session #, name, date, PPT link)
+  - `notifyMilestoneUnlocked()` — Milestone unlocked (waste_eliminator or ci_consultant)
+  - `notifyNewUserRegistered()` — New user registration (all user details)
+- `emailTemplate()` helper builds branded HTML email with navy header, logo, white content, TGE footer
+- Integrated into `markSessionComplete()` in trackers.ts — fire-and-forget via `.then()` + `.catch()`
+  - Fetches user name/company from users table to include in email
+- Integrated into `signupAction()` in auth.ts — fire-and-forget via `.catch()`
+- `notifyMilestoneUnlocked()` exported and ready to be called from success dashboard milestone unlock logic (US-020)
+- Dana's email configurable via `DANA_NOTIFICATION_EMAIL` env var (already in .env.example)
+- Updated AGENTS.md (root, src/lib, src/actions) with notification patterns
+- Files changed: src/lib/insforge.ts, src/actions/notifications.ts, src/actions/trackers.ts, src/actions/auth.ts, AGENTS.md, src/lib/AGENTS.md, src/actions/AGENTS.md
+- **Learnings for future iterations:**
+  - Fire-and-forget pattern: use `.catch(err => console.error(...))` — never `await` notification calls in user-facing flows
+  - Insforge Email endpoint: POST `/email/v1/send` with `{ to, subject, html }` body
+  - HTML email template uses inline styles (no external CSS support in email clients)
+  - `emailTemplate()` is a shared helper — all notifications reuse the same branded layout
+  - `notifyMilestoneUnlocked` is not yet integrated — will be called from US-020 success dashboard milestone logic
+  - Email `from` address is managed by Insforge — no need to specify sender
+---
+
+## 2026-02-23 - US-016
+Session: Improvement Opportunities tracker
+- Added 4 server actions to `src/actions/trackers.ts`:
+  - `getOpportunities()` — fetches all improvement opportunities for user, ordered by created_at desc
+  - `createOpportunity(fields)` — creates new opportunity with title, description, priority, category, status
+  - `updateOpportunityStatus(id, status)` — inline status change (active/completed/deferred)
+  - `deleteOpportunity(id)` — deletes an opportunity by ID
+- Created `src/components/trackers/OpportunitiesTracker.tsx` — client component with:
+  - "Add Opportunity" button opens Headless UI Dialog modal with form fields
+  - Modal form: title, description, priority (dropdown), category (text), status (dropdown)
+  - Sortable table: Title (with description), Priority badge, Category, Status dropdown, Delete
+  - Filter dropdowns: status (Active/Completed/Deferred/All) and priority (High/Medium/Low/All)
+  - Inline status change via `<select>` dropdown on each row with optimistic update
+  - Delete button with confirmation dialog ("Are you sure you want to delete this opportunity?")
+  - Empty state with icon, message, and "Add Opportunity" CTA
+  - Loading skeleton while data fetches
+  - Priority badges: High (error red), Medium (warning), Low (sky blue)
+- Updated `src/app/(dashboard)/trackers/page.tsx`:
+  - Imported `OpportunitiesTracker` component
+  - Replaced `OpportunitiesPlaceholder` in Opportunities tab
+  - Removed unused `OpportunitiesPlaceholder` function
+- Updated AGENTS.md (root, trackers components, actions)
+- Files changed: src/actions/trackers.ts, src/components/trackers/OpportunitiesTracker.tsx, src/app/(dashboard)/trackers/page.tsx, AGENTS.md, src/components/trackers/AGENTS.md, src/actions/AGENTS.md
+- **Learnings for future iterations:**
+  - Headless UI v2 Dialog modal pattern: `Transition` > `Dialog` with two `TransitionChild` (overlay + panel)
+  - Form state reset on modal open: `useEffect` keyed on `open` prop — clean way to reset without lifting state
+  - Optimistic status update with revert on failure: update local state first, then await server, refetch on error
+  - `PRIORITY_CONFIG` and `STATUS_CONFIG` map patterns keep badge styling consistent across components
+  - Removed unused `StatusBadge` — lint caught it in build; inline `<select>` dropdowns used instead for status changes
+  - Opportunity CRUD actions follow same `getToken() → getUserId() → insforgeClient.from()` pattern as WAR Battle actions
+---
