@@ -1,7 +1,7 @@
 "use server";
 
 import { insforgeClient, insforgeAuth } from "@/lib/insforge";
-import { cookies } from "next/headers";
+import { getValidToken } from "@/lib/auth-helpers";
 import type { User, UserProgress, Milestone, WarBattleSession } from "@/db/types";
 
 // ---------------------------------------------------------------------------
@@ -38,10 +38,7 @@ export interface AdminDashboardData {
 // Helpers
 // ---------------------------------------------------------------------------
 
-async function getToken(): Promise<string | null> {
-  const cookieStore = await cookies();
-  return cookieStore.get("access_token")?.value ?? null;
-}
+const getToken = getValidToken;
 
 async function verifyAdmin(token: string): Promise<{ userId: string; isAdmin: boolean }> {
   const { data: authUser, error: authError } = await insforgeAuth.getUser(token);

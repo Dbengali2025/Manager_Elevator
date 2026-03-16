@@ -5,6 +5,7 @@ import {
   getProfileData,
   updateProfile,
   changePassword,
+  sendTestNotification,
 } from "@/actions/settings";
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment } from "react";
@@ -81,8 +82,6 @@ export default function SettingsPage() {
   const [companyName, setCompanyName] = useState("");
   const [industry, setIndustry] = useState("");
   const [roleTitle, setRoleTitle] = useState("");
-  const [miestroLinked, setMiestroLinked] = useState(false);
-
   // Notification toggles
   const [notifyMilestones, setNotifyMilestones] = useState(true);
   const [notifyWeeklyDigest, setNotifyWeeklyDigest] = useState(true);
@@ -104,6 +103,10 @@ export default function SettingsPage() {
 
   const newPasswordChecks = validatePassword(newPassword);
 
+  // Test notification state
+  const [testingSend, setTestingSend] = useState(false);
+  const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
+
   // ---------------------------------------------------------------------------
   // Fetch profile data
   // ---------------------------------------------------------------------------
@@ -118,7 +121,6 @@ export default function SettingsPage() {
         setCompanyName(result.data.companyName);
         setIndustry(result.data.industry);
         setRoleTitle(result.data.roleTitle);
-        setMiestroLinked(result.data.miestroLinked);
         setNotifyMilestones(result.data.notifyMilestones);
         setNotifyWeeklyDigest(result.data.notifyWeeklyDigest);
       } else {
@@ -426,49 +428,50 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Miestro account connection */}
+      {/* Test Email Notification */}
       <div className="bg-white rounded-lg shadow-sm p-xl">
-        <h2 className="font-heading text-h2 text-navy mb-lg">Miestro Account</h2>
-        <div className="flex items-start gap-md">
+        <h2 className="font-heading text-h2 text-navy mb-lg">Email Notifications</h2>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-body font-medium text-charcoal">Test Notification</p>
+            <p className="text-caption text-charcoal/60">
+              Send a test email to verify notifications are working
+            </p>
+          </div>
+          <button
+            type="button"
+            disabled={testingSend}
+            onClick={async () => {
+              setTestingSend(true);
+              setTestResult(null);
+              try {
+                const result = await sendTestNotification();
+                setTestResult(
+                  result.success
+                    ? { ok: true, msg: "Test email sent! Check your inbox." }
+                    : { ok: false, msg: result.error ?? "Failed to send" }
+                );
+              } catch {
+                setTestResult({ ok: false, msg: "Failed to send test email" });
+              }
+              setTestingSend(false);
+            }}
+            className="bg-white text-navy font-medium text-body py-sm px-md min-h-[44px] rounded-md border border-navy hover:bg-navy/5 focus:outline-none focus:ring-2 focus:ring-skyBlue disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {testingSend ? "Sending..." : "Send Test Email"}
+          </button>
+        </div>
+        {testResult && (
           <div
-            className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-              miestroLinked ? "bg-success/10" : "bg-warning/10"
+            className={`mt-md text-body rounded-md px-md py-sm ${
+              testResult.ok
+                ? "bg-success/10 border border-success/30 text-success"
+                : "bg-error/10 border border-error/30 text-error"
             }`}
           >
-            {miestroLinked ? (
-              <svg className="w-5 h-5 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-              </svg>
-            ) : (
-              <svg className="w-5 h-5 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-              </svg>
-            )}
+            {testResult.msg}
           </div>
-          <div className="flex-1">
-            <p className="text-body font-medium text-charcoal">
-              {miestroLinked ? "Account Linked" : "Not Linked"}
-            </p>
-            <p className="text-caption text-charcoal/60 mt-xs">
-              {miestroLinked
-                ? "Your Miestro account is connected. You can access the masterclass content."
-                : "Link your Miestro account to access the Leading Bulletproof Continuous Improvement Masterclass."}
-            </p>
-            {!miestroLinked && (
-              <a
-                href="#"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-xs mt-sm text-body font-medium text-skyBlue hover:text-teal transition-colors"
-              >
-                Link Account
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </a>
-            )}
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Security section */}

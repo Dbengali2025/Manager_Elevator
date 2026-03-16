@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   getMasterclassData,
   toggleSessionCompletion,
-  MODULES,
-  WAR_BATTLE_SESSIONS,
 } from "@/actions/masterclass";
+import { MODULES, WAR_BATTLE_SESSIONS } from "@/lib/masterclass-data";
 import type { MasterclassData } from "@/actions/masterclass";
 import type { UserProgress, WarBattleSession } from "@/db/types";
 
@@ -41,19 +41,21 @@ function getCurrentModule(progressRecords: UserProgress[]): number {
 
 function isSessionDone(
   weekNumber: number,
+  battleNumber: number,
   sessions: WarBattleSession[]
 ): boolean {
   return sessions.some(
-    (s) => s.week_number === weekNumber && s.status === "done"
+    (s) => s.week_number === weekNumber && s.battle_number === battleNumber && s.status === "done"
   );
 }
 
 function getSessionDateCompleted(
   weekNumber: number,
+  battleNumber: number,
   sessions: WarBattleSession[]
 ): string | null {
   const session = sessions.find(
-    (s) => s.week_number === weekNumber && s.status === "done"
+    (s) => s.week_number === weekNumber && s.battle_number === battleNumber && s.status === "done"
   );
   return session?.date_completed ?? null;
 }
@@ -134,7 +136,7 @@ function ModuleStatusBadge({ status }: { status: ModuleStatus }) {
   const config = {
     completed: { label: "Complete", bg: "bg-success/10", text: "text-success" },
     in_progress: { label: "In Progress", bg: "bg-skyBlue/10", text: "text-skyBlue" },
-    not_started: { label: "Not Started", bg: "bg-paleGray", text: "text-charcoal/50" },
+    not_started: { label: "Not Started", bg: "bg-charcoal/10", text: "text-charcoal/70" },
   }[status];
 
   return (
@@ -175,7 +177,7 @@ function ModuleCard({
                 ? "bg-success"
                 : status === "in_progress"
                   ? "bg-skyBlue"
-                  : "bg-paleGray text-charcoal/50"
+                  : "bg-charcoal/15 text-charcoal/70"
             }`}
           >
             {status === "completed" ? (
@@ -219,6 +221,16 @@ function ModuleCard({
               </li>
             ))}
           </ul>
+          <a
+            href={module.miestroUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-md inline-flex items-center gap-sm rounded-md bg-navy px-lg py-sm min-h-[44px] text-body font-medium text-white transition-colors hover:bg-navy/90"
+          >
+            <BookIcon />
+            Start Module {module.number}
+            <ExternalLinkIcon />
+          </a>
         </div>
       )}
     </div>
@@ -226,7 +238,166 @@ function ModuleCard({
 }
 
 // ---------------------------------------------------------------------------
-// Session checklist component
+// Battle section colors
+// ---------------------------------------------------------------------------
+
+const BATTLE_CONFIG = [
+  { number: 1, label: "Battle 1", accent: "bg-skyBlue", accentLight: "bg-skyBlue/10", textColor: "text-skyBlue", borderColor: "border-skyBlue/20" },
+  { number: 2, label: "Battle 2", accent: "bg-teal", accentLight: "bg-teal/10", textColor: "text-teal", borderColor: "border-teal/20" },
+  { number: 3, label: "Battle 3", accent: "bg-success", accentLight: "bg-mintGreen/20", textColor: "text-success", borderColor: "border-success/20" },
+];
+
+// ---------------------------------------------------------------------------
+// Single battle expandable section
+// ---------------------------------------------------------------------------
+
+function BattleSection({
+  battleNumber,
+  sessions,
+  onToggle,
+  loading,
+}: {
+  battleNumber: number;
+  sessions: WarBattleSession[];
+  onToggle: (week: number, name: string, battle: number, done: boolean) => void;
+  loading: number | null;
+}) {
+  const [open, setOpen] = useState(battleNumber === 1);
+  const config = BATTLE_CONFIG[battleNumber - 1];
+
+  const completedCount = WAR_BATTLE_SESSIONS.filter((s) =>
+    isSessionDone(s.week, battleNumber, sessions)
+  ).length;
+  const totalCount = WAR_BATTLE_SESSIONS.length;
+  const allDone = completedCount === totalCount;
+
+  return (
+    <div className="rounded-lg bg-white shadow-sm overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center justify-between p-lg text-left min-h-[44px]"
+      >
+        <div className="flex items-center gap-md">
+          <div
+            className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-white font-heading text-h3 ${
+              allDone ? "bg-success" : config.accent
+            }`}
+          >
+            {allDone ? (
+              <CheckIcon />
+            ) : (
+              battleNumber
+            )}
+          </div>
+          <div>
+            <div className="flex items-center gap-sm">
+              <h3 className="font-heading text-h3 text-charcoal">
+                {config.label}
+              </h3>
+              <span
+                className={`inline-flex items-center rounded-full px-sm py-[2px] text-caption font-medium ${
+                  allDone
+                    ? "bg-success/10 text-success"
+                    : completedCount > 0
+                      ? "bg-skyBlue/10 text-skyBlue"
+                      : "bg-charcoal/10 text-charcoal/70"
+                }`}
+              >
+                {allDone ? "Complete" : completedCount > 0 ? "In Progress" : "Not Started"}
+              </span>
+            </div>
+            <p className="mt-[2px] text-body text-charcoal/60">
+              {completedCount} of {totalCount} sessions completed
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-sm">
+          {/* Progress ring */}
+          <div className="hidden sm:block">
+            <svg className="h-8 w-8 -rotate-90" viewBox="0 0 32 32">
+              <circle cx="16" cy="16" r="13" fill="none" stroke="#E8ECF0" strokeWidth="3" />
+              <circle
+                cx="16"
+                cy="16"
+                r="13"
+                fill="none"
+                stroke={allDone ? "#2E7D4F" : battleNumber === 1 ? "#35C0ED" : battleNumber === 2 ? "#2F90B0" : "#2E7D4F"}
+                strokeWidth="3"
+                strokeDasharray={`${(completedCount / totalCount) * 81.68} 81.68`}
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+          <ChevronDownIcon open={open} />
+        </div>
+      </button>
+
+      {open && (
+        <div className="border-t border-paleGray divide-y divide-paleGray">
+          {WAR_BATTLE_SESSIONS.map((session) => {
+            const done = isSessionDone(session.week, battleNumber, sessions);
+            const dateCompleted = getSessionDateCompleted(session.week, battleNumber, sessions);
+            const isLoading = loading === session.week * 100 + battleNumber;
+
+            return (
+              <label
+                key={`${battleNumber}-${session.week}`}
+                className={`flex items-center gap-md px-lg py-md min-h-[44px] cursor-pointer transition-colors hover:bg-offWhite ${
+                  done ? "bg-success/[0.03]" : ""
+                }`}
+              >
+                <div className="relative flex-shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={done}
+                    disabled={isLoading}
+                    onChange={() =>
+                      onToggle(session.week, session.name, battleNumber, !done)
+                    }
+                    className="peer sr-only"
+                  />
+                  <div
+                    className={`flex h-5 w-5 items-center justify-center rounded border-2 transition-colors ${
+                      done
+                        ? "border-success bg-success text-white"
+                        : "border-paleGray bg-white"
+                    } ${isLoading ? "opacity-50" : ""}`}
+                  >
+                    {done && <CheckIcon />}
+                    {isLoading && (
+                      <div className="h-3 w-3 animate-spin rounded-full border-2 border-skyBlue border-t-transparent" />
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <span className="text-caption font-medium text-charcoal/50">
+                    Week {session.week}
+                  </span>
+                  <p
+                    className={`text-body ${done ? "text-charcoal/50 line-through" : "text-charcoal"}`}
+                  >
+                    {session.name}
+                  </p>
+                </div>
+
+                {dateCompleted && (
+                  <span className="flex-shrink-0 text-caption text-charcoal/40">
+                    {formatDate(dateCompleted)}
+                  </span>
+                )}
+              </label>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Session checklist — 3 expandable Battle sections
 // ---------------------------------------------------------------------------
 
 function SessionChecklist({
@@ -239,86 +410,16 @@ function SessionChecklist({
   loading: number | null;
 }) {
   return (
-    <div className="rounded-lg bg-white shadow-sm overflow-hidden">
-      <div className="p-lg border-b border-paleGray">
-        <h3 className="font-heading text-h3 text-charcoal">
-          Session Checklist
-        </h3>
-        <p className="mt-xs text-caption text-charcoal/60">
-          Track your progress through 14 weekly sessions. Checking all sessions in a module marks it as complete.
-        </p>
-      </div>
-
-      <div className="divide-y divide-paleGray">
-        {WAR_BATTLE_SESSIONS.map((session) => {
-          const done = isSessionDone(session.week, sessions);
-          const dateCompleted = getSessionDateCompleted(session.week, sessions);
-          const isLoading = loading === session.week;
-
-          return (
-            <label
-              key={session.week}
-              className={`flex items-center gap-md px-lg py-md min-h-[44px] cursor-pointer transition-colors hover:bg-offWhite ${
-                done ? "bg-success/[0.03]" : ""
-              }`}
-            >
-              <div className="relative flex-shrink-0">
-                <input
-                  type="checkbox"
-                  checked={done}
-                  disabled={isLoading}
-                  onChange={() =>
-                    onToggle(session.week, session.name, session.battle, !done)
-                  }
-                  className="peer sr-only"
-                />
-                <div
-                  className={`flex h-5 w-5 items-center justify-center rounded border-2 transition-colors ${
-                    done
-                      ? "border-success bg-success text-white"
-                      : "border-paleGray bg-white"
-                  } ${isLoading ? "opacity-50" : ""}`}
-                >
-                  {done && <CheckIcon />}
-                  {isLoading && (
-                    <div className="h-3 w-3 animate-spin rounded-full border-2 border-skyBlue border-t-transparent" />
-                  )}
-                </div>
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-sm">
-                  <span className="text-caption font-medium text-charcoal/50">
-                    Week {session.week}
-                  </span>
-                  <span
-                    className={`text-[10px] font-medium px-[6px] py-[1px] rounded-full ${
-                      session.battle === 1
-                        ? "bg-skyBlue/10 text-skyBlue"
-                        : session.battle === 2
-                          ? "bg-teal/10 text-teal"
-                          : "bg-mintGreen/20 text-success"
-                    }`}
-                  >
-                    Battle {session.battle}
-                  </span>
-                </div>
-                <p
-                  className={`text-body ${done ? "text-charcoal/50 line-through" : "text-charcoal"}`}
-                >
-                  {session.name}
-                </p>
-              </div>
-
-              {dateCompleted && (
-                <span className="flex-shrink-0 text-caption text-charcoal/40">
-                  {formatDate(dateCompleted)}
-                </span>
-              )}
-            </label>
-          );
-        })}
-      </div>
+    <div className="space-y-md">
+      {BATTLE_CONFIG.map((config) => (
+        <BattleSection
+          key={config.number}
+          battleNumber={config.number}
+          sessions={sessions}
+          onToggle={onToggle}
+          loading={loading}
+        />
+      ))}
     </div>
   );
 }
@@ -353,14 +454,25 @@ export default function MasterclassPage() {
   const [data, setData] = useState<MasterclassData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [toggleLoading, setToggleLoading] = useState<number | null>(null);
+  const router = useRouter();
 
   const loadData = useCallback(async () => {
-    const result = await getMasterclassData();
-    if (result.success && result.data) {
-      setData(result.data);
+    try {
+      const result = await getMasterclassData();
+      if (result.success && result.data) {
+        setData(result.data);
+      } else if (result.error === "Not authenticated") {
+        // Token expired and refresh failed — redirect to login
+        router.push("/login");
+        return;
+      } else {
+        console.error("[Masterclass] Load failed:", result.error);
+      }
+    } catch (err) {
+      console.error("[Masterclass] Failed to load data:", err);
     }
     setIsLoading(false);
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     loadData();
@@ -374,7 +486,7 @@ export default function MasterclassPage() {
   ) => {
     if (!data) return;
 
-    setToggleLoading(week);
+    setToggleLoading(week * 100 + battle);
 
     // Optimistic update
     const updatedSessions = [...data.sessions];
@@ -414,13 +526,18 @@ export default function MasterclassPage() {
 
     setData({ ...data, sessions: updatedSessions });
 
-    const result = await toggleSessionCompletion(week, name, battle, done);
+    try {
+      const result = await toggleSessionCompletion(week, name, battle, done);
 
-    if (!result.success) {
-      // Revert on failure
-      await loadData();
-    } else {
-      // Reload to get updated progress records
+      if (!result.success) {
+        // Revert on failure
+        await loadData();
+      } else {
+        // Reload to get updated progress records
+        await loadData();
+      }
+    } catch (err) {
+      console.error("[Masterclass] Toggle session failed:", err);
       await loadData();
     }
 
@@ -451,25 +568,13 @@ export default function MasterclassPage() {
   return (
     <div className="space-y-lg">
       {/* Page header */}
-      <div className="flex flex-col gap-md sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="font-heading text-h1 text-charcoal">
-            Leading Bulletproof Continuous Improvement Masterclass
-          </h1>
-          <p className="mt-xs text-body text-charcoal/60">
-            4 Modules, 25 Lessons &mdash; Your complete CI mastery curriculum
-          </p>
-        </div>
-        <a
-          href="https://miestro.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-sm rounded-md bg-navy px-lg py-sm min-h-[44px] text-body font-medium text-white transition-colors hover:bg-navy/90"
-        >
-          <BookIcon />
-          Go to Miestro
-          <ExternalLinkIcon />
-        </a>
+      <div>
+        <h1 className="font-heading text-h1 text-charcoal">
+          Leading Bulletproof Continuous Improvement Masterclass
+        </h1>
+        <p className="mt-xs text-body text-charcoal/60">
+          4 Modules, 25 Lessons &mdash; Your complete CI mastery curriculum
+        </p>
       </div>
 
       {/* Current progress indicator */}
@@ -506,7 +611,7 @@ export default function MasterclassPage() {
       {/* Session checklist */}
       <div className="space-y-md">
         <h2 className="font-heading text-h2 text-charcoal">
-          14-Week Session Checklist
+          14-Week WOR Battle Sessions Checklist
         </h2>
         <SessionChecklist
           sessions={data.sessions}

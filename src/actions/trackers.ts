@@ -1,7 +1,7 @@
 "use server";
 
 import { insforgeClient, insforgeAuth, insforgeAI } from "@/lib/insforge";
-import { cookies } from "next/headers";
+import { getValidToken } from "@/lib/auth-helpers";
 import type {
   WarBattleSession,
   ImprovementOpportunity,
@@ -13,17 +13,14 @@ import type {
   NuggetSource,
 } from "@/db/types";
 import type { UserRecord } from "@/lib/insforge";
-import { WAR_BATTLE_SESSIONS } from "@/actions/masterclass";
+import { WAR_BATTLE_SESSIONS } from "@/lib/masterclass-data";
 import { notifySessionCompleted } from "@/actions/notifications";
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-async function getToken(): Promise<string | null> {
-  const cookieStore = await cookies();
-  return cookieStore.get("access_token")?.value ?? null;
-}
+const getToken = getValidToken;
 
 async function getUserId(token: string): Promise<string | null> {
   const { data: authUser, error } = await insforgeAuth.getUser(token);
@@ -547,7 +544,7 @@ Respond ONLY with valid JSON — no markdown, no code fences, no extra text.`;
       { role: "user", content: userPrompt },
     ],
     temperature: 0.7,
-    max_tokens: 2048,
+    maxTokens: 2048,
   });
 
   if (aiError || !aiResponse) {
@@ -557,7 +554,7 @@ Respond ONLY with valid JSON — no markdown, no code fences, no extra text.`;
     };
   }
 
-  const rawContent = aiResponse.choices?.[0]?.message?.content ?? "";
+  const rawContent = aiResponse.content ?? "";
 
   // Parse JSON from AI response
   try {

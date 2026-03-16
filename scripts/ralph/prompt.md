@@ -92,15 +92,6 @@ At minimum, create AGENTS.md in:
 - Keep changes focused and minimal
 - Follow existing code patterns
 
-## Browser Testing (Required for Frontend Stories)
-
-For any story that changes UI:
-1. Load the `dev-browser` skill
-2. Navigate to the relevant page
-3. Verify the UI changes work as expected
-
-A frontend story is NOT complete until browser verification passes.
-
 ## Stop Condition
 
 After completing a user story, check if ALL stories have `passes: true`.

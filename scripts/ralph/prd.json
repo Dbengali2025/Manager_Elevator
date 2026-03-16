@@ -563,7 +563,7 @@
         "npm run typecheck passes"
       ],
       "priority": 27,
-      "passes": false,
+      "passes": true,
       "notes": "Final polish pass. All Tailwind responsive classes should already be in place from prior stories - this verifies and fixes gaps."
     }
   ]

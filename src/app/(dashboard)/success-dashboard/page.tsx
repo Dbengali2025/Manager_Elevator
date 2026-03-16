@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import JourneyProgressBar from "@/components/dashboard/JourneyProgressBar";
 import CircularProgressRing from "@/components/dashboard/CircularProgressRing";
 import {
@@ -226,16 +227,25 @@ export default function SuccessDashboardPage() {
   const [data, setData] = useState<SuccessDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const fetchData = useCallback(async () => {
-    const result = await getSuccessDashboardData();
-    if (result.success && result.data) {
-      setData(result.data);
-    } else {
-      setError(result.error ?? "Failed to load dashboard data");
+    try {
+      const result = await getSuccessDashboardData();
+      if (result.success && result.data) {
+        setData(result.data);
+      } else if (result.error === "Not authenticated") {
+        router.push("/login");
+        return;
+      } else {
+        setError(result.error ?? "Failed to load dashboard data");
+      }
+    } catch (err) {
+      console.error("[Success Dashboard] Failed to load:", err);
+      setError("Failed to load dashboard data. Please try again.");
     }
     setLoading(false);
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     fetchData();

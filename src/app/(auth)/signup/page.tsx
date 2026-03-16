@@ -127,7 +127,12 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const result = await verifyOtpAction(email, verificationCode);
+      const result = await verifyOtpAction(email, verificationCode, {
+        fullName,
+        companyName,
+        industry,
+        roleTitle,
+      });
 
       if (!result.success) {
         setError(result.error ?? "Verification failed. Please try again.");

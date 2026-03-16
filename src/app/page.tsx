@@ -1,508 +1,647 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useRef } from "react";
+
+/* ───── Scroll Reveal Hook ───── */
+function useReveal() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.classList.add("revealed");
+          observer.unobserve(el);
+        }
+      },
+      { threshold: 0.15 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+/* ───── Icons ───── */
+function ArrowRightIcon({ className = "ml-2 h-5 w-5" }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+    </svg>
+  );
+}
 
 function CheckIcon() {
   return (
-    <svg
-      className="h-5 w-5 flex-shrink-0 text-success"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
+    <svg className="h-5 w-5 flex-shrink-0 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
     </svg>
   );
 }
 
-function ArrowRightIcon() {
+/* ───── Data ───── */
+const JOURNEY_STEPS = [
+  {
+    number: "01",
+    title: "Learn the Method",
+    description: "Master CI fundamentals through our 4-module masterclass with 25 expert-led lessons.",
+    accent: "bg-skyBlue",
+  },
+  {
+    number: "02",
+    title: "Apply at Work",
+    description: "Follow the 14-week Waste WAR Battle framework to run real improvement projects.",
+    accent: "bg-teal",
+  },
+  {
+    number: "03",
+    title: "Track Your Wins",
+    description: "Document measurable impact with ROI calculations and success nuggets for reviews.",
+    accent: "bg-success",
+  },
+  {
+    number: "04",
+    title: "Elevate Your Career",
+    description: "Earn badges, unlock consulting credentials, and build an undeniable track record.",
+    accent: "bg-navy",
+  },
+];
+
+const PLATFORM_FEATURES = [
+  {
+    icon: (
+      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.438 60.438 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342" />
+      </svg>
+    ),
+    title: "4-Module Masterclass",
+    sub: "25 expert-led lessons",
+  },
+  {
+    icon: (
+      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+      </svg>
+    ),
+    title: "14-Week Battle Plan",
+    sub: "Guided CI sessions",
+  },
+  {
+    icon: (
+      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.778-.332 48.294 48.294 0 005.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+      </svg>
+    ),
+    title: "AI CI Professor",
+    sub: "Instant expert guidance",
+  },
+  {
+    icon: (
+      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+      </svg>
+    ),
+    title: "Impact Tracking",
+    sub: "ROI calculations built in",
+  },
+  {
+    icon: (
+      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+      </svg>
+    ),
+    title: "Success Nuggets",
+    sub: "Review-ready win stories",
+  },
+  {
+    icon: (
+      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M18.75 4.236c.982.143 1.954.317 2.916.52A6.003 6.003 0 0016.27 9.728M18.75 4.236V4.5c0 2.108-.966 3.99-2.48 5.228m0 0a6.003 6.003 0 01-2.77.672c-.99 0-1.924-.236-2.77-.672" />
+      </svg>
+    ),
+    title: "Milestone Badges",
+    sub: "Career credential unlocks",
+  },
+];
+
+const MONTHLY_FEATURES = [
+  "All 4 masterclass modules",
+  "CI Professor AI chatbot",
+  "All trackers & dashboards",
+  "Success nuggets generator",
+];
+
+const ANNUAL_FEATURES = [
+  "Everything in Monthly",
+  "2 months free savings",
+  "Priority support",
+  "Milestone badge unlocks",
+];
+
+/* ───── Reveal Section Wrapper ───── */
+function RevealSection({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const ref = useReveal();
   return (
-    <svg
-      className="ml-2 h-5 w-5"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M17 8l4 4m0 0l-4 4m4-4H3"
-      />
-    </svg>
+    <div ref={ref} className={`reveal-section ${className}`}>
+      {children}
+    </div>
   );
 }
 
-const VALUE_PROPS = [
-  {
-    title: "Practical Implementation",
-    description:
-      "Step-by-step guidance to implement real continuous improvement projects in your workplace — not just theory.",
-    icon: (
-      <svg
-        className="h-8 w-8 text-skyBlue"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={1.5}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M11.42 15.17l-5.18-5.18m0 0L11.42 4.81m-5.18 5.18H20.25"
-        />
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M9.75 3.75h4.5M9.75 20.25h4.5M3.75 12h.008v.008H3.75V12zm16.5 0h.008v.008h-.008V12z"
-        />
-      </svg>
-    ),
-    iconFallback: (
-      <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-skyBlue/10">
-        <svg
-          className="h-7 w-7 text-skyBlue"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.5}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15a2.25 2.25 0 012.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"
-          />
-        </svg>
-      </div>
-    ),
-  },
-  {
-    title: "14-Week Methodology",
-    description:
-      "Follow a proven Waste WAR Battle framework with structured sessions that build on each other for lasting results.",
-    iconFallback: (
-      <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-teal/10">
-        <svg
-          className="h-7 w-7 text-teal"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.5}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
-          />
-        </svg>
-      </div>
-    ),
-  },
-  {
-    title: "Career Advancement",
-    description:
-      "Document your wins, build measurable impact stories, and create success nuggets for performance reviews.",
-    iconFallback: (
-      <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-mintGreen/20">
-        <svg
-          className="h-7 w-7 text-success"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.5}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"
-          />
-        </svg>
-      </div>
-    ),
-  },
-  {
-    title: "Affordable Access",
-    description:
-      "Get the same CI methodology that consultants charge $15,000+ for — at a fraction of the cost with AI-powered guidance.",
-    iconFallback: (
-      <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-navy/10">
-        <svg
-          className="h-7 w-7 text-navy"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.5}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      </div>
-    ),
-  },
-];
-
-const FEATURES = [
-  "4-module masterclass with 25 lessons",
-  "14-week Waste WAR Battle guided sessions",
-  "AI-powered CI Professor chatbot",
-  "Impact tracking with ROI calculations",
-  "Success nuggets for performance reviews",
-  "Milestone badges and career unlocks",
-];
-
+/* ═══════════════════════════════════════════════════ */
 export default function Home() {
   return (
     <div className="min-h-screen bg-offWhite">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-paleGray bg-white/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-md py-sm sm:px-lg">
+      {/* ───── Header ───── */}
+      <header className="sticky top-0 z-50 border-b border-paleGray/60 bg-white/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-md py-0 sm:px-lg">
           <Link href="/" className="flex items-center gap-sm">
             <Image
-              src="/manager-elevator_logo.png"
+              src="/manager-elevator_logo_cropped.png"
               alt="Manager Elevator"
-              width={180}
-              height={48}
-              className="h-10 w-auto sm:h-12"
+              width={400}
+              height={156}
+              className="h-[64px] w-auto sm:h-[72px]"
               priority
             />
           </Link>
           <div className="flex items-center gap-sm sm:gap-md">
             <Link
               href="/login"
-              className="text-body font-medium text-navy hover:text-teal transition-colors min-h-[44px] inline-flex items-center"
+              className="text-body font-semibold text-navy hover:text-teal transition-colors min-h-[44px] inline-flex items-center"
             >
               Log In
             </Link>
             <Link
               href="/signup"
-              className="rounded-md bg-navy px-md py-sm min-h-[44px] inline-flex items-center text-body font-semibold text-white hover:bg-navy/90 transition-colors"
+              className="group relative rounded-lg bg-navy px-md py-sm min-h-[44px] inline-flex items-center text-body font-bold text-white overflow-hidden transition-all hover:shadow-lg hover:shadow-navy/20"
             >
-              Sign Up
+              <span className="relative z-10">Get Started</span>
+              <span className="absolute inset-0 bg-gradient-to-r from-navy via-teal to-navy bg-[length:200%_100%] opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ animation: "shimmer 2s ease-in-out infinite" }} />
             </Link>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-navy via-navy to-teal">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute -right-20 -top-20 h-96 w-96 rounded-full bg-skyBlue blur-3xl" />
-          <div className="absolute -bottom-20 -left-20 h-96 w-96 rounded-full bg-mintGreen blur-3xl" />
+      {/* ───── Hero ───── */}
+      <section className="hero-gradient-mesh relative overflow-hidden noise-overlay">
+        {/* Decorative shapes */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+          <div className="absolute -right-32 -top-32 h-[500px] w-[500px] rounded-full bg-skyBlue/10 blur-3xl animate-pulse-glow" />
+          <div className="absolute -bottom-40 -left-40 h-[600px] w-[600px] rounded-full bg-teal/10 blur-3xl animate-pulse-glow delay-200" />
+          <div className="absolute top-1/3 right-1/4 h-64 w-64 rounded-full bg-mintGreen/5 blur-2xl animate-float" />
+          {/* Geometric accent lines */}
+          <svg className="absolute bottom-0 left-0 w-full h-24 opacity-10" viewBox="0 0 1440 96" fill="none">
+            <path d="M0 96L60 80C120 64 240 32 360 21.3C480 10.7 600 21.3 720 37.3C840 53.3 960 74.7 1080 69.3C1200 64 1320 32 1380 16L1440 0V96H0Z" fill="white"/>
+          </svg>
         </div>
-        <div className="relative mx-auto max-w-7xl px-md py-3xl sm:px-lg sm:py-[80px] lg:py-[96px]">
-          <div className="mx-auto max-w-3xl text-center">
-            <h1 className="font-heading text-[28px] leading-tight text-white sm:text-display sm:leading-tight lg:text-[44px] lg:leading-tight">
-              Finally Execute Continuous Improvement the Right Way — Without the
-              Expensive Consultant.
+
+        <div className="relative z-10 mx-auto max-w-7xl px-md py-3xl sm:px-lg sm:py-[96px] lg:py-[120px]">
+          <div className="mx-auto max-w-4xl text-center">
+            {/* Eyebrow */}
+            <div className="animate-fade-in-up inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-lg py-xs backdrop-blur-sm mb-lg">
+              <span className="h-2 w-2 rounded-full bg-mintGreen animate-pulse" />
+              <span className="text-caption font-semibold uppercase tracking-[0.15em] text-white/90">
+                For Managers Ready to Lead
+              </span>
+            </div>
+
+            <h1 className="animate-fade-in-up delay-100 font-heading text-[32px] leading-[1.15] text-white sm:text-[44px] sm:leading-[1.15] lg:text-[56px] lg:leading-[1.1]">
+              Finally Execute Continuous Improvement the Right Way
+              <span className="block mt-2 text-gradient font-heading">
+                Without the Expensive Consultant.
+              </span>
             </h1>
-            <p className="mx-auto mt-lg max-w-2xl text-[16px] leading-relaxed text-white/80 sm:text-[18px]">
-              Practical, step-by-step guidance built specifically for Black
-              middle managers who want to master CI methodology, document
-              measurable wins, and advance their careers.
+
+            <p className="animate-fade-in-up delay-300 mx-auto mt-lg max-w-2xl text-[15px] leading-relaxed text-white/75 sm:text-[18px] sm:leading-relaxed">
+              Practical, step-by-step guidance to master CI methodology, document
+              measurable wins, and build an undeniable track record — all on your own terms.
             </p>
-            <div className="mt-xl flex flex-col items-center gap-md sm:flex-row sm:justify-center">
+
+            <div className="animate-fade-in-up delay-500 mt-xl flex flex-col items-center gap-md sm:flex-row sm:justify-center">
               <Link
                 href="/signup"
-                className="inline-flex items-center rounded-md bg-skyBlue px-xl py-[14px] text-[16px] font-bold text-white shadow-lg hover:bg-skyBlue/90 transition-colors"
+                className="group inline-flex items-center rounded-lg bg-skyBlue px-xl py-[16px] text-[16px] font-bold text-white shadow-xl shadow-skyBlue/25 hover:shadow-2xl hover:shadow-skyBlue/30 hover:bg-skyBlue/90 transition-all duration-300"
               >
-                Start Your Journey
-                <ArrowRightIcon />
+                Start Your Journey Free
+                <ArrowRightIcon className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
-              <Link
-                href="#pricing"
-                className="inline-flex items-center text-[16px] font-medium text-white/90 hover:text-white transition-colors"
+              <button
+                onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}
+                className="group inline-flex items-center text-[15px] font-medium text-white/80 hover:text-white transition-colors"
               >
-                View Pricing
-                <svg
-                  className="ml-1 h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M19 9l-7 7-7-7"
-                  />
+                See How It Works
+                <svg className="ml-1.5 h-4 w-4 transition-transform group-hover:translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
-              </Link>
+              </button>
+            </div>
+
+            {/* Trust indicators */}
+            <div className="animate-fade-in-up delay-700 mt-2xl flex flex-wrap items-center justify-center gap-lg text-white/50 text-caption">
+              <div className="flex items-center gap-xs">
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>Secure & Private</span>
+              </div>
+              <div className="h-3 w-px bg-white/20" />
+              <div className="flex items-center gap-xs">
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                <span>Expert-Designed Curriculum</span>
+              </div>
+              <div className="h-3 w-px bg-white/20" />
+              <div className="flex items-center gap-xs">
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 10 10-12h-9l1-10z"/></svg>
+                <span>AI-Powered Guidance</span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Value Propositions */}
-      <section className="py-3xl sm:py-[80px]">
-        <div className="mx-auto max-w-7xl px-md sm:px-lg">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-heading text-h1 text-navy sm:text-display">
-              Everything You Need to Lead CI
-            </h2>
-            <p className="mt-md text-body text-charcoal/70 sm:text-[16px]">
-              A complete platform to learn, implement, and track continuous
-              improvement in your organization.
-            </p>
-          </div>
-          <div className="mt-2xl grid gap-lg sm:grid-cols-2 lg:grid-cols-4">
-            {VALUE_PROPS.map((prop) => (
-              <div
-                key={prop.title}
-                className="rounded-lg bg-white p-lg shadow-sm border border-paleGray hover:shadow-md transition-shadow"
-              >
-                {prop.iconFallback}
-                <h3 className="mt-md font-heading text-h3 text-navy">
-                  {prop.title}
-                </h3>
-                <p className="mt-sm text-body leading-relaxed text-charcoal/70">
-                  {prop.description}
-                </p>
+      {/* ───── Social Proof Bar ───── */}
+      <section className="relative bg-white border-b border-paleGray/60">
+        <div className="mx-auto max-w-7xl px-md py-xl sm:px-lg sm:py-2xl">
+          <div className="grid grid-cols-2 gap-lg sm:grid-cols-4">
+            {[
+              { value: "25", label: "Expert Lessons" },
+              { value: "14", label: "Week Battle Plan" },
+              { value: "$15K+", label: "Consultant Value" },
+              { value: "100%", label: "Self-Paced" },
+            ].map((stat, i) => (
+              <div key={stat.label} className={`text-center animate-fade-in-up delay-${(i + 1) * 100}`}>
+                <div className="font-heading text-[28px] text-navy sm:text-[36px]">{stat.value}</div>
+                <div className="mt-xs text-caption font-medium uppercase tracking-wide text-charcoal/70">{stat.label}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Features List */}
-      <section className="bg-white py-3xl sm:py-[80px]">
+      {/* ───── How It Works ───── */}
+      <section id="how-it-works" className="py-3xl sm:py-[96px] geo-pattern">
         <div className="mx-auto max-w-7xl px-md sm:px-lg">
-          <div className="grid items-center gap-2xl lg:grid-cols-2">
-            <div>
-              <h2 className="font-heading text-h1 text-navy sm:text-display">
-                Your CI Mastery Toolkit
+          <RevealSection>
+            <div className="text-center mb-2xl sm:mb-3xl">
+              <span className="inline-block text-caption font-bold uppercase tracking-[0.2em] text-teal mb-md">Your Path Forward</span>
+              <h2 className="font-heading text-h1 text-navy sm:text-[36px]">
+                Four Steps to CI Mastery
               </h2>
-              <p className="mt-md text-body text-charcoal/70 sm:text-[16px]">
-                Manager Elevator gives you all the tools you need to go from CI
-                beginner to certified consultant.
-              </p>
-              <ul className="mt-xl space-y-md">
-                {FEATURES.map((feature) => (
-                  <li key={feature} className="flex items-center gap-sm">
-                    <CheckIcon />
-                    <span className="text-body text-charcoal sm:text-[16px]">
-                      {feature}
-                    </span>
-                  </li>
-                ))}
-              </ul>
             </div>
-            <div className="relative rounded-lg bg-gradient-to-br from-navy/5 to-teal/5 p-xl">
+          </RevealSection>
+
+          <div className="grid gap-lg sm:gap-xl lg:grid-cols-4">
+            {JOURNEY_STEPS.map((step, i) => (
+              <RevealSection key={step.number} className={`delay-${(i + 1) * 100}`}>
+                <div className="card-lift group relative rounded-lg bg-white p-lg border border-paleGray/60 h-full">
+                  {/* Step connector line (hidden on mobile) */}
+                  {i < 3 && (
+                    <div className="hidden lg:block absolute top-10 -right-[calc(50%-12px)] w-[calc(100%-24px)] h-px bg-gradient-to-r from-paleGray to-transparent z-0" />
+                  )}
+                  <div className="relative z-10">
+                    <div className={`inline-flex h-12 w-12 items-center justify-center rounded-lg ${step.accent} text-white font-heading text-h3 transition-transform group-hover:scale-110`}>
+                      {step.number}
+                    </div>
+                    <h3 className="mt-lg font-heading text-h2 text-navy">{step.title}</h3>
+                    <p className="mt-sm text-body leading-relaxed text-charcoal/85">{step.description}</p>
+                  </div>
+                </div>
+              </RevealSection>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ───── Platform Preview ───── */}
+      <section className="relative bg-navy overflow-hidden">
+        <div className="absolute inset-0 opacity-20 pointer-events-none" aria-hidden="true">
+          <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-skyBlue/20 to-transparent" />
+        </div>
+        <div className="relative z-10 mx-auto max-w-7xl px-md py-3xl sm:px-lg sm:py-[96px]">
+          <div className="grid items-center gap-2xl lg:grid-cols-2">
+            <RevealSection>
+              <span className="inline-block text-caption font-bold uppercase tracking-[0.2em] text-skyBlue/80 mb-md">The Platform</span>
+              <h2 className="font-heading text-h1 text-white sm:text-[36px] leading-tight">
+                Everything You Need to Lead CI — In One Place
+              </h2>
+              <p className="mt-lg text-[15px] leading-relaxed text-white/60">
+                A complete toolkit to learn, implement, and track continuous improvement
+                in your organization. From masterclass lessons to AI-powered guidance.
+              </p>
+
+              <div className="mt-2xl grid grid-cols-2 gap-md">
+                {PLATFORM_FEATURES.map((feature, i) => (
+                  <div key={feature.title} className="group flex items-start gap-sm">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-white/10 text-skyBlue transition-colors group-hover:bg-skyBlue/20">
+                      {feature.icon}
+                    </div>
+                    <div>
+                      <p className="text-body font-semibold text-white">{feature.title}</p>
+                      <p className="text-caption text-white/50">{feature.sub}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </RevealSection>
+
+            <RevealSection className="delay-200">
+              <div className="relative" style={{ perspective: "1200px" }}>
+                {/* Subtle shadow beneath the "device" */}
+                <div className="absolute -bottom-6 left-[10%] right-[10%] h-12 rounded-[50%] bg-black/25 blur-2xl" />
+
+                {/* Browser window frame */}
+                <div
+                  className="relative rounded-xl bg-[#1a1f2e] shadow-2xl shadow-black/50 overflow-hidden border border-white/[0.08]"
+                  style={{ transform: "rotateY(-2deg) rotateX(1deg)" }}
+                >
+                  {/* Title bar */}
+                  <div className="flex items-center gap-2 px-4 py-3 bg-[#141822] border-b border-white/[0.06]">
+                    {/* Traffic lights */}
+                    <div className="flex items-center gap-[6px]">
+                      <span className="h-[10px] w-[10px] rounded-full bg-[#ff5f57]" />
+                      <span className="h-[10px] w-[10px] rounded-full bg-[#febc2e]" />
+                      <span className="h-[10px] w-[10px] rounded-full bg-[#28c840]" />
+                    </div>
+                    {/* Address bar */}
+                    <div className="flex-1 mx-3">
+                      <div className="flex items-center gap-2 rounded-md bg-white/[0.06] px-3 py-1">
+                        <svg className="h-3 w-3 text-white/30 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <span className="text-[11px] text-white/35 font-medium truncate">managerelevator.com/dashboard</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Screenshot content */}
+                  <div className="relative">
+                    <Image
+                      src="/main-dashboard-mockup.png"
+                      alt="Manager Elevator Dashboard"
+                      width={1400}
+                      height={860}
+                      className="w-full h-auto block"
+                    />
+                  </div>
+                </div>
+              </div>
+            </RevealSection>
+          </div>
+        </div>
+      </section>
+
+      {/* ───── Value Props ───── */}
+      <section className="py-3xl sm:py-[96px]">
+        <div className="mx-auto max-w-7xl px-md sm:px-lg">
+          <RevealSection>
+            <div className="grid items-center gap-2xl lg:grid-cols-2">
+              {/* Left: The Promise */}
+              <div>
+                <span className="inline-block text-caption font-bold uppercase tracking-[0.2em] text-teal mb-md">Why Manager Elevator</span>
+                <h2 className="font-heading text-h1 text-navy sm:text-[36px] leading-tight">
+                  The CI Methodology That Consultants Charge $15,000+ For — Now Accessible to You
+                </h2>
+                <p className="mt-lg text-[15px] leading-relaxed text-charcoal/65">
+                  Most continuous improvement programs require expensive consultants or
+                  complex certifications. Manager Elevator puts a proven, structured
+                  methodology directly in your hands — with AI-powered guidance every step of the way.
+                </p>
+
+                <div className="mt-xl space-y-lg">
+                  {[
+                    {
+                      title: "Practical, Not Theoretical",
+                      desc: "Step-by-step guidance to implement real CI projects in your workplace.",
+                    },
+                    {
+                      title: "Built for Your Reality",
+                      desc: "Designed specifically for the challenges Black middle managers face.",
+                    },
+                    {
+                      title: "Measurable Career Impact",
+                      desc: "Document wins with hard numbers for performance reviews and promotions.",
+                    },
+                  ].map((item) => (
+                    <div key={item.title} className="flex gap-md">
+                      <div className="flex-shrink-0 mt-0.5">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-skyBlue to-teal text-white">
+                          <CheckIcon />
+                        </div>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-body text-navy">{item.title}</p>
+                        <p className="mt-xs text-body text-charcoal/60">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right: Achievement Cards */}
               <div className="space-y-md">
-                {/* Milestone Preview Cards */}
-                <div className="rounded-md bg-gradient-to-r from-skyBlue/20 to-teal/20 p-md border border-skyBlue/20">
-                  <div className="flex items-center gap-sm">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-skyBlue text-white">
-                      <svg
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"
-                        />
+                {[
+                  {
+                    gradient: "from-skyBlue/15 to-teal/15",
+                    border: "border-skyBlue/25",
+                    iconBg: "bg-skyBlue",
+                    title: "Most Valuable Workplace Waste Eliminator",
+                    subtitle: "Unlock affiliate revenue opportunities",
+                    icon: (
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
                       </svg>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-body text-navy">
-                        Most Valuable Workplace Waste Eliminator
-                      </p>
-                      <p className="text-caption text-charcoal/60">
-                        Unlock affiliate revenue opportunities
-                      </p>
+                    ),
+                  },
+                  {
+                    gradient: "from-teal/15 to-mintGreen/15",
+                    border: "border-teal/25",
+                    iconBg: "bg-teal",
+                    title: "Certified CI Done Right Consultant",
+                    subtitle: "Unlock consulting opportunities",
+                    icon: (
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                      </svg>
+                    ),
+                  },
+                  {
+                    gradient: "from-navy/10 to-skyBlue/10",
+                    border: "border-navy/15",
+                    iconBg: "bg-navy",
+                    title: "AI-Powered CI Professor",
+                    subtitle: "Get instant guidance based on proven methodology",
+                    icon: (
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.778-.332 48.294 48.294 0 005.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                      </svg>
+                    ),
+                  },
+                ].map((card) => (
+                  <div
+                    key={card.title}
+                    className={`card-lift rounded-lg bg-gradient-to-r ${card.gradient} p-lg border ${card.border}`}
+                  >
+                    <div className="flex items-center gap-md">
+                      <div className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full ${card.iconBg} text-white shadow-lg`}>
+                        {card.icon}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-[15px] text-navy">{card.title}</p>
+                        <p className="text-caption text-charcoal/55">{card.subtitle}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="rounded-md bg-gradient-to-r from-teal/20 to-mintGreen/20 p-md border border-teal/20">
-                  <div className="flex items-center gap-sm">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-teal text-white">
-                      <svg
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"
-                        />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-body text-navy">
-                        Certified CI Done Right Consultant
-                      </p>
-                      <p className="text-caption text-charcoal/60">
-                        Unlock consulting opportunities
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="rounded-md bg-white p-md border border-paleGray">
-                  <div className="flex items-center gap-sm">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-mintGreen/30 text-success">
-                      <svg
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.778-.332 48.294 48.294 0 005.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"
-                        />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-body text-navy">
-                        AI-Powered CI Professor
-                      </p>
-                      <p className="text-caption text-charcoal/60">
-                        Get instant guidance based on proven methodology
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
-          </div>
+          </RevealSection>
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-3xl sm:py-[80px]">
+      {/* ───── Divider ───── */}
+      <div className="divider-gradient mx-auto max-w-md" />
+
+      {/* ───── Pricing ───── */}
+      <section id="pricing" className="py-3xl sm:py-[96px]">
         <div className="mx-auto max-w-7xl px-md sm:px-lg">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-heading text-h1 text-navy sm:text-display">
-              Invest in Your Career Growth
-            </h2>
-            <p className="mt-md text-body text-charcoal/70 sm:text-[16px]">
-              Get access to the same CI methodology that consultants charge
-              $15,000+ for.
-            </p>
-          </div>
+          <RevealSection>
+            <div className="mx-auto max-w-2xl text-center">
+              <span className="inline-block text-caption font-bold uppercase tracking-[0.2em] text-teal mb-md">Pricing</span>
+              <h2 className="font-heading text-h1 text-navy sm:text-[36px]">
+                Invest in Your Career Growth
+              </h2>
+              <p className="mt-md text-body text-charcoal/60 sm:text-[15px]">
+                Get access to the same CI methodology that consultants charge $15,000+ for.
+                <br className="hidden sm:block" />
+                Choose the plan that fits your journey.
+              </p>
+            </div>
+          </RevealSection>
+
           <div className="mt-2xl grid gap-lg sm:grid-cols-2 lg:mx-auto lg:max-w-3xl">
-            {/* Monthly Plan */}
-            <div className="rounded-lg bg-white p-xl shadow-sm border border-paleGray">
-              <p className="text-body font-semibold uppercase tracking-wide text-charcoal/50">
-                Monthly
-              </p>
-              <div className="mt-md flex items-baseline gap-xs">
-                <span className="font-heading text-[40px] text-navy">$97</span>
-                <span className="text-body text-charcoal/50">/month</span>
+            {/* Monthly */}
+            <RevealSection>
+              <div className="card-lift rounded-lg bg-white p-xl border border-paleGray/80 h-full flex flex-col">
+                <p className="text-caption font-bold uppercase tracking-[0.15em] text-charcoal/40">
+                  Monthly
+                </p>
+                <div className="mt-md flex items-baseline gap-xs">
+                  <span className="font-heading text-[44px] text-navy">$97</span>
+                  <span className="text-body text-charcoal/40">/month</span>
+                </div>
+                <p className="mt-sm text-body text-charcoal/60">
+                  Full platform access. Cancel anytime.
+                </p>
+                <ul className="mt-lg flex-1 space-y-sm">
+                  {MONTHLY_FEATURES.map((item) => (
+                    <li key={item} className="flex items-center gap-sm">
+                      <CheckIcon />
+                      <span className="text-body text-charcoal">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href="/signup"
+                  className="mt-xl block rounded-lg border-2 border-navy py-[14px] text-center text-body font-bold text-navy hover:bg-navy hover:text-white transition-all duration-300"
+                >
+                  Get Started
+                </Link>
               </div>
-              <p className="mt-sm text-body text-charcoal/70">
-                Full platform access, cancel anytime.
-              </p>
-              <ul className="mt-lg space-y-sm">
-                {[
-                  "All 4 masterclass modules",
-                  "CI Professor AI chatbot",
-                  "All trackers & dashboards",
-                  "Success nuggets generator",
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-sm">
-                    <CheckIcon />
-                    <span className="text-body text-charcoal">{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/signup"
-                className="mt-xl block rounded-md border-2 border-navy py-[12px] text-center text-body font-semibold text-navy hover:bg-navy hover:text-white transition-colors"
-              >
-                Get Started
-              </Link>
-            </div>
+            </RevealSection>
 
-            {/* Annual Plan */}
-            <div className="relative rounded-lg bg-white p-xl shadow-md border-2 border-skyBlue">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="rounded-full bg-skyBlue px-md py-xs text-caption font-bold uppercase tracking-wide text-white">
-                  Best Value
-                </span>
+            {/* Annual */}
+            <RevealSection className="delay-200">
+              <div className="pricing-highlight rounded-lg h-full flex flex-col">
+                <div className="rounded-lg bg-white p-xl h-full flex flex-col relative">
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                    <span className="rounded-full bg-gradient-to-r from-skyBlue to-teal px-lg py-xs text-caption font-bold uppercase tracking-wide text-white shadow-lg shadow-skyBlue/25">
+                      Best Value
+                    </span>
+                  </div>
+                  <p className="text-caption font-bold uppercase tracking-[0.15em] text-charcoal/40">
+                    Annual
+                  </p>
+                  <div className="mt-md flex items-baseline gap-xs">
+                    <span className="font-heading text-[44px] text-navy">$1,000</span>
+                    <span className="text-body text-charcoal/40">/year</span>
+                  </div>
+                  <p className="mt-sm text-body text-charcoal/60">
+                    Save over <span className="font-semibold text-success">$160</span> compared to monthly.
+                  </p>
+                  <ul className="mt-lg flex-1 space-y-sm">
+                    {ANNUAL_FEATURES.map((item) => (
+                      <li key={item} className="flex items-center gap-sm">
+                        <CheckIcon />
+                        <span className="text-body text-charcoal">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Link
+                    href="/signup"
+                    className="mt-xl block rounded-lg bg-gradient-to-r from-skyBlue to-teal py-[14px] text-center text-body font-bold text-white shadow-lg shadow-skyBlue/20 hover:shadow-xl hover:shadow-skyBlue/30 transition-all duration-300"
+                  >
+                    Start Your Journey
+                  </Link>
+                </div>
               </div>
-              <p className="text-body font-semibold uppercase tracking-wide text-charcoal/50">
-                Annual
-              </p>
-              <div className="mt-md flex items-baseline gap-xs">
-                <span className="font-heading text-[40px] text-navy">
-                  $1,000
-                </span>
-                <span className="text-body text-charcoal/50">/year</span>
-              </div>
-              <p className="mt-sm text-body text-charcoal/70">
-                Save over $160 compared to monthly.
-              </p>
-              <ul className="mt-lg space-y-sm">
-                {[
-                  "Everything in Monthly",
-                  "2 months free savings",
-                  "Priority support",
-                  "Milestone badge unlocks",
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-sm">
-                    <CheckIcon />
-                    <span className="text-body text-charcoal">{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/signup"
-                className="mt-xl block rounded-md bg-skyBlue py-[12px] text-center text-body font-semibold text-white hover:bg-skyBlue/90 transition-colors"
-              >
-                Start Your Journey
-              </Link>
-            </div>
+            </RevealSection>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="bg-navy py-3xl sm:py-[80px]">
-        <div className="mx-auto max-w-3xl px-md text-center sm:px-lg">
-          <h2 className="font-heading text-h1 text-white sm:text-display">
-            Ready to Elevate Your Career?
-          </h2>
-          <p className="mt-md text-body text-white/70 sm:text-[16px]">
-            Join a community of Black middle managers mastering continuous
-            improvement and building measurable career impact.
-          </p>
-          <Link
-            href="/signup"
-            className="mt-xl inline-flex items-center rounded-md bg-skyBlue px-xl py-[14px] text-[16px] font-bold text-white shadow-lg hover:bg-skyBlue/90 transition-colors"
-          >
-            Start Your Journey
-            <ArrowRightIcon />
-          </Link>
+      {/* ───── Final CTA ───── */}
+      <section className="hero-gradient-mesh relative overflow-hidden noise-overlay">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+          <div className="absolute -right-32 top-0 h-96 w-96 rounded-full bg-skyBlue/10 blur-3xl" />
+          <div className="absolute -left-20 bottom-0 h-80 w-80 rounded-full bg-mintGreen/10 blur-3xl" />
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-3xl px-md py-3xl text-center sm:px-lg sm:py-[96px]">
+          <RevealSection>
+            <h2 className="font-heading text-h1 text-white sm:text-[40px] leading-tight">
+              Ready to Elevate Your Career?
+            </h2>
+            <p className="mt-lg text-[15px] text-white/65 leading-relaxed max-w-xl mx-auto">
+              Join a growing community of Black middle managers mastering continuous
+              improvement and building measurable career impact.
+            </p>
+            <div className="mt-xl flex flex-col items-center gap-md sm:flex-row sm:justify-center">
+              <Link
+                href="/signup"
+                className="group inline-flex items-center rounded-lg bg-white px-xl py-[16px] text-[16px] font-bold text-navy shadow-xl hover:shadow-2xl transition-all duration-300"
+              >
+                Start Your Journey Free
+                <ArrowRightIcon className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
+            <p className="mt-lg text-caption text-white/40">
+              No credit card required to explore the platform.
+            </p>
+          </RevealSection>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-paleGray bg-white py-xl">
+      {/* ───── Footer ───── */}
+      <footer className="border-t border-paleGray bg-white py-xl sm:py-2xl">
         <div className="mx-auto max-w-7xl px-md sm:px-lg">
-          <div className="flex flex-col items-center gap-md sm:flex-row sm:justify-between">
+          <div className="flex flex-col items-center gap-lg sm:flex-row sm:justify-between">
             <Image
-              src="/manager-elevator_logo.png"
+              src="/manager-elevator_logo_cropped.png"
               alt="Manager Elevator"
-              width={140}
-              height={37}
-              className="h-8 w-auto"
+              width={400}
+              height={156}
+              className="h-[56px] w-auto"
             />
-            <p className="text-caption text-charcoal/50">
-              &copy; {new Date().getFullYear()} Transformational Growth
-              Enterprises LLC. All rights reserved.
-            </p>
+            <div className="flex flex-col items-center gap-sm sm:items-end">
+              <p className="text-caption text-charcoal/40">
+                &copy; {new Date().getFullYear()} Transformational Growth Enterprises LLC. All rights reserved.
+              </p>
+              <p className="text-caption text-charcoal/30">
+                Rise with Continuous Improvement
+              </p>
+            </div>
           </div>
         </div>
       </footer>

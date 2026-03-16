@@ -1,17 +1,14 @@
 "use server";
 
 import { insforgeClient, insforgeAuth } from "@/lib/insforge";
-import { cookies } from "next/headers";
+import { getValidToken } from "@/lib/auth-helpers";
 import type { Conversation, Message } from "@/db/types";
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-async function getToken(): Promise<string | null> {
-  const cookieStore = await cookies();
-  return cookieStore.get("access_token")?.value ?? null;
-}
+const getToken = getValidToken;
 
 async function getUserId(token: string): Promise<string | null> {
   const { data: authUser, error } = await insforgeAuth.getUser(token);

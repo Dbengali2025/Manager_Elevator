@@ -1,7 +1,7 @@
 "use server";
 
 import { insforgeClient, insforgeAuth } from "@/lib/insforge";
-import { cookies } from "next/headers";
+import { getValidToken } from "@/lib/auth-helpers";
 import type { ActionResult } from "./auth";
 
 // ---------------------------------------------------------------------------
@@ -15,13 +15,10 @@ export interface OnboardingState {
 }
 
 // ---------------------------------------------------------------------------
-// Get current user token from cookies
+// Get current user token
 // ---------------------------------------------------------------------------
 
-async function getToken(): Promise<string | null> {
-  const cookieStore = await cookies();
-  return cookieStore.get("access_token")?.value ?? null;
-}
+const getToken = getValidToken;
 
 // ---------------------------------------------------------------------------
 // Get user info (name + onboarding state)

@@ -11,16 +11,19 @@ import {
 const INSFORGE_URL = process.env.NEXT_PUBLIC_INSFORGE_URL ?? "";
 const INSFORGE_API_KEY = process.env.INSFORGE_API_KEY ?? "";
 
-const SYSTEM_PROMPT = `You are the CI Done Right Professor, a knowledgeable and supportive mentor who helps managers master continuous improvement. You speak in a professorial yet encouraging tone. Base your answers on the Continuous Improvement Done Right methodology from the book. Reference relevant chapters when applicable.
+const SYSTEM_PROMPT = `You are the CI Done Right Professor, a knowledgeable and supportive mentor who helps managers master continuous improvement. You speak in a professorial yet encouraging tone.
 
-When answering:
-- Draw from the provided book context to give specific, actionable advice
-- Reference chapter names and sections when they are relevant
-- Be encouraging and supportive — users are Black middle managers advancing their careers
-- Use concrete examples from the CI Done Right methodology
-- If the context doesn't cover the question, share general CI best practices while noting which chapters might help
+CRITICAL RULES:
+- You MUST ONLY use information from the BOOK CONTEXT provided below to answer questions. Do NOT use any external knowledge, web searches, or outside sources.
+- NEVER include URLs or links to external websites in your answers.
+- If the provided book context contains relevant information, use it to give specific, actionable advice.
+- If the book context does NOT cover the question, say: "That's a great question! While the CI Done Right methodology doesn't cover that specific topic in the excerpts I have available, I encourage you to explore the full book for more insights. Is there another CI topic I can help you with?"
+- Reference chapter names and sections from the book context when they are relevant.
+- Be encouraging and supportive — users are Black middle managers advancing their careers.
+- Use concrete examples from the CI Done Right methodology as found in the provided context.
+- Do NOT make up or fabricate information that is not in the provided book context.
 
-If a question is clearly off-topic (not related to continuous improvement, career development, or management), politely redirect: "That is a great question, but my expertise is in continuous improvement methodology. Let me help you with your CI journey instead."`;
+If a question is clearly off-topic (not related to continuous improvement, career development, or management), politely redirect: "That's a great question, but my expertise is in the CI Done Right methodology. Let me help you with your CI journey instead."`;
 
 const TOP_K = 5;
 
@@ -28,18 +31,68 @@ const TOP_K = 5;
 // Helpers
 // ---------------------------------------------------------------------------
 
-async function getAuthUserId(): Promise<string | null> {
+/**
+ * Get a valid token for this request. Tries access_token first, then refreshes
+ * via refresh_token. Attempts to persist new tokens to cookies.
+ */
+async function getTokenForRequest(): Promise<string | null> {
   const cookieStore = await cookies();
-  const token = cookieStore.get("access_token")?.value;
+  const accessToken = cookieStore.get("access_token")?.value;
+
+  if (accessToken) {
+    const { error } = await insforgeAuth.getUser(accessToken);
+    if (!error) return accessToken;
+    console.log("[chat/route] Access token expired or invalid, attempting refresh...");
+  } else {
+    console.log("[chat/route] No access_token cookie found");
+  }
+
+  // Try refresh
+  const refreshToken = cookieStore.get("refresh_token")?.value;
+  if (!refreshToken) {
+    console.log("[chat/route] No refresh_token cookie found — user not authenticated");
+    return null;
+  }
+
+  const { data, error } = await insforgeAuth.refreshToken(refreshToken);
+  if (error || !data?.accessToken) {
+    console.log("[chat/route] Refresh token failed:", error);
+    return null;
+  }
+
+  console.log("[chat/route] Token refreshed successfully");
+
+  // Try to persist the new tokens
+  try {
+    cookieStore.set("access_token", data.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60,
+    });
+    if (data.refreshToken) {
+      cookieStore.set("refresh_token", data.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 30,
+      });
+    }
+  } catch {
+    // Cookie setting may fail in streaming context — token still valid for this request
+  }
+
+  return data.accessToken;
+}
+
+async function getAuthUserId(): Promise<string | null> {
+  const token = await getTokenForRequest();
   if (!token) return null;
   const { data, error } = await insforgeAuth.getUser(token);
   if (error || !data) return null;
   return data.id;
-}
-
-async function getToken(): Promise<string | null> {
-  const cookieStore = await cookies();
-  return cookieStore.get("access_token")?.value ?? null;
 }
 
 /** Embed user question and retrieve top-K similar book chunks from pgvector */
@@ -55,12 +108,13 @@ async function retrieveBookContext(question: string): Promise<string> {
 
   // Query pgvector for top-K similar chunks using Insforge RPC
   // We use a direct SQL function call via the REST API
-  const url = `${INSFORGE_URL}/rest/v1/rpc/match_book_embeddings`;
+  const url = `${INSFORGE_URL}/api/database/rpc/match_book_embeddings`;
   const res = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       apikey: INSFORGE_API_KEY,
+      Authorization: `Bearer ${INSFORGE_API_KEY}`,
     },
     body: JSON.stringify({
       query_embedding: questionEmbedding,
@@ -94,13 +148,13 @@ async function retrieveBookContext(question: string): Promise<string> {
 async function retrieveBookContextFallback(
   embedding: number[]
 ): Promise<string> {
-  const token = await getToken();
+  const token = await getTokenForRequest();
   if (!token) return "";
 
   // Use pgvector's <=> operator for cosine distance ordering
   // PostgREST can order by computed columns using the order parameter
   const embeddingStr = `[${embedding.join(",")}]`;
-  const url = `${INSFORGE_URL}/rest/v1/book_embeddings?select=chunk_text,chapter,section&order=embedding.cosine_distance.${encodeURIComponent(embeddingStr)}&limit=${TOP_K}`;
+  const url = `${INSFORGE_URL}/api/database/records/book_embeddings?select=chunk_text,chapter,section&order=embedding.cosine_distance.${encodeURIComponent(embeddingStr)}&limit=${TOP_K}`;
   const res = await fetch(url, {
     method: "GET",
     headers: {
@@ -187,24 +241,27 @@ export async function POST(req: Request) {
   }
 
   // Step 1: Retrieve book context via RAG
+  console.log("[chat/route] Retrieving book context for:", message.substring(0, 50));
   const bookContext = await retrieveBookContext(message);
+  console.log("[chat/route] Book context length:", bookContext.length, "chars");
 
   // Step 2: Build messages
   const llmMessages = buildMessages(bookContext, history, message);
+  console.log("[chat/route] Sending", llmMessages.length, "messages to AI");
 
-  // Step 3: Call Insforge OpenRouter with streaming
-  const streamUrl = `${INSFORGE_URL}/ai/v1/chat/completions`;
+  // Step 3: Call Insforge AI chat completion with streaming
+  const streamUrl = `${INSFORGE_URL}/api/ai/chat/completion`;
   const streamRes = await fetch(streamUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      apikey: INSFORGE_API_KEY,
+      Authorization: `Bearer ${INSFORGE_API_KEY}`,
     },
     body: JSON.stringify({
-      model: "openai/gpt-4o",
+      model: "anthropic/claude-sonnet-4.6",
       messages: llmMessages,
       temperature: 0.7,
-      max_tokens: 2048,
+      maxTokens: 2048,
       stream: true,
     }),
   });
@@ -226,10 +283,11 @@ export async function POST(req: Request) {
     );
   }
 
-  // Create a TransformStream to process the SSE events and extract content deltas
+  // Create a TransformStream to process Insforge SSE events and extract content chunks
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
 
+  let sentDone = false;
   const transformStream = new TransformStream({
     async transform(chunk, controller) {
       const text = decoder.decode(chunk, { stream: true });
@@ -238,23 +296,31 @@ export async function POST(req: Request) {
       for (const line of lines) {
         if (!line.startsWith("data: ")) continue;
         const data = line.slice(6).trim();
-        if (data === "[DONE]") {
-          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-          return;
-        }
+        if (!data) continue;
 
         try {
           const parsed = JSON.parse(data);
-          const delta = parsed.choices?.[0]?.delta?.content;
-          if (delta) {
-            // Send just the content text as an SSE event
+
+          // Insforge streams: {"chunk": "text"} for content, {"done": true} for end
+          if (parsed.done) {
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+            sentDone = true;
+            return;
+          }
+          if (parsed.chunk) {
             controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify({ content: delta })}\n\n`)
+              encoder.encode(`data: ${JSON.stringify({ content: parsed.chunk })}\n\n`)
             );
           }
+          // Ignore tokenUsage and annotations events
         } catch {
           // Skip unparseable lines
         }
+      }
+    },
+    flush(controller) {
+      if (!sentDone) {
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
       }
     },
   });

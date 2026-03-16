@@ -1,7 +1,7 @@
 "use server";
 
 import { insforgeClient, insforgeAuth } from "@/lib/insforge";
-import { cookies } from "next/headers";
+import { getValidToken } from "@/lib/auth-helpers";
 import type { UserProgress, Milestone, MilestoneType, ProgressStage } from "@/db/types";
 import { notifyMilestoneUnlocked } from "@/actions/notifications";
 
@@ -21,10 +21,7 @@ export interface SuccessDashboardData {
 // Helpers
 // ---------------------------------------------------------------------------
 
-async function getToken(): Promise<string | null> {
-  const cookieStore = await cookies();
-  return cookieStore.get("access_token")?.value ?? null;
-}
+const getToken = getValidToken;
 
 // ---------------------------------------------------------------------------
 // Get success dashboard data

@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Dialog, Transition } from "@headlessui/react";
+import { logoutAction } from "@/actions/auth";
 
 interface NavItem {
   name: string;
@@ -47,12 +48,12 @@ const navigation: NavItem[] = [
   },
 ];
 
-export default function AppLayout({ children, isAdmin = false }: { children: React.ReactNode; isAdmin?: boolean }) {
+export default function AppLayout({ children, isAdmin = false, userName = "" }: { children: React.ReactNode; isAdmin?: boolean; userName?: string }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-offWhite">
+    <div className="flex h-screen overflow-hidden bg-navy">
       {/* Mobile sidebar overlay */}
       <Transition show={sidebarOpen} as={Fragment}>
         <Dialog onClose={() => setSidebarOpen(false)} className="relative z-50 md:hidden">
@@ -79,7 +80,7 @@ export default function AppLayout({ children, isAdmin = false }: { children: Rea
               leaveTo="-translate-x-full"
             >
               <Dialog.Panel className="relative flex w-[240px] flex-col">
-                <SidebarContent pathname={pathname} isAdmin={isAdmin} onNavigate={() => setSidebarOpen(false)} />
+                <SidebarContent pathname={pathname} isAdmin={isAdmin} userName={userName} onNavigate={() => setSidebarOpen(false)} />
               </Dialog.Panel>
             </Transition.Child>
           </div>
@@ -87,14 +88,14 @@ export default function AppLayout({ children, isAdmin = false }: { children: Rea
       </Transition>
 
       {/* Desktop sidebar */}
-      <div className="hidden md:flex md:w-[240px] md:flex-shrink-0">
-        <SidebarContent pathname={pathname} isAdmin={isAdmin} />
+      <div className="hidden md:flex md:w-[240px] md:flex-shrink-0 bg-navy">
+        <SidebarContent pathname={pathname} isAdmin={isAdmin} userName={userName} />
       </div>
 
       {/* Main content area */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden bg-offWhite">
         {/* Top header */}
-        <header className="flex h-[64px] flex-shrink-0 items-center justify-between border-b border-paleGray bg-white px-lg">
+        <header className="flex h-[64px] flex-shrink-0 items-center justify-between border-b border-paleGray bg-white pl-md pr-lg">
           {/* Hamburger menu for mobile */}
           <button
             type="button"
@@ -105,8 +106,17 @@ export default function AppLayout({ children, isAdmin = false }: { children: Rea
             <HamburgerIcon />
           </button>
 
-          {/* Spacer for desktop (pushes icons to right) */}
-          <div className="hidden md:block" />
+          {/* Logo */}
+          <div className="hidden md:flex items-center">
+            <Image
+              src="/manager-elevator_logo_cropped.png"
+              alt="Manager Elevator"
+              width={150}
+              height={40}
+              className="h-auto max-h-[36px]"
+              priority
+            />
+          </div>
 
           {/* Right side icons */}
           <div className="flex items-center gap-md">
@@ -139,30 +149,22 @@ export default function AppLayout({ children, isAdmin = false }: { children: Rea
 function SidebarContent({
   pathname,
   isAdmin = false,
+  userName = "",
   onNavigate,
 }: {
   pathname: string;
   isAdmin?: boolean;
+  userName?: string;
   onNavigate?: () => void;
 }) {
   const visibleNavItems = navigation.filter((item) => !item.adminOnly || isAdmin);
+  const displayName = userName || "User";
+  const initial = displayName.charAt(0).toUpperCase();
 
   return (
     <div className="flex h-full flex-col bg-navy">
-      {/* Logo */}
-      <div className="flex h-[64px] items-center px-lg">
-        <Image
-          src="/manager-elevator_logo.png"
-          alt="Manager Elevator"
-          width={180}
-          height={40}
-          className="h-auto w-auto max-h-[40px]"
-          priority
-        />
-      </div>
-
       {/* Navigation */}
-      <nav className="mt-md flex-1 px-sm">
+      <nav className="mt-lg flex-1 px-sm">
         {visibleNavItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
           return (
@@ -187,12 +189,23 @@ function SidebarContent({
       <div className="border-t border-white/15 px-md py-md">
         <div className="flex items-center gap-md">
           <div className="flex h-[36px] w-[36px] flex-shrink-0 items-center justify-center rounded-full bg-mintGreen text-navy font-body font-semibold text-body">
-            U
+            {initial}
           </div>
-          <div className="min-w-0">
-            <p className="truncate text-body font-medium text-white">User</p>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-body font-medium text-white">{displayName}</p>
             <p className="truncate text-caption text-white/60">Manager</p>
           </div>
+          <button
+            onClick={async () => {
+              await logoutAction();
+              window.location.href = "/login";
+            }}
+            className="flex-shrink-0 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-md text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+            aria-label="Log out"
+            title="Log out"
+          >
+            <LogoutIcon />
+          </button>
         </div>
       </div>
     </div>
@@ -261,6 +274,16 @@ function AdminIcon({ active }: { active: boolean }) {
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={active ? "text-white" : "text-white/70"}>
       <path d="M10 1L3 5v6c0 5.5 3 8.3 7 9 4-.7 7-3.5 7-9V5l-7-4z" />
       <path d="M8 10l2 2 4-4" />
+    </svg>
+  );
+}
+
+function LogoutIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
     </svg>
   );
 }

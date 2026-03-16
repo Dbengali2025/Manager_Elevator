@@ -48,7 +48,7 @@ export default function StatCards({
 
   const stats = [
     { label: "Current Module", value: currentModule },
-    { label: "Sessions Done", value: sessionsCompleted },
+    { label: "Battle Sessions Completed", value: sessionsCompleted },
     { label: "Active Projects", value: activeProjects },
     { label: "Badges Earned", value: badgesEarned },
   ];

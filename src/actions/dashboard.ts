@@ -1,7 +1,7 @@
 "use server";
 
 import { insforgeClient, insforgeAuth } from "@/lib/insforge";
-import { cookies } from "next/headers";
+import { getValidToken } from "@/lib/auth-helpers";
 import type { UserProgress, Milestone } from "@/db/types";
 
 // ---------------------------------------------------------------------------
@@ -18,12 +18,35 @@ export interface DashboardData {
 }
 
 // ---------------------------------------------------------------------------
-// Get current user token from cookies
+// Get current user token
 // ---------------------------------------------------------------------------
 
-async function getToken(): Promise<string | null> {
-  const cookieStore = await cookies();
-  return cookieStore.get("access_token")?.value ?? null;
+const getToken = getValidToken;
+
+// ---------------------------------------------------------------------------
+// Get user name for layout sidebar
+// ---------------------------------------------------------------------------
+
+export async function getUserName(): Promise<string> {
+  const token = await getToken();
+  if (!token) return "";
+
+  const { data: authUser, error: authError } = await insforgeAuth.getUser(token);
+  if (authError || !authUser) return "";
+
+  // Try app users table first
+  const { data: users } = await insforgeClient
+    .from("users")
+    .select<Array<{ full_name: string }>>(
+      token,
+      `?id=eq.${authUser.id}&select=full_name`
+    );
+
+  if (users?.[0]?.full_name) return users[0].full_name;
+
+  // Fall back to Insforge auth profile
+  const { data: profile } = await insforgeAuth.getProfile(authUser.id);
+  return profile?.name ?? "";
 }
 
 // ---------------------------------------------------------------------------

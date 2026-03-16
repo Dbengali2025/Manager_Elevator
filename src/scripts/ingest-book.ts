@@ -8,8 +8,9 @@
  * Usage: npx tsx --env-file=.env.local src/scripts/ingest-book.ts
  *
  * Environment variables required (from .env.local):
- *   NEXT_PUBLIC_INSFORGE_URL - Insforge API base URL
- *   INSFORGE_API_KEY         - Insforge API key (server-side)
+ *   NEXT_PUBLIC_INSFORGE_URL      - Insforge API base URL
+ *   INSFORGE_API_KEY              - Insforge API key (server-side admin)
+ *   NEXT_PUBLIC_INSFORGE_ANON_KEY - Insforge anon JWT key
  */
 
 import * as fs from "fs";
@@ -17,6 +18,7 @@ import * as path from "path";
 
 const INSFORGE_URL = process.env.NEXT_PUBLIC_INSFORGE_URL ?? "";
 const INSFORGE_API_KEY = process.env.INSFORGE_API_KEY ?? "";
+const INSFORGE_ANON_KEY = process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY ?? "";
 
 if (!INSFORGE_URL || !INSFORGE_API_KEY) {
   console.error(
@@ -285,12 +287,13 @@ function buildChunks(bookPath: string): BookChunk[] {
 // ---------------------------------------------------------------------------
 
 async function generateEmbedding(text: string): Promise<number[] | null> {
+  const token = INSFORGE_ANON_KEY || INSFORGE_API_KEY;
   try {
-    const res = await fetch(`${INSFORGE_URL}/ai/v1/embeddings`, {
+    const res = await fetch(`${INSFORGE_URL}/api/ai/embeddings`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        apikey: INSFORGE_API_KEY,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         model: "openai/text-embedding-3-small",
@@ -322,21 +325,25 @@ async function insertBookEmbedding(params: {
   page_range: string;
 }): Promise<boolean> {
   try {
-    const res = await fetch(`${INSFORGE_URL}/rest/v1/book_embeddings`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: INSFORGE_API_KEY,
-        Prefer: "return=minimal",
-      },
-      body: JSON.stringify({
-        chunk_text: params.chunk_text,
-        embedding: JSON.stringify(params.embedding),
-        chapter: params.chapter,
-        section: params.section,
-        page_range: params.page_range,
-      }),
-    });
+    const res = await fetch(
+      `${INSFORGE_URL}/api/database/records/book_embeddings`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${INSFORGE_API_KEY}`,
+        },
+        body: JSON.stringify([
+          {
+            chunk_text: params.chunk_text,
+            embedding: JSON.stringify(params.embedding),
+            chapter: params.chapter,
+            section: params.section,
+            page_range: params.page_range,
+          },
+        ]),
+      }
+    );
 
     if (!res.ok) {
       const errText = await res.text();

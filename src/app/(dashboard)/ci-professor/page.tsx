@@ -9,6 +9,7 @@ import {
   deleteConversation,
 } from "@/actions/chat";
 import type { Conversation, Message } from "@/db/types";
+import ReactMarkdown from "react-markdown";
 
 // ---------------------------------------------------------------------------
 // Starter questions
@@ -201,12 +202,28 @@ function MessageBubble({
             : "bg-white text-charcoal rounded-tl-none border border-paleGray"
         }`}
       >
-        <p className="text-body whitespace-pre-wrap">
-          {message.content}
+        <div className={`text-body prose prose-sm max-w-none ${
+          isUser ? "prose-invert" : "prose-charcoal"
+        }`}>
+          <ReactMarkdown
+            components={{
+              h1: ({ children }) => <p className="font-bold text-lg mt-2 mb-1">{children}</p>,
+              h2: ({ children }) => <p className="font-bold text-base mt-2 mb-1">{children}</p>,
+              h3: ({ children }) => <p className="font-semibold mt-1 mb-0.5">{children}</p>,
+              p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+              ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-1">{children}</ul>,
+              ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-1">{children}</ol>,
+              li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+              strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+              hr: () => <hr className="my-2 border-current opacity-20" />,
+            }}
+          >
+            {message.content}
+          </ReactMarkdown>
           {isStreaming && (
             <span className="inline-block w-1 h-4 ml-0.5 bg-charcoal/60 animate-pulse align-text-bottom" />
           )}
-        </p>
+        </div>
         {!isStreaming && (
           <p
             className={`text-[11px] mt-xs ${
@@ -271,9 +288,13 @@ export default function CIProfessorPage() {
 
   // Load conversations on mount
   const fetchConversations = useCallback(async () => {
-    const result = await getConversations();
-    if (result.success && result.data) {
-      setConversations(result.data);
+    try {
+      const result = await getConversations();
+      if (result.success && result.data) {
+        setConversations(result.data);
+      }
+    } catch (err) {
+      console.error("[CI Professor] Failed to load conversations:", err);
     }
     setIsLoading(false);
   }, []);
@@ -343,10 +364,12 @@ export default function CIProfessorPage() {
       if (!conversationId) {
         const title =
           content.length > 50 ? content.substring(0, 50) + "..." : content;
+        console.log("[CI Professor] Creating conversation:", title);
         const result = await createConversation(title);
+        console.log("[CI Professor] Create conversation result:", result.success, result.error);
         if (!result.success || !result.data) {
           setIsSending(false);
-          setChatError("Failed to create conversation. Please try again.");
+          setChatError(`Failed to create conversation: ${result.error || "Unknown error"}`);
           return;
         }
         conversationId = result.data.id;
@@ -365,7 +388,9 @@ export default function CIProfessorPage() {
       setMessages((prev) => [...prev, optimisticUserMsg]);
 
       // Save user message
+      console.log("[CI Professor] Saving user message to conversation:", conversationId);
       const userResult = await sendMessage(conversationId, "user", content);
+      console.log("[CI Professor] Save message result:", userResult.success, userResult.error);
 
       if (userResult.success && userResult.data) {
         setMessages((prev) =>
@@ -634,6 +659,15 @@ export default function CIProfessorPage() {
                 mastery.
               </p>
 
+              {/* Error display */}
+              {chatError && (
+                <div className="mt-lg w-full max-w-lg">
+                  <div className="rounded-lg bg-error/10 border border-error/20 px-md py-sm text-body text-error text-center">
+                    {chatError}
+                  </div>
+                </div>
+              )}
+
               {/* Starter questions */}
               <div className="mt-xl space-y-sm w-full max-w-lg">
                 {STARTER_QUESTIONS.map((question) => (
@@ -667,7 +701,7 @@ export default function CIProfessorPage() {
                   isStreaming
                 />
               )}
-              {isSending && !isStreaming && <TypingIndicator />}
+              {isSending && !streamingContent && <TypingIndicator />}
               {chatError && (
                 <div className="flex justify-center">
                   <div className="rounded-lg bg-error/10 border border-error/20 px-md py-sm text-body text-error max-w-md text-center">

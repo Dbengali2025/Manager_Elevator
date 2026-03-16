@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { WAR_BATTLE_SESSIONS } from "@/actions/masterclass";
+import { WAR_BATTLE_SESSIONS } from "@/lib/masterclass-data";
 import {
   getWarBattleSessions,
   markSessionComplete,
@@ -287,16 +287,16 @@ export default function WarBattleTracker() {
               <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/70">
                 Session Name
               </th>
-              <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/70 w-[200px]">
+              <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/70 w-[140px]">
                 PowerPoint Link
               </th>
-              <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/70 w-[120px]">
+              <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/70 w-[110px]">
                 Date Completed
               </th>
-              <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/70 w-[100px]">
+              <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/70 w-[90px]">
                 Status
               </th>
-              <th className="px-md py-sm text-right text-caption font-semibold text-charcoal/70 w-[130px]">
+              <th className="px-md py-sm text-right text-caption font-semibold text-charcoal/70 w-[110px]">
                 Action
               </th>
             </tr>
@@ -322,16 +322,14 @@ export default function WarBattleTracker() {
                     {row.week}
                   </td>
                   <td className="px-md py-sm">
-                    <div className="flex items-center gap-sm">
-                      <span className="text-body text-charcoal">
-                        {row.name}
-                      </span>
+                    <span className="text-body text-charcoal">
+                      {row.name}
                       {row.battle > 1 && (
-                        <span className="inline-flex items-center rounded-full bg-teal/10 px-xs py-[1px] text-[10px] font-medium text-teal">
+                        <span className="ml-sm inline-flex items-center whitespace-nowrap rounded-full bg-teal/10 px-xs py-[1px] text-[10px] font-medium text-teal align-middle">
                           Battle {row.battle}
                         </span>
                       )}
-                    </div>
+                    </span>
                   </td>
                   <td className="px-md py-sm">
                     <LinkCell

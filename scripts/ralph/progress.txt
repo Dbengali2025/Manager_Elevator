@@ -786,3 +786,47 @@ Session: Admin dashboard - user list and overview stats
   - Nav items use `adminOnly` flag + filter rather than separate array — keeps all nav in one place
   - Date filter uses native `<input type="date">` — simpler than a date picker library for this use case
 ---
+
+## US-027: Mobile responsive pass across all pages ✅
+- **Commit:** `feat: US-027 - Mobile responsive pass across all pages`
+- **Files changed:** 12 files (AppLayout.tsx, admin/page.tsx, ci-professor/page.tsx, masterclass/page.tsx, settings/page.tsx, trackers/page.tsx, page.tsx, ImpactTracker.tsx, OpportunitiesTracker.tsx, SuccessNuggetsLibrary.tsx, WarBattleTracker.tsx, AGENTS.md)
+- **Approach:**
+  - Audited all 17+ page/component files for mobile responsiveness
+  - Most pages already had decent responsive classes from prior stories
+  - Focused on: sticky table columns, touch targets, content padding, chat bubble width
+- **Key changes:**
+  - Main content: `p-md md:p-lg` (reduced from p-lg on mobile)
+  - All buttons/links: `min-h-[44px]` touch target compliance
+  - Hamburger, bell, gear buttons: `min-h-[44px] min-w-[44px]`
+  - Nav links: `min-h-[44px]`
+  - Tracker tables (WAR Battle, Opportunities, Admin): `sticky left-0 z-10` on first column with dynamic bg
+  - Chat bubbles: `max-w-[90%] sm:max-w-[75%]` for wider mobile messages
+  - Send button: 42px → 44px
+  - Tab navigation: `min-h-[44px]` with `pt-sm`
+  - Settings toggles: h-6 w-11 → h-7 w-12, knob h-4 w-4 → h-5 w-5
+  - Landing page nav: `min-h-[44px] inline-flex items-center`
+  - Module accordion buttons: `min-h-[44px]`
+  - Session checklist rows: `min-h-[44px]`
+  - Nugget edit/delete buttons: `min-h-[44px] min-w-[44px]`
+  - Impact tracker add/delete buttons: `min-h-[44px]`
+- **Already responsive (no changes needed):**
+  - Dashboard: stat cards `grid-cols-2 lg:grid-cols-4`, feature cards `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5`
+  - JourneyProgressBar: `overflow-x-auto` with `min-w-[600px]`
+  - Success Dashboard: milestone cards `grid-cols-1 lg:grid-cols-2`, progress rings `flex-wrap justify-center`
+  - Settings: single column `max-w-2xl` layout
+  - Landing page: responsive hero text, stacking CTA buttons, responsive grid
+  - Masterclass: module cards stack vertically, session checklist full-width
+- **Typography:** body 14px (text-body) minimum on mobile — caption 12px only for secondary metadata
+- **Quality:** `npm run typecheck` passes, `npm run build` passes (17 routes, all compile clean)
+- **AGENTS.md:** Added "Mobile Responsive Patterns" section documenting responsive conventions
+- **Learnings for future iterations:**
+  - Sticky columns need matching background colors for each alternating row — use dynamic class based on row index
+  - Toggle switches need minimum h-7 w-12 for accessible mobile touch targets (h-6 w-11 is too small)
+  - Chat bubble max-width should be wider on mobile (90%) vs desktop (75%) for readability
+  - Most responsive work was already done in prior stories — this pass mainly addressed touch targets and table scrolling
+---
+
+## ALL 27 USER STORIES COMPLETE ✅
+- US-001 through US-027 all have `passes: true` in prd.json
+- Full MVP build complete: auth, onboarding, dashboard, masterclass, trackers, success dashboard, CI Professor, admin, email notifications, RAG pipeline, mobile responsive
+---

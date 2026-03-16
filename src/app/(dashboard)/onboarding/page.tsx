@@ -122,8 +122,8 @@ export default function OnboardingPage() {
         setUserName(result.userName ?? "");
         // Resume from saved step (but at least 1)
         const savedStep = result.onboardingStep ?? 1;
-        if (savedStep >= 1 && savedStep <= 5) {
-          setCurrentStep(savedStep);
+        if (savedStep >= 1 && savedStep <= 4) {
+          setCurrentStep(Math.min(savedStep, 4));
         }
       }
       setLoading(false);
@@ -142,7 +142,7 @@ export default function OnboardingPage() {
   }
 
   async function handleNext() {
-    if (currentStep < 5) {
+    if (currentStep < 4) {
       await goToStep(currentStep + 1);
     }
   }
@@ -212,7 +212,7 @@ export default function OnboardingPage() {
       <div className="mb-xl">
         <div className="flex items-center justify-between mb-sm">
           <h2 className="text-caption font-medium text-charcoal/60 uppercase tracking-wide">
-            Step {currentStep} of 5
+            Step {currentStep} of 4
           </h2>
           <button
             onClick={handleSkip}
@@ -222,7 +222,7 @@ export default function OnboardingPage() {
           </button>
         </div>
         <div className="flex gap-xs">
-          {[1, 2, 3, 4, 5].map((step) => (
+          {[1, 2, 3, 4].map((step) => (
             <div
               key={step}
               className={`h-1 flex-1 rounded-full transition-colors ${
@@ -253,9 +253,6 @@ export default function OnboardingPage() {
           <StepFeatureTour onNext={handleNext} onBack={handleBack} />
         )}
         {currentStep === 4 && (
-          <StepMiestroLink onNext={handleNext} onBack={handleBack} />
-        )}
-        {currentStep === 5 && (
           <StepDashboardPreview
             onComplete={handleComplete}
             onBack={handleBack}
@@ -317,7 +314,6 @@ function StepWelcome({
           {[
             "Quick CI experience assessment",
             "Feature overview and guided tour",
-            "Masterclass account connection",
             "Your learning journey preview",
           ].map((item, i) => (
             <li key={i} className="flex items-center gap-sm text-body text-charcoal/80">
@@ -441,7 +437,7 @@ function StepFeatureTour({
         becoming a CI Done Right expert.
       </p>
 
-      <div className="grid gap-md sm:grid-cols-2">
+      <div className="grid gap-md sm:grid-cols-2 lg:grid-cols-3">
         {FEATURE_TOUR_CARDS.map((card) => (
           <div
             key={card.title}
@@ -460,20 +456,25 @@ function StepFeatureTour({
             </p>
           </div>
         ))}
+
+        {/* Continue button as 6th card */}
+        <button
+          onClick={onNext}
+          className="rounded-md border-2 border-dashed border-navy/30 p-lg flex flex-col items-center justify-center gap-sm hover:border-navy hover:bg-navy/5 transition-colors cursor-pointer"
+        >
+          <div className="w-10 h-10 rounded-full bg-navy flex items-center justify-center">
+            <ArrowRightIcon />
+          </div>
+          <span className="font-heading text-h3 text-navy">Continue</span>
+        </button>
       </div>
 
-      <div className="flex items-center justify-between mt-xl pt-lg border-t border-paleGray">
+      <div className="flex items-center mt-xl pt-lg border-t border-paleGray">
         <button
           onClick={onBack}
           className="text-body text-charcoal/60 hover:text-charcoal transition-colors"
         >
           Back
-        </button>
-        <button
-          onClick={onNext}
-          className="bg-navy text-white font-medium text-body py-sm px-xl rounded-md hover:bg-navy/90 focus:outline-none focus:ring-2 focus:ring-skyBlue transition-colors"
-        >
-          Continue
         </button>
       </div>
     </div>
@@ -481,88 +482,7 @@ function StepFeatureTour({
 }
 
 // ===========================================================================
-// Step 4: Miestro Account Link
-// ===========================================================================
-
-function StepMiestroLink({
-  onNext,
-  onBack,
-}: {
-  onNext: () => void;
-  onBack: () => void;
-}) {
-  return (
-    <div>
-      <h1 className="font-heading text-h1 text-navy mb-sm">
-        Connect Your Masterclass Account
-      </h1>
-      <p className="text-body text-charcoal/70 mb-lg">
-        Your course content is hosted on Miestro. Link your account to access
-        all 25 lessons and 14 sessions.
-      </p>
-
-      <div className="bg-offWhite rounded-md p-lg mb-lg">
-        <div className="flex items-start gap-md">
-          <div className="w-10 h-10 rounded-md bg-teal/10 flex items-center justify-center flex-shrink-0 mt-xs">
-            <LinkIcon />
-          </div>
-          <div>
-            <h3 className="font-heading text-h3 text-charcoal mb-xs">
-              How to connect your Miestro account
-            </h3>
-            <ol className="space-y-sm text-body text-charcoal/80 list-decimal list-inside">
-              <li>
-                Visit the Miestro platform using the button below
-              </li>
-              <li>
-                Create an account or log in with the same email you used here
-              </li>
-              <li>
-                Enroll in the &quot;Leading Bulletproof Continuous Improvement
-                Masterclass&quot;
-              </li>
-              <li>
-                Come back here and start tracking your progress
-              </li>
-            </ol>
-          </div>
-        </div>
-      </div>
-
-      <a
-        href="https://miestro.com"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center gap-sm bg-teal text-white font-medium text-body py-sm px-lg rounded-md hover:bg-teal/90 transition-colors mb-lg"
-      >
-        Go to Miestro
-        <ExternalLinkIcon />
-      </a>
-
-      <p className="text-caption text-charcoal/50 mb-lg">
-        You can always link your account later from the Settings page.
-      </p>
-
-      <div className="flex items-center justify-between pt-lg border-t border-paleGray">
-        <button
-          onClick={onBack}
-          className="text-body text-charcoal/60 hover:text-charcoal transition-colors"
-        >
-          Back
-        </button>
-        <button
-          onClick={onNext}
-          className="bg-navy text-white font-medium text-body py-sm px-xl rounded-md hover:bg-navy/90 focus:outline-none focus:ring-2 focus:ring-skyBlue transition-colors"
-        >
-          Continue
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ===========================================================================
-// Step 5: Dashboard Preview
+// Step 4: Dashboard Preview
 // ===========================================================================
 
 function StepDashboardPreview({
@@ -724,28 +644,19 @@ function StarIcon() {
   );
 }
 
-function LinkIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-teal">
-      <path d="M8 11a4 4 0 005.5.5l2-2a4 4 0 00-5.5-5.5l-1 1" />
-      <path d="M12 9a4 4 0 00-5.5-.5l-2 2a4 4 0 005.5 5.5l1-1" />
-    </svg>
-  );
-}
-
-function ExternalLinkIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M6 2h8v8" />
-      <path d="M14 2L6 10" />
-    </svg>
-  );
-}
 
 function CheckCircleIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M6 10l3 3 5-5" />
+    </svg>
+  );
+}
+
+function ArrowRightIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+      <path d="M4 10h12M12 4l6 6-6 6" />
     </svg>
   );
 }

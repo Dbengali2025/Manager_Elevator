@@ -7,7 +7,41 @@ const PUBLIC_ROUTES = ["/", "/login", "/signup", "/reset-password"];
 // Routes that are only for non-authenticated users (redirect to dashboard if logged in)
 const AUTH_ONLY_ROUTES = ["/login", "/signup", "/reset-password"];
 
-export function middleware(request: NextRequest) {
+const INSFORGE_URL = process.env.NEXT_PUBLIC_INSFORGE_URL ?? "";
+const INSFORGE_API_KEY = process.env.INSFORGE_API_KEY ?? "";
+
+/**
+ * Attempt to refresh the access token using the refresh token.
+ * Returns { accessToken, refreshToken } on success, null on failure.
+ */
+async function refreshAccessToken(
+  refreshToken: string
+): Promise<{ accessToken: string; refreshToken?: string } | null> {
+  try {
+    const res = await fetch(`${INSFORGE_URL}/api/auth/refresh?client_type=mobile`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: INSFORGE_API_KEY,
+      },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    if (!data?.accessToken) return null;
+
+    return {
+      accessToken: data.accessToken,
+      refreshToken: data.refreshToken ?? undefined,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const accessToken = request.cookies.get("access_token")?.value;
   const refreshToken = request.cookies.get("refresh_token")?.value;
@@ -36,15 +70,45 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  // If user has no access token but has a refresh token, try to continue
-  // (the actual refresh happens server-side when making API calls)
-  // If they have neither token and are trying to access a protected route, redirect to login
-  if (!hasAuth && !isPublicRoute) {
-    if (hasRefresh) {
-      // Let the request through — server actions will attempt to refresh the token
-      return NextResponse.next();
+  // If user has no access token but has a refresh token, attempt to refresh NOW
+  // so all downstream server actions get a valid token
+  if (!hasAuth && hasRefresh && !isPublicRoute) {
+    const tokens = await refreshAccessToken(refreshToken);
+
+    if (tokens) {
+      // Refresh succeeded — set the new cookies on the response
+      const response = NextResponse.next();
+      const isProduction = process.env.NODE_ENV === "production";
+
+      response.cookies.set("access_token", tokens.accessToken, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60,
+      });
+
+      if (tokens.refreshToken) {
+        response.cookies.set("refresh_token", tokens.refreshToken, {
+          httpOnly: true,
+          secure: isProduction,
+          sameSite: "lax",
+          path: "/",
+          maxAge: 60 * 60 * 24 * 30,
+        });
+      }
+
+      return response;
     }
 
+    // Refresh failed — redirect to login
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // No auth at all and trying to access a protected route — redirect to login
+  if (!hasAuth && !hasRefresh && !isPublicRoute) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);

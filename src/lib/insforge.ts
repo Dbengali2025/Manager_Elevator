@@ -20,11 +20,24 @@ export interface InsforgeError {
   status: number;
 }
 
-/** Auth token pair returned on login/signup */
-export interface AuthTokens {
-  access_token: string;
-  refresh_token: string;
-  expires_in: number;
+/** Auth response returned on login/signup/verify (web client) */
+export interface AuthResponse {
+  user?: {
+    id: string;
+    email: string;
+    emailVerified?: boolean;
+    providers?: string[];
+    createdAt?: string;
+    updatedAt?: string;
+    profile?: Record<string, unknown>;
+    metadata?: Record<string, unknown>;
+    role?: string;
+  };
+  accessToken: string | null;
+  csrfToken?: string | null;
+  refreshToken?: string | null;
+  requireEmailVerification?: boolean;
+  redirectTo?: string;
 }
 
 /** User record from the users table */
@@ -62,7 +75,7 @@ interface RequestOptions {
 
 /**
  * Low-level fetch wrapper for Insforge REST API.
- * All table operations go through `/rest/v1/{table}`.
+ * All table operations go through `/api/database/records/{table}`.
  */
 async function request<T = unknown>(
   path: string,
@@ -78,8 +91,11 @@ async function request<T = unknown>(
     ...headers,
   };
 
+  // AI endpoints require Authorization header; DB endpoints use apikey + optional Bearer token
   if (token) {
     reqHeaders["Authorization"] = `Bearer ${token}`;
+  } else if (path.startsWith("/api/ai/")) {
+    reqHeaders["Authorization"] = `Bearer ${INSFORGE_API_KEY}`;
   }
 
   try {
@@ -119,7 +135,7 @@ async function request<T = unknown>(
  */
 export const insforgeClient = {
   from(table: string) {
-    const basePath = `/rest/v1/${table}`;
+    const basePath = `/api/database/records/${table}`;
 
     return {
       /** SELECT rows. Pass query params for filtering (e.g. "?id=eq.abc") */
@@ -129,18 +145,17 @@ export const insforgeClient = {
       ): Promise<InsforgeResponse<T>> {
         return request<T>(`${basePath}${query}`, {
           token,
-          headers: { Prefer: "return=representation" },
         });
       },
 
-      /** INSERT a row */
+      /** INSERT a row. Body is wrapped in an array per Insforge API requirement. */
       async insert<T = Row>(
         data: Record<string, unknown>,
         token: string
       ): Promise<InsforgeResponse<T>> {
         return request<T>(basePath, {
           method: "POST",
-          body: data,
+          body: [data],
           token,
           headers: { Prefer: "return=representation" },
         });
@@ -180,74 +195,106 @@ export const insforgeClient = {
 
 /**
  * Insforge Auth helpers for signup, login, password reset, and token refresh.
+ * Uses the correct Insforge REST API paths (/api/auth/...).
  */
 export const insforgeAuth = {
-  /** Register a new user with email + password */
+  /** Register a new user with email + password (mobile client_type for direct refresh token) */
   async signup(
     email: string,
-    password: string
-  ): Promise<InsforgeResponse<AuthTokens>> {
-    return request<AuthTokens>("/auth/v1/signup", {
+    password: string,
+    name?: string
+  ): Promise<InsforgeResponse<AuthResponse>> {
+    return request<AuthResponse>("/api/auth/users?client_type=mobile", {
       method: "POST",
-      body: { email, password },
+      body: { email, password, ...(name ? { name } : {}) },
     });
   },
 
-  /** Login with email + password */
+  /** Login with email + password (mobile client_type for direct refresh token) */
   async login(
     email: string,
     password: string
-  ): Promise<InsforgeResponse<AuthTokens>> {
-    return request<AuthTokens>("/auth/v1/token?grant_type=password", {
+  ): Promise<InsforgeResponse<AuthResponse>> {
+    return request<AuthResponse>("/api/auth/sessions?client_type=mobile", {
       method: "POST",
       body: { email, password },
     });
   },
 
-  /** Refresh an expired access token */
+  /** Refresh an expired access token using refresh token */
   async refreshToken(
     refreshToken: string
-  ): Promise<InsforgeResponse<AuthTokens>> {
-    return request<AuthTokens>("/auth/v1/token?grant_type=refresh_token", {
+  ): Promise<InsforgeResponse<AuthResponse>> {
+    return request<AuthResponse>("/api/auth/refresh?client_type=mobile", {
       method: "POST",
       body: { refresh_token: refreshToken },
     });
   },
 
-  /** Get the current user profile from an access token */
-  async getUser(token: string): Promise<InsforgeResponse<UserRecord>> {
-    return request<UserRecord>("/auth/v1/user", { token });
+  /** Get the current user from an access token. Unwraps the nested { user } envelope. */
+  async getUser(token: string): Promise<InsforgeResponse<{ id: string; email: string; role: string }>> {
+    const result = await request<{ user: { id: string; email: string; role: string } }>("/api/auth/sessions/current", { token });
+    if (result.error || !result.data?.user) {
+      return { data: null as unknown as { id: string; email: string; role: string }, error: result.error || "No user data" };
+    }
+    return { data: result.data.user, error: null };
+  },
+
+  /** Get a user's profile by ID */
+  async getProfile(userId: string): Promise<InsforgeResponse<{ id: string; name?: string; avatar_url?: string }>> {
+    return request<{ id: string; name?: string; avatar_url?: string }>(`/api/auth/profiles/${userId}`);
   },
 
   /** Request a password reset email */
-  async resetPassword(email: string): Promise<InsforgeResponse<null>> {
-    return request<null>("/auth/v1/recover", {
+  async resetPassword(email: string): Promise<InsforgeResponse<{ success: boolean; message: string }>> {
+    return request<{ success: boolean; message: string }>("/api/auth/email/send-reset-password", {
       method: "POST",
       body: { email },
     });
   },
 
-  /** Update password (requires valid access token) */
-  async updatePassword(
-    newPassword: string,
-    token: string
-  ): Promise<InsforgeResponse<UserRecord>> {
-    return request<UserRecord>("/auth/v1/user", {
-      method: "PATCH",
-      body: { password: newPassword },
-      token,
+  /** Exchange a reset password code for a token */
+  async exchangeResetPasswordToken(
+    email: string,
+    code: string
+  ): Promise<InsforgeResponse<{ token: string; expiresAt: string }>> {
+    return request<{ token: string; expiresAt: string }>("/api/auth/email/exchange-reset-password-token", {
+      method: "POST",
+      body: { email, code },
     });
   },
 
-  /** Verify OTP code (email verification) */
+  /** Reset password with a token/otp */
+  async resetPasswordWithToken(
+    newPassword: string,
+    otp: string
+  ): Promise<InsforgeResponse<{ message: string }>> {
+    return request<{ message: string }>("/api/auth/email/reset-password", {
+      method: "POST",
+      body: { newPassword, otp },
+    });
+  },
+
+  /** Verify email with OTP code (mobile client_type for direct refresh token) */
   async verifyOtp(
     email: string,
-    token: string,
-    type: "signup" | "recovery" = "signup"
-  ): Promise<InsforgeResponse<AuthTokens>> {
-    return request<AuthTokens>("/auth/v1/verify", {
+    otp: string
+  ): Promise<InsforgeResponse<AuthResponse>> {
+    return request<AuthResponse>("/api/auth/email/verify?client_type=mobile", {
       method: "POST",
-      body: { email, token, type },
+      body: { email, otp },
+    });
+  },
+
+  /** Update current user's profile */
+  async updateProfile(
+    profile: Record<string, unknown>,
+    token: string
+  ): Promise<InsforgeResponse<{ id: string; profile: Record<string, unknown> }>> {
+    return request<{ id: string; profile: Record<string, unknown> }>("/api/auth/profiles/current", {
+      method: "PATCH",
+      body: { profile },
+      token,
     });
   },
 };
@@ -260,24 +307,26 @@ export const insforgeAuth = {
  * Insforge OpenRouter helpers for AI chat completions (GPT-4o).
  */
 export const insforgeAI = {
-  /** Send a chat completion request via Insforge OpenRouter */
+  /** Send a chat completion request via Insforge AI */
   async chatCompletion(params: {
     model?: string;
     messages: { role: "system" | "user" | "assistant"; content: string }[];
     temperature?: number;
-    max_tokens?: number;
+    maxTokens?: number;
   }): Promise<
     InsforgeResponse<{
-      choices: { message: { role: string; content: string } }[];
+      success: boolean;
+      content: string;
+      metadata: { model: string; usage: Record<string, number> };
     }>
   > {
-    return request("/ai/v1/chat/completions", {
+    return request("/api/ai/chat/completion", {
       method: "POST",
       body: {
-        model: params.model ?? "openai/gpt-4o",
+        model: params.model ?? "anthropic/claude-sonnet-4.6",
         messages: params.messages,
         temperature: params.temperature ?? 0.7,
-        max_tokens: params.max_tokens ?? 2048,
+        maxTokens: params.maxTokens ?? 2048,
       },
     });
   },
@@ -300,7 +349,7 @@ export const insforgeEmbeddings = {
       data: { embedding: number[]; index: number }[];
     }>
   > {
-    return request("/ai/v1/embeddings", {
+    return request("/api/ai/embeddings", {
       method: "POST",
       body: {
         model: params.model ?? "openai/text-embedding-3-small",
@@ -311,22 +360,53 @@ export const insforgeEmbeddings = {
 };
 
 // ---------------------------------------------------------------------------
-// Email Client
+// Email Client (Resend)
 // ---------------------------------------------------------------------------
 
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY ?? "");
+
+const EMAIL_FROM =
+  process.env.EMAIL_FROM ?? "Manager Elevator <onboarding@resend.dev>";
+
 /**
- * Insforge Email (AWS SES) helpers for sending transactional emails.
+ * Email helpers using Resend for transactional emails.
  */
 export const insforgeEmail = {
-  /** Send an email via Insforge Email (AWS SES) */
+  /** Send an email via Resend */
   async send(params: {
     to: string;
     subject: string;
     html: string;
+    from?: string;
+    replyTo?: string;
   }): Promise<InsforgeResponse<{ message_id: string }>> {
-    return request<{ message_id: string }>("/email/v1/send", {
-      method: "POST",
-      body: params,
-    });
+    try {
+      const { data, error } = await resend.emails.send({
+        from: params.from ?? EMAIL_FROM,
+        to: params.to,
+        subject: params.subject,
+        html: params.html,
+        ...(params.replyTo ? { replyTo: params.replyTo } : {}),
+      });
+
+      if (error) {
+        return {
+          data: null as unknown as { message_id: string },
+          error: error.message,
+        };
+      }
+
+      return {
+        data: { message_id: data?.id ?? "" },
+        error: null,
+      };
+    } catch (err) {
+      return {
+        data: null as unknown as { message_id: string },
+        error: err instanceof Error ? err.message : "Unknown email error",
+      };
+    }
   },
 };
