@@ -611,7 +611,7 @@ export default function MasterclassPage() {
       {/* Session checklist */}
       <div className="space-y-md">
         <h2 className="font-heading text-h2 text-charcoal">
-          14-Week WOR Battle Sessions Checklist
+          14-Week WAR Battle Sessions Checklist
         </h2>
         <SessionChecklist
           sessions={data.sessions}
