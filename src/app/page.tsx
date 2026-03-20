@@ -332,7 +332,7 @@ export default function Home() {
               </p>
 
               <div className="mt-2xl grid grid-cols-2 gap-md">
-                {PLATFORM_FEATURES.map((feature, i) => (
+                {PLATFORM_FEATURES.map((feature) => (
                   <div key={feature.title} className="group flex items-start gap-sm">
                     <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-white/10 text-skyBlue transition-colors group-hover:bg-skyBlue/20">
                       {feature.icon}
