@@ -365,7 +365,9 @@ export const insforgeEmbeddings = {
 
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY ?? "");
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY ?? "");
+}
 
 const EMAIL_FROM =
   process.env.EMAIL_FROM ?? "Manager Elevator <onboarding@resend.dev>";
@@ -383,7 +385,7 @@ export const insforgeEmail = {
     replyTo?: string;
   }): Promise<InsforgeResponse<{ message_id: string }>> {
     try {
-      const { data, error } = await resend.emails.send({
+      const { data, error } = await getResend().emails.send({
         from: params.from ?? EMAIL_FROM,
         to: params.to,
         subject: params.subject,
