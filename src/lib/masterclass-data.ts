@@ -29,11 +29,13 @@ export const WAR_BATTLE_SESSIONS = [
 export interface Lesson {
   number: number;
   title: string;
+  vimeoId: string;
 }
 
 export interface Module {
   number: number;
   title: string;
+  welcomeVimeoId: string;
   lessons: Lesson[];
   stage: string;
   miestroUrl: string;
@@ -43,14 +45,15 @@ export const MODULES: Module[] = [
   {
     number: 1,
     title: "The Value of Illuminating Workplace Problems",
+    welcomeVimeoId: "1182119018",
     lessons: [
-      { number: 1, title: "The Problem: Middle-Managers Are Undervalued" },
-      { number: 2, title: "Creating Value: Introduction to the Continuous Improvement Done Right Formula" },
-      { number: 3, title: "Waste Warrior Exercise #1 \u2013 Recognizing problems by identifying workplace waste" },
-      { number: 4, title: "Waste Warrior Exercise #2 \u2013 Prioritizing which problems to fix" },
-      { number: 5, title: "Waste Warrior Exercise #3 \u2013 Completing a SIPOC diagram for the problem" },
-      { number: 6, title: "Waste Warrior Exercise #4 \u2013 Developing the Problem Statement paragraph" },
-      { number: 7, title: "How to Maximize the Next 30 Days in Your Current Manager Assignment" },
+      { number: 1, title: "The Problem: Middle-Managers Are Undervalued", vimeoId: "1182119029" },
+      { number: 2, title: "Creating Value: Introduction to the Continuous Improvement Done Right Formula", vimeoId: "1182119052" },
+      { number: 3, title: "Waste Warrior Exercise #1 \u2013 Recognizing problems by identifying workplace waste", vimeoId: "1182118528" },
+      { number: 4, title: "Waste Warrior Exercise #2 \u2013 Prioritizing which problems to fix", vimeoId: "1182118561" },
+      { number: 5, title: "Waste Warrior Exercise #3 \u2013 Completing a SIPOC diagram for the problem", vimeoId: "1182118573" },
+      { number: 6, title: "Waste Warrior Exercise #4 \u2013 Developing the Problem Statement paragraph", vimeoId: "1182118599" },
+      { number: 7, title: "How to Maximize the Next 30 Days in Your Current Manager Assignment", vimeoId: "1182118615" },
     ],
     stage: "module_1",
     miestroUrl: "https://tge.miestro.com/programs/leading-bulletproof-continuous-improvement3?lesson=2",
@@ -58,14 +61,15 @@ export const MODULES: Module[] = [
   {
     number: 2,
     title: "Investigating Root Causes for Success",
+    welcomeVimeoId: "1182118645",
     lessons: [
-      { number: 1, title: "Introducing the Waste WAR Battle 10 Steps for CI Success" },
-      { number: 2, title: "Waste WAR Battle Session #1: Step 1 \u2013 Clarify the Opportunity" },
-      { number: 3, title: "Waste WAR Battle Session #2: Step 2 \u2013 Define the Success Metrics" },
-      { number: 4, title: "Waste WAR Battle Session #3: Step 3 \u2013 Confirm the Current State" },
-      { number: 5, title: "Waste WAR Battle Session #4: Step 3 continued \u2013 Confirm the Current State" },
-      { number: 6, title: "Waste WAR Battle Session #5: Step 4 \u2013 Determine Pain and Root Causes" },
-      { number: 7, title: "Waste WAR Battle Session #6: Step 4 continued \u2013 Determine Pain and Root Causes" },
+      { number: 1, title: "Introducing the Waste WAR Battle 10 Steps for CI Success", vimeoId: "1182118661" },
+      { number: 2, title: "Waste WAR Battle Session #1: Step 1 \u2013 Clarify the Opportunity", vimeoId: "1182118700" },
+      { number: 3, title: "Waste WAR Battle Session #2: Step 2 \u2013 Define the Success Metrics", vimeoId: "1182118720" },
+      { number: 4, title: "Waste WAR Battle Session #3: Step 3 \u2013 Confirm the Current State", vimeoId: "1182118745" },
+      { number: 5, title: "Waste WAR Battle Session #4: Step 3 continued \u2013 Confirm the Current State", vimeoId: "1182118762" },
+      { number: 6, title: "Waste WAR Battle Session #5: Step 4 \u2013 Determine Pain and Root Causes", vimeoId: "1182118774" },
+      { number: 7, title: "Waste WAR Battle Session #6: Step 4 continued \u2013 Determine Pain and Root Causes", vimeoId: "1182118791" },
     ],
     stage: "module_2",
     miestroUrl: "https://tge.miestro.com/programs/leading-bulletproof-continuous-improvement3?lesson=9",
@@ -73,14 +77,15 @@ export const MODULES: Module[] = [
   {
     number: 3,
     title: "Intelligently Testing Potential Solutions",
+    welcomeVimeoId: "1182118807",
     lessons: [
-      { number: 1, title: "Waste WAR Battle Session #7: Step 5 \u2013 Define the Ideal Future State" },
-      { number: 2, title: "Waste WAR Battle Session #8: Step 6 \u2013 Brainstorm Potential Solutions" },
-      { number: 3, title: "Waste WAR Battle Session #9: Step 6 continued \u2013 Brainstorm Potential Solutions" },
-      { number: 4, title: "Waste WAR Battle Session #10: Step 7 \u2013 Test Potential Solutions & Step 8 \u2013 Measure the Improvement" },
-      { number: 5, title: "Waste WAR Battle Session #11: Step 7 continued \u2013 Test Potential Solutions & Step 8 continued \u2013 Measure the Improvement" },
-      { number: 6, title: "Waste WAR Battle Session #12: Step 7 continued \u2013 Test Potential Solutions & Step 8 continued \u2013 Measure the Improvement" },
-      { number: 7, title: "Waste WAR Battle Session #13: Step 7 continued \u2013 Test Potential Solutions & Step 8 continued \u2013 Measure the Improvement" },
+      { number: 1, title: "Waste WAR Battle Session #7: Step 5 \u2013 Define the Ideal Future State", vimeoId: "1182118824" },
+      { number: 2, title: "Waste WAR Battle Session #8: Step 6 \u2013 Brainstorm Potential Solutions", vimeoId: "1182118843" },
+      { number: 3, title: "Waste WAR Battle Session #9: Step 6 continued \u2013 Brainstorm Potential Solutions", vimeoId: "1182118855" },
+      { number: 4, title: "Waste WAR Battle Session #10: Step 7 \u2013 Test Potential Solutions & Step 8 \u2013 Measure the Improvement", vimeoId: "1182118863" },
+      { number: 5, title: "Waste WAR Battle Session #11: Step 7 continued \u2013 Test Potential Solutions & Step 8 continued \u2013 Measure the Improvement", vimeoId: "1182118871" },
+      { number: 6, title: "Waste WAR Battle Session #12: Step 7 continued \u2013 Test Potential Solutions & Step 8 continued \u2013 Measure the Improvement", vimeoId: "1182118881" },
+      { number: 7, title: "Waste WAR Battle Session #13: Step 7 continued \u2013 Test Potential Solutions & Step 8 continued \u2013 Measure the Improvement", vimeoId: "1182118900" },
     ],
     stage: "module_3",
     miestroUrl: "https://tge.miestro.com/programs/leading-bulletproof-continuous-improvement3?lesson=16",
@@ -88,11 +93,12 @@ export const MODULES: Module[] = [
   {
     number: 4,
     title: "Implementing Winning Solutions for Success",
+    welcomeVimeoId: "1182118918",
     lessons: [
-      { number: 1, title: "Waste WAR Battle Session #14: Step 9 \u2013 Implement the Winning Solutions & Step 10 \u2013 Share and Sustain the Results" },
-      { number: 2, title: "How to Maximize the First 100 Days of a New Manager Assignment" },
-      { number: 3, title: "Solidifying Your Continuous Improvement Team Culture" },
-      { number: 4, title: "Creating Extra Income as a Bulletproof Continuous Improvement Consultant" },
+      { number: 1, title: "Waste WAR Battle Session #14: Step 9 \u2013 Implement the Winning Solutions & Step 10 \u2013 Share and Sustain the Results", vimeoId: "1182118933" },
+      { number: 2, title: "How to Maximize the First 100 Days of a New Manager Assignment", vimeoId: "1182118960" },
+      { number: 3, title: "Solidifying Your Continuous Improvement Team Culture", vimeoId: "1182118982" },
+      { number: 4, title: "Creating Extra Income as a Bulletproof Continuous Improvement Consultant", vimeoId: "1182119002" },
     ],
     stage: "module_4",
     miestroUrl: "https://tge.miestro.com/programs/leading-bulletproof-continuous-improvement3?lesson=",

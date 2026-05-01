@@ -164,6 +164,49 @@ export async function toggleSessionCompletion(
 // Update module progress based on session completions
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Get lesson resources
+// ---------------------------------------------------------------------------
+
+export interface LessonResource {
+  id: string;
+  module_number: number;
+  lesson_number: number;
+  display_name: string;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  storage_path: string;
+}
+
+export async function getLessonResources(): Promise<{
+  success: boolean;
+  error?: string;
+  data?: LessonResource[];
+}> {
+  const token = await getToken();
+  if (!token) {
+    return { success: false, error: "Not authenticated" };
+  }
+
+  const { data, error } = await insforgeClient
+    .from("lesson_resources")
+    .select<LessonResource[]>(
+      token,
+      `?order=module_number.asc,lesson_number.asc,display_name.asc`
+    );
+
+  if (error) {
+    return { success: false, error };
+  }
+
+  return { success: true, data: data ?? [] };
+}
+
+// ---------------------------------------------------------------------------
+// Update module progress based on session completions
+// ---------------------------------------------------------------------------
+
 async function updateModuleProgress(
   userId: string,
   token: string
