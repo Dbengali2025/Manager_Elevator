@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -1006,13 +1007,25 @@ export default function MasterclassPage() {
   return (
     <div className="space-y-lg">
       {/* Page header */}
-      <div>
-        <h1 className="font-heading text-h1 text-charcoal">
-          Leading Bulletproof Continuous Improvement Masterclass
-        </h1>
-        <p className="mt-xs text-body text-charcoal/60">
-          4 Modules, 25 Lessons &mdash; Your complete CI mastery curriculum
-        </p>
+      <div className="flex flex-col gap-lg sm:flex-row sm:items-center sm:gap-xl">
+        <div className="flex-shrink-0">
+          <Image
+            src="/leading-bulletproof-ci-masterclass-logo.png"
+            alt="Leading Bulletproof Continuous Improvement Masterclass"
+            width={1024}
+            height={682}
+            className="h-auto w-[140px] sm:w-[180px]"
+            priority
+          />
+        </div>
+        <div className="min-w-0">
+          <h1 className="font-heading text-h1 text-charcoal">
+            Leading Bulletproof Continuous Improvement Masterclass
+          </h1>
+          <p className="mt-xs text-body text-charcoal/60">
+            4 Modules, 25 Lessons &mdash; Your complete CI mastery curriculum
+          </p>
+        </div>
       </div>
 
       {/* Current progress indicator */}
@@ -1025,7 +1038,7 @@ export default function MasterclassPage() {
             Currently on Module {currentModule}
           </p>
           <p className="text-caption text-charcoal/60">
-            {completedSessions} of 14 sessions completed
+            {completedSessions} of 25 lessons completed
           </p>
         </div>
       </div>

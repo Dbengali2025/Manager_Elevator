@@ -141,6 +141,51 @@ const ANNUAL_FEATURES = [
   "Milestone badge unlocks",
 ];
 
+const TESTIMONIALS = [
+  {
+    name: "Kevin Pearson",
+    title: "Assistant Vice President, Consultant Database Specialist",
+    image: "/testimonials/kevin-pearson.png",
+    quote:
+      "Dana Thompson was one of the first people to mentor me during my early college years, and his practical approach to business has truly shaped how I think to this day. The Continuous Improvement Done Right methodology reflects the same clarity, wisdom, and real-world insight he shared with me back then. These principles aren't just theory—they're the way Dana lives and leads.",
+  },
+  {
+    name: "Archie Smart",
+    title: "Director, Government/Universities Research Coalition",
+    image: "/testimonials/archie-smart.png",
+    quote:
+      "With Dana's permission, I overlaid my MBA continuous improvement class material with Dana's continuous improvement approach. I wrote a white paper that transformed our project's critical staff training from an in-person instructor-led process to an online training module system. The result was a $650K Client award for its development.",
+  },
+  {
+    name: "Dr. Samantha Hedgspeth",
+    title: "University Professor | CEO, The Hedgspeth Group",
+    image: "/testimonials/samantha-hedgspeth.png",
+    quote:
+      "I worked with Dana Thompson in a previous role and experienced his pragmatic yet refreshing approach to lean processes with Continuous Improvement. His ingenious insight equips managers to proactively facilitate the transfer of invaluable tacit knowledge during the methodology's Waste WAR Battle events that allow participants to engage, contribute, and learn cross-functionally.",
+  },
+  {
+    name: "Jonathan Mayo",
+    title: "National Account Director",
+    image: "/testimonials/jonathan-mayo.png",
+    quote:
+      "It's time to take charge and bulletproof your career in middle management by becoming a Continuous Improvement Leader! Mr. Thompson has provided valuable tools to empower dedicated middle managers who may feel undervalued despite their hard work in daily operations. This guidance will help you transition from your current position to becoming a sought-after Continuous Improvement Leader!",
+  },
+  {
+    name: "Ben Pocs",
+    title: "Director, Financial Services Industry",
+    image: "/testimonials/ben-pocs.png",
+    quote:
+      "Dana's approach not only teaches managers how to reduce waste, but also how to empower their employees to do the same. I had the privilege to work alongside Dana and successfully apply these concepts within a 100+ person department in a matter of months. Employees were excited to follow Dana's lead and implement changes, but best of all, he created a system so they could suggest and apply their ideas on a go-forward basis. This is how you create a workplace where continuous improvement thrives.",
+  },
+  {
+    name: "Pamella Roebuck",
+    title: "Senior Change Management Consultant",
+    image: "/testimonials/pamella-roebuck.png",
+    quote:
+      "Dana Thompson doesn't just teach theory—he's lived the challenges and solved them. His proven strategies for engagement and continuous improvement are exactly what today's organizations need. They're also a reality check and an empowerment tool for managers, particularly those navigating the unique barriers faced by Black professionals in corporate America.",
+  },
+];
+
 /* ───── Reveal Section Wrapper ───── */
 function RevealSection({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   const ref = useReveal();
@@ -156,72 +201,86 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-offWhite">
       {/* ───── Header ───── */}
-      <header className="sticky top-0 z-50 border-b border-paleGray/60 bg-white/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-md py-0 sm:px-lg">
-          <Link href="/" className="flex items-center gap-sm">
-            <Image
-              src="/manager-elevator_logo_cropped.png"
-              alt="Manager Elevator"
-              width={400}
-              height={156}
-              className="h-[64px] w-auto sm:h-[72px]"
-              priority
-            />
-          </Link>
+      <header className="sticky top-0 z-50 bg-transparent">
+        <div className="mx-auto flex max-w-7xl items-center justify-end px-md py-sm sm:px-lg">
           <div className="flex items-center gap-sm sm:gap-md">
             <Link
               href="/login"
-              className="text-body font-semibold text-navy hover:text-teal transition-colors min-h-[44px] inline-flex items-center"
+              className="text-body font-semibold text-white/90 hover:text-white transition-colors min-h-[44px] inline-flex items-center"
             >
               Log In
             </Link>
             <Link
               href="/signup"
-              className="group relative rounded-lg bg-navy px-md py-sm min-h-[44px] inline-flex items-center text-body font-bold text-white overflow-hidden transition-all hover:shadow-lg hover:shadow-navy/20"
+              className="group relative rounded-lg bg-white px-md py-sm min-h-[44px] inline-flex items-center text-body font-bold text-navy overflow-hidden transition-all hover:shadow-lg hover:shadow-white/20"
             >
               <span className="relative z-10">Get Started</span>
-              <span className="absolute inset-0 bg-gradient-to-r from-navy via-teal to-navy bg-[length:200%_100%] opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ animation: "shimmer 2s ease-in-out infinite" }} />
             </Link>
           </div>
         </div>
       </header>
 
       {/* ───── Hero ───── */}
-      <section className="hero-gradient-mesh relative overflow-hidden noise-overlay">
+      <section className="hero-gradient-mesh relative overflow-hidden noise-overlay -mt-[56px] pt-[56px] sm:-mt-[60px] sm:pt-[60px]">
         {/* Decorative shapes */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-          <div className="absolute -right-32 -top-32 h-[500px] w-[500px] rounded-full bg-skyBlue/10 blur-3xl animate-pulse-glow" />
-          <div className="absolute -bottom-40 -left-40 h-[600px] w-[600px] rounded-full bg-teal/10 blur-3xl animate-pulse-glow delay-200" />
-          <div className="absolute top-1/3 right-1/4 h-64 w-64 rounded-full bg-mintGreen/5 blur-2xl animate-float" />
-          {/* Geometric accent lines */}
-          <svg className="absolute bottom-0 left-0 w-full h-24 opacity-10" viewBox="0 0 1440 96" fill="none">
-            <path d="M0 96L60 80C120 64 240 32 360 21.3C480 10.7 600 21.3 720 37.3C840 53.3 960 74.7 1080 69.3C1200 64 1320 32 1380 16L1440 0V96H0Z" fill="white"/>
-          </svg>
+          <div className="absolute -right-32 -top-32 h-[500px] w-[500px] rounded-full bg-skyBlue/10 blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 h-[600px] w-[600px] rounded-full bg-teal/10 blur-3xl" />
         </div>
 
-        <div className="relative z-10 mx-auto max-w-7xl px-md py-3xl sm:px-lg sm:py-[96px] lg:py-[120px]">
-          <div className="mx-auto max-w-4xl text-center">
-            {/* Eyebrow */}
-            <div className="animate-fade-in-up inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-lg py-xs backdrop-blur-sm mb-lg">
-              <span className="h-2 w-2 rounded-full bg-mintGreen animate-pulse" />
-              <span className="text-caption font-semibold uppercase tracking-[0.15em] text-white/90">
-                For Managers Ready to Lead
-              </span>
+        <div className="relative z-10 mx-auto max-w-7xl px-md pb-[96px] pt-3xl sm:px-lg sm:pb-[120px] sm:pt-[80px] lg:pb-[160px] lg:pt-[100px]">
+          <div className="grid grid-cols-1 items-start gap-lg lg:grid-cols-[220px_1fr_220px] lg:gap-md xl:grid-cols-[240px_1fr_240px]">
+            {/* Manager Elevator logo */}
+            <div className="order-2 flex justify-center lg:order-none lg:justify-end">
+              <div className="rounded-lg bg-white p-md shadow-lg">
+                <Image
+                  src="/manager-elevator_logo_cropped.png"
+                  alt="Manager Elevator — Rise with Continuous Improvement"
+                  width={1024}
+                  height={400}
+                  className="h-auto w-[240px] sm:w-[260px] lg:w-[280px] xl:w-[300px]"
+                  priority
+                />
+              </div>
             </div>
 
-            <h1 className="animate-fade-in-up delay-100 font-heading text-[32px] leading-[1.15] text-white sm:text-[44px] sm:leading-[1.15] lg:text-[56px] lg:leading-[1.1]">
-              Finally Execute Continuous Improvement the Right Way
-              <span className="block mt-2 text-gradient font-heading">
-                Without the Expensive Consultant.
-              </span>
-            </h1>
+            {/* Headline block */}
+            <div className="order-1 text-center lg:order-none">
+              <div className="animate-fade-in-up mb-lg inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-lg py-xs backdrop-blur-sm">
+                <span className="h-2 w-2 rounded-full bg-mintGreen animate-pulse" />
+                <span className="text-caption font-semibold uppercase tracking-[0.15em] text-white/90">
+                  For Managers Ready to Lead
+                </span>
+              </div>
 
-            <p className="animate-fade-in-up delay-300 mx-auto mt-lg max-w-2xl text-[15px] leading-relaxed text-white/75 sm:text-[18px] sm:leading-relaxed">
-              Practical, step-by-step guidance to master CI methodology, document
-              measurable wins, and build an undeniable track record — all on your own terms.
-            </p>
+              <h1 className="animate-fade-in-up font-heading text-[30px] leading-[1.15] text-white sm:text-[42px] sm:leading-[1.15] lg:text-[44px] lg:leading-[1.1]">
+                Finally Execute Continuous Improvement the Right Way
+                <span className="mt-2 block text-gradient font-heading">
+                  Without the Expensive Consultant.
+                </span>
+              </h1>
 
-            <div className="animate-fade-in-up delay-500 mt-xl flex flex-col items-center gap-md sm:flex-row sm:justify-center">
+              <p className="animate-fade-in-up mx-auto mt-lg max-w-[560px] text-[15px] leading-relaxed text-white/75">
+                Practical, step-by-step guidance to master CI methodology, document measurable wins, and build an undeniable track record — all on your own terms.
+              </p>
+            </div>
+
+            {/* Masterclass logo */}
+            <div className="order-3 flex justify-center lg:order-none lg:justify-start">
+              <Image
+                src="/leading-bulletproof-ci-masterclass-logo.png"
+                alt="Leading Bulletproof Continuous Improvement Masterclass"
+                width={1024}
+                height={682}
+                className="h-auto w-[240px] sm:w-[260px] lg:w-[280px] xl:w-[300px]"
+                priority
+              />
+            </div>
+          </div>
+
+          {/* CTAs & trust — below the logo/headline row */}
+          <div className="mx-auto mt-xl max-w-2xl text-center">
+            <div className="animate-fade-in-up delay-500 flex flex-col items-center gap-md sm:flex-row sm:justify-center">
               <Link
                 href="/signup"
                 className="group inline-flex items-center rounded-lg bg-skyBlue px-xl py-[16px] text-[16px] font-bold text-white shadow-xl shadow-skyBlue/25 hover:shadow-2xl hover:shadow-skyBlue/30 hover:bg-skyBlue/90 transition-all duration-300"
@@ -240,7 +299,6 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Trust indicators */}
             <div className="animate-fade-in-up delay-700 mt-2xl flex flex-wrap items-center justify-center gap-lg text-white/50 text-caption">
               <div className="flex items-center gap-xs">
                 <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -500,6 +558,56 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ───── Testimonials ───── */}
+      <section id="testimonials" className="bg-white py-3xl sm:py-[96px] border-y border-paleGray/60">
+        <div className="mx-auto max-w-7xl px-md sm:px-lg">
+          <RevealSection>
+            <div className="mx-auto max-w-2xl text-center">
+              <span className="inline-block text-caption font-bold uppercase tracking-[0.2em] text-teal mb-md">
+                From the Book
+              </span>
+              <h2 className="font-heading text-h1 text-navy sm:text-[36px]">
+                Leaders Who&apos;ve Worked With Dana
+              </h2>
+              <p className="mt-md text-body text-charcoal/60 sm:text-[15px]">
+                Real endorsements from professionals featured in{" "}
+                <a href="https://www.tgrowthe.com/product-page/bulletproof-your-manager-career-ebook" target="_blank" rel="noopener noreferrer" className="not-italic font-medium text-navy underline hover:text-teal transition-colors">Bulletproof Your Manager Career</a>.
+              </p>
+            </div>
+          </RevealSection>
+
+          <div className="mt-2xl grid gap-lg sm:grid-cols-2 lg:grid-cols-3">
+            {TESTIMONIALS.map((testimonial, i) => (
+              <RevealSection key={testimonial.name} className={`delay-${(i % 3) * 100}`}>
+                <figure className="card-lift flex h-full flex-col rounded-lg border border-paleGray/60 bg-offWhite p-lg">
+                  <blockquote className="flex-1 text-body leading-relaxed text-charcoal/85">
+                    <span className="font-heading text-[28px] leading-none text-skyBlue/40" aria-hidden="true">
+                      &ldquo;
+                    </span>
+                    {testimonial.quote}
+                  </blockquote>
+                  <figcaption className="mt-lg flex items-center gap-md border-t border-paleGray/80 pt-lg">
+                    <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border-2 border-white shadow-md ring-1 ring-paleGray/60 bg-white">
+                      <Image
+                        src={testimonial.image}
+                        alt={testimonial.name}
+                        fill
+                        sizes="64px"
+                        className="object-cover object-center"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-body text-navy">{testimonial.name}</p>
+                      <p className="text-caption leading-snug text-charcoal/60">{testimonial.title}</p>
+                    </div>
+                  </figcaption>
+                </figure>
+              </RevealSection>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ───── Divider ───── */}
       <div className="divider-gradient mx-auto max-w-md" />
 
@@ -564,11 +672,11 @@ export default function Home() {
                     Annual
                   </p>
                   <div className="mt-md flex items-baseline gap-xs">
-                    <span className="font-heading text-[44px] text-navy">$1,000</span>
+                    <span className="font-heading text-[44px] text-navy">$997</span>
                     <span className="text-body text-charcoal/40">/year</span>
                   </div>
                   <p className="mt-sm text-body text-charcoal/60">
-                    Save over <span className="font-semibold text-success">$160</span> compared to monthly.
+                    Save over <span className="font-semibold text-success">$167</span> compared to monthly.
                   </p>
                   <ul className="mt-lg flex-1 space-y-sm">
                     {ANNUAL_FEATURES.map((item) => (
@@ -604,7 +712,7 @@ export default function Home() {
               Ready to Elevate Your Career?
             </h2>
             <p className="mt-lg text-[15px] text-white/65 leading-relaxed max-w-xl mx-auto">
-              Join a growing community of Black middle managers mastering continuous
+              Join a growing community of middle managers mastering continuous
               improvement and building measurable career impact.
             </p>
             <div className="mt-xl flex flex-col items-center gap-md sm:flex-row sm:justify-center">
