@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { signupAction, verifyOtpAction } from "@/actions/auth";
+import { HBCU_INSTITUTIONS } from "@/lib/hbcu-list";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -73,6 +74,7 @@ export default function SignupPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [hbcuAlmaMater, setHbcuAlmaMater] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [industry, setIndustry] = useState("");
   const [roleTitle, setRoleTitle] = useState("");
@@ -104,6 +106,7 @@ export default function SignupPage() {
         email,
         password,
         fullName,
+        hbcuAlmaMater,
         companyName,
         industry,
         roleTitle,
@@ -129,6 +132,7 @@ export default function SignupPage() {
     try {
       const result = await verifyOtpAction(email, verificationCode, {
         fullName,
+        hbcuAlmaMater,
         companyName,
         industry,
         roleTitle,
@@ -252,6 +256,29 @@ export default function SignupPage() {
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* HBCU Alma Mater */}
+              <div>
+                <label htmlFor="hbcuAlmaMater" className="block text-body font-medium text-charcoal mb-xs">
+                  HBCU Alma Mater
+                </label>
+                <select
+                  id="hbcuAlmaMater"
+                  required
+                  value={hbcuAlmaMater}
+                  onChange={(e) => setHbcuAlmaMater(e.target.value)}
+                  className="w-full px-md py-sm border border-paleGray rounded-md text-body text-charcoal bg-white focus:outline-none focus:ring-2 focus:ring-skyBlue focus:border-skyBlue"
+                >
+                  <option value="" disabled>
+                    Select your HBCU alma mater
+                  </option>
+                  {HBCU_INSTITUTIONS.map((school) => (
+                    <option key={school} value={school}>
+                      {school}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Company Name */}

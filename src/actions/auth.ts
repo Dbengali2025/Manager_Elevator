@@ -12,6 +12,7 @@ export interface SignupInput {
   email: string;
   password: string;
   fullName: string;
+  hbcuAlmaMater: string;
   companyName: string;
   industry: string;
   roleTitle: string;
@@ -27,7 +28,7 @@ export interface ActionResult {
 // ---------------------------------------------------------------------------
 
 export async function signupAction(input: SignupInput): Promise<ActionResult> {
-  const { email, password, fullName, companyName, industry, roleTitle } = input;
+  const { email, password, fullName, hbcuAlmaMater, companyName, industry, roleTitle } = input;
 
   // Call Insforge Auth signup
   const { data, error } = await insforgeAuth.signup(email, password, fullName);
@@ -54,6 +55,7 @@ export async function signupAction(input: SignupInput): Promise<ActionResult> {
         id: data.user?.id,
         email,
         full_name: fullName,
+        hbcu_alma_mater: hbcuAlmaMater,
         company_name: companyName,
         industry,
         role_title: roleTitle,
@@ -75,6 +77,7 @@ export async function signupAction(input: SignupInput): Promise<ActionResult> {
   notifyNewUserRegistered({
     fullName,
     email,
+    hbcuAlmaMater,
     company: companyName,
     industry,
     roleTitle,
@@ -92,6 +95,7 @@ export async function verifyOtpAction(
   code: string,
   signupData?: {
     fullName: string;
+    hbcuAlmaMater: string;
     companyName: string;
     industry: string;
     roleTitle: string;
@@ -148,6 +152,7 @@ export async function verifyOtpAction(
           id: userId,
           email,
           full_name: fullName,
+          hbcu_alma_mater: signupData?.hbcuAlmaMater ?? "",
           company_name: signupData?.companyName ?? "",
           industry: signupData?.industry ?? "",
           role_title: signupData?.roleTitle ?? "",

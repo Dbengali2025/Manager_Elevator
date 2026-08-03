@@ -188,11 +188,12 @@ export async function notifyMilestoneUnlocked(params: {
 export async function notifyNewUserRegistered(params: {
   fullName: string;
   email: string;
+  hbcuAlmaMater?: string;
   company: string;
   industry: string;
   roleTitle: string;
 }): Promise<void> {
-  const { fullName, email, company, industry, roleTitle } = params;
+  const { fullName, email, hbcuAlmaMater, company, industry, roleTitle } = params;
 
   const body = `
     <p>A new user has registered on Manager Elevator!</p>
@@ -204,6 +205,10 @@ export async function notifyNewUserRegistered(params: {
       <tr>
         <td style="padding:8px 0;color:#6B7280;width:140px;vertical-align:top;">Email:</td>
         <td style="padding:8px 0;"><a href="mailto:${email}" style="color:#35C0ED;text-decoration:underline;">${email}</a></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;color:#6B7280;width:140px;vertical-align:top;">HBCU Alma Mater:</td>
+        <td style="padding:8px 0;">${hbcuAlmaMater || "Not provided"}</td>
       </tr>
       <tr>
         <td style="padding:8px 0;color:#6B7280;width:140px;vertical-align:top;">Company:</td>

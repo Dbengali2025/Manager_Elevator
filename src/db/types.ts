@@ -42,6 +42,7 @@ export interface User {
   id: string;
   email: string;
   full_name: string;
+  hbcu_alma_mater: string;
   company_name: string;
   industry: string;
   role_title: string;
