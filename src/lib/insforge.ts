@@ -91,10 +91,16 @@ async function request<T = unknown>(
     ...headers,
   };
 
-  // AI endpoints require Authorization header; DB endpoints use apikey + optional Bearer token
+  // A user token always wins. Failing that, AI and auth endpoints still need an
+  // Authorization header -- the gateway rejects them with "No token provided"
+  // when only `apikey` is sent, which breaks signup and login.
+  //
+  // Deliberately NOT applied to /api/database/: the service key belongs to
+  // project_admin, which has BYPASSRLS, so falling back to it there would
+  // silently defeat row-level security on any query that forgot its token.
   if (token) {
     reqHeaders["Authorization"] = `Bearer ${token}`;
-  } else if (path.startsWith("/api/ai/")) {
+  } else if (path.startsWith("/api/ai/") || path.startsWith("/api/auth/")) {
     reqHeaders["Authorization"] = `Bearer ${INSFORGE_API_KEY}`;
   }
 
