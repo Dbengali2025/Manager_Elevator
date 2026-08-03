@@ -106,17 +106,8 @@ export default function AppLayout({ children, isAdmin = false, userName = "" }: 
             <HamburgerIcon />
           </button>
 
-          {/* Logo */}
-          <div className="hidden md:flex items-center">
-            <Image
-              src="/manager-elevator_logo_cropped.png"
-              alt="Manager Elevator"
-              width={150}
-              height={40}
-              className="h-auto max-h-[36px]"
-              priority
-            />
-          </div>
+          {/* Spacer keeps the right-side icons aligned right on desktop */}
+          <div className="hidden md:block" />
 
           {/* Right side icons */}
           <div className="flex items-center gap-md">
@@ -184,6 +175,18 @@ function SidebarContent({
           );
         })}
       </nav>
+
+      {/* Logo at bottom of menu — sits directly on the sidebar, no backing panel */}
+      <div className="pl-sm pr-lg pb-lg pt-md">
+        <Image
+          src="/manager-elevator_logo_white_mint.png"
+          alt="Manager Elevator — Rise with Continuous Improvement"
+          width={648}
+          height={251}
+          className="h-auto w-full"
+          priority
+        />
+      </div>
 
       {/* User info at bottom */}
       <div className="border-t border-white/15 px-md py-md">
