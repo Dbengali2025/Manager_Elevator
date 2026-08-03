@@ -8,10 +8,19 @@ import type { User, UserProgress, Milestone, WarBattleSession } from "@/db/types
 // Types
 // ---------------------------------------------------------------------------
 
+export interface AdminValueSurvey {
+  occasion: string;
+  total_score: number;
+  percentage: number;
+  tier: string;
+  completed_at: string;
+}
+
 export interface AdminUser {
   id: string;
   full_name: string;
   email: string;
+  hbcu_alma_mater: string;
   company_name: string;
   industry: string;
   role_title: string;
@@ -21,6 +30,10 @@ export interface AdminUser {
   milestones: Milestone[];
   progress_records: UserProgress[];
   war_sessions: WarBattleSession[];
+  /** Manager Value Self-Assessment results, oldest first. */
+  value_surveys: AdminValueSurvey[];
+  /** Points gained from baseline to the most recent retake, null if no retake yet. */
+  value_score_delta: number | null;
 }
 
 export interface AdminOverviewStats {
@@ -98,10 +111,19 @@ export async function getAdminDashboardData(): Promise<{
     .from("war_battle_sessions")
     .select<WarBattleSession[]>(token);
 
+  // Fetch all Manager Value Self-Assessment results
+  const { data: allSurveys } = await insforgeClient
+    .from("manager_value_surveys")
+    .select<Array<AdminValueSurvey & { user_id: string }>>(
+      token,
+      "?order=completed_at.asc"
+    );
+
   // Group data by user
   const progressByUser = groupBy(allProgress ?? [], "user_id");
   const milestonesByUser = groupBy(allMilestones ?? [], "user_id");
   const sessionsByUser = groupBy(allSessions ?? [], "user_id");
+  const surveysByUser = groupBy(allSurveys ?? [], "user_id");
 
   const now = new Date();
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -111,6 +133,13 @@ export async function getAdminDashboardData(): Promise<{
     const progress = progressByUser[user.id] ?? [];
     const milestones = milestonesByUser[user.id] ?? [];
     const sessions = sessionsByUser[user.id] ?? [];
+    const surveys = (surveysByUser[user.id] ?? []).map((s) => ({
+      occasion: s.occasion,
+      total_score: s.total_score,
+      percentage: Number(s.percentage),
+      tier: s.tier,
+      completed_at: s.completed_at,
+    }));
 
     // Current stage: latest completed stage
     const completedStages = progress
@@ -143,6 +172,7 @@ export async function getAdminDashboardData(): Promise<{
       id: user.id,
       full_name: user.full_name,
       email: user.email,
+      hbcu_alma_mater: user.hbcu_alma_mater ?? "",
       company_name: user.company_name,
       industry: user.industry,
       role_title: user.role_title,
@@ -152,6 +182,8 @@ export async function getAdminDashboardData(): Promise<{
       milestones,
       progress_records: progress,
       war_sessions: sessions,
+      value_surveys: surveys,
+      value_score_delta: valueScoreDelta(surveys),
     };
   });
 
@@ -204,6 +236,14 @@ function groupBy<T>(
     map[k].push(item);
   }
   return map;
+}
+
+/** Points gained between the baseline survey and the most recent retake. */
+function valueScoreDelta(surveys: AdminValueSurvey[]): number | null {
+  const baseline = surveys.find((s) => s.occasion === "baseline");
+  const retakes = surveys.filter((s) => s.occasion !== "baseline");
+  if (!baseline || retakes.length === 0) return null;
+  return retakes[retakes.length - 1].total_score - baseline.total_score;
 }
 
 function formatStageName(stage: string): string {

@@ -8,6 +8,11 @@ import {
   saveAssessmentAnswers,
   completeOnboarding,
 } from "@/actions/onboarding";
+import { submitValueSurvey } from "@/actions/value-survey";
+import ValueSurveyForm, { SurveyProgressNote } from "@/components/ValueSurveyForm";
+import { isSurveyComplete, BASELINE_OCCASION } from "@/lib/value-survey";
+
+const TOTAL_STEPS = 5;
 
 // ---------------------------------------------------------------------------
 // Assessment questions
@@ -107,6 +112,8 @@ export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [userName, setUserName] = useState("");
   const [assessmentAnswers, setAssessmentAnswers] = useState<Record<string, string>>({});
+  const [surveyAnswers, setSurveyAnswers] = useState<Record<string, number>>({});
+  const [surveyError, setSurveyError] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -122,8 +129,8 @@ export default function OnboardingPage() {
         setUserName(result.userName ?? "");
         // Resume from saved step (but at least 1)
         const savedStep = result.onboardingStep ?? 1;
-        if (savedStep >= 1 && savedStep <= 4) {
-          setCurrentStep(Math.min(savedStep, 4));
+        if (savedStep >= 1 && savedStep <= TOTAL_STEPS) {
+          setCurrentStep(Math.min(savedStep, TOTAL_STEPS));
         }
       }
       setLoading(false);
@@ -142,7 +149,7 @@ export default function OnboardingPage() {
   }
 
   async function handleNext() {
-    if (currentStep < 4) {
+    if (currentStep < TOTAL_STEPS) {
       await goToStep(currentStep + 1);
     }
   }
@@ -173,6 +180,28 @@ export default function OnboardingPage() {
 
     if (result.success) {
       setCurrentStep(3);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Manager Value Self-Assessment Survey (baseline)
+  // ---------------------------------------------------------------------------
+
+  async function handleSurveySubmit() {
+    if (!isSurveyComplete(surveyAnswers)) {
+      setSurveyError("Please rate every statement before continuing.");
+      return;
+    }
+
+    setSurveyError("");
+    setSaving(true);
+    const result = await submitValueSurvey(BASELINE_OCCASION, surveyAnswers);
+    setSaving(false);
+
+    if (result.success) {
+      await goToStep(4);
+    } else {
+      setSurveyError(result.error ?? "Failed to save your survey. Please try again.");
     }
   }
 
@@ -212,7 +241,7 @@ export default function OnboardingPage() {
       <div className="mb-xl">
         <div className="flex items-center justify-between mb-sm">
           <h2 className="text-caption font-medium text-charcoal/60 uppercase tracking-wide">
-            Step {currentStep} of 4
+            Step {currentStep} of {TOTAL_STEPS}
           </h2>
           <button
             onClick={handleSkip}
@@ -222,7 +251,7 @@ export default function OnboardingPage() {
           </button>
         </div>
         <div className="flex gap-xs">
-          {[1, 2, 3, 4].map((step) => (
+          {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((step) => (
             <div
               key={step}
               className={`h-1 flex-1 rounded-full transition-colors ${
@@ -250,9 +279,21 @@ export default function OnboardingPage() {
           />
         )}
         {currentStep === 3 && (
-          <StepFeatureTour onNext={handleNext} onBack={handleBack} />
+          <StepValueSurvey
+            answers={surveyAnswers}
+            onAnswerChange={(qId, value) =>
+              setSurveyAnswers((prev) => ({ ...prev, [qId]: value }))
+            }
+            onSubmit={handleSurveySubmit}
+            onBack={handleBack}
+            saving={saving}
+            error={surveyError}
+          />
         )}
         {currentStep === 4 && (
+          <StepFeatureTour onNext={handleNext} onBack={handleBack} />
+        )}
+        {currentStep === 5 && (
           <StepDashboardPreview
             onComplete={handleComplete}
             onBack={handleBack}
@@ -313,6 +354,7 @@ function StepWelcome({
         <ul className="space-y-sm">
           {[
             "Quick CI experience assessment",
+            "Manager Value Self-Assessment Survey",
             "Feature overview and guided tour",
             "Your learning journey preview",
           ].map((item, i) => (
@@ -417,7 +459,78 @@ function StepAssessment({
 }
 
 // ===========================================================================
-// Step 3: Feature Tour
+// Step 3: Manager Value Self-Assessment Survey
+// ===========================================================================
+
+function StepValueSurvey({
+  answers,
+  onAnswerChange,
+  onSubmit,
+  onBack,
+  saving,
+  error,
+}: {
+  answers: Record<string, number>;
+  onAnswerChange: (questionId: string, value: number) => void;
+  onSubmit: () => void;
+  onBack: () => void;
+  saving: boolean;
+  error: string;
+}) {
+  const complete = isSurveyComplete(answers);
+
+  return (
+    <div>
+      <h1 className="font-heading text-h1 text-navy mb-sm">
+        Manager Value Self-Assessment Survey
+      </h1>
+      <p className="text-body text-charcoal/70 mb-md">
+        Rate each statement from 1 to 5 based on how well it describes your
+        current situation. Be completely honest — this is your starting
+        benchmark, and you&apos;ll retake it as you progress so you can see how
+        far you&apos;ve come.
+      </p>
+
+      <div className="bg-offWhite rounded-md px-lg py-md mb-xl">
+        <p className="text-caption text-charcoal/70">
+          <span className="font-medium text-charcoal">Rating scale:</span>{" "}
+          1 = Strongly Disagree · 2 = Disagree · 3 = Neutral · 4 = Agree ·
+          5 = Strongly Agree
+        </p>
+      </div>
+
+      {error && (
+        <div className="bg-error/10 border border-error/30 text-error text-body rounded-md px-md py-sm mb-lg">
+          {error}
+        </div>
+      )}
+
+      <ValueSurveyForm answers={answers} onAnswerChange={onAnswerChange} />
+
+      <div className="flex items-center justify-between mt-xl pt-lg border-t border-paleGray">
+        <button
+          onClick={onBack}
+          className="text-body text-charcoal/60 hover:text-charcoal transition-colors"
+        >
+          Back
+        </button>
+        <div className="flex items-center gap-md">
+          <SurveyProgressNote answers={answers} />
+          <button
+            onClick={onSubmit}
+            disabled={!complete || saving}
+            className="bg-navy text-white font-medium text-body py-sm px-xl rounded-md hover:bg-navy/90 focus:outline-none focus:ring-2 focus:ring-skyBlue disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {saving ? "Saving..." : "Continue"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ===========================================================================
+// Step 4: Feature Tour
 // ===========================================================================
 
 function StepFeatureTour({
@@ -482,7 +595,7 @@ function StepFeatureTour({
 }
 
 // ===========================================================================
-// Step 4: Dashboard Preview
+// Step 5: Dashboard Preview
 // ===========================================================================
 
 function StepDashboardPreview({
