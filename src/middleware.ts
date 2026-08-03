@@ -41,12 +41,46 @@ async function refreshAccessToken(
   }
 }
 
+/**
+ * Reject tokens that are obviously unusable — not a JWT, no subject, or past
+ * their expiry — without a network round-trip.
+ *
+ * This deliberately does NOT verify the signature: the signing secret is not
+ * available here. It is a routing guard, not the security boundary. Every
+ * server action independently validates the token against Insforge before
+ * touching data, and row-level security backs that up in the database. What
+ * this does buy is that an arbitrary or stale cookie value no longer renders
+ * the authenticated shell, and an expired token now correctly falls through to
+ * the refresh path instead of being waved through.
+ */
+function isUsableToken(token: string | undefined): boolean {
+  if (!token) return false;
+
+  const parts = token.split(".");
+  if (parts.length !== 3) return false;
+
+  try {
+    const padded = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const payload = JSON.parse(
+      atob(padded + "=".repeat((4 - (padded.length % 4)) % 4))
+    );
+
+    if (!payload?.sub) return false;
+    if (typeof payload.exp === "number" && payload.exp * 1000 <= Date.now()) {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const accessToken = request.cookies.get("access_token")?.value;
   const refreshToken = request.cookies.get("refresh_token")?.value;
 
-  const hasAuth = !!accessToken;
+  const hasAuth = isUsableToken(accessToken);
   const hasRefresh = !!refreshToken;
 
   const isPublicRoute = PUBLIC_ROUTES.some(

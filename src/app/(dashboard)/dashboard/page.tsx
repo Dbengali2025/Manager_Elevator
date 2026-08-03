@@ -1,10 +1,15 @@
 import { getDashboardData } from "@/actions/dashboard";
+import { getValueSurveyStatus } from "@/actions/value-survey";
+import ValueSurveyBanner from "@/components/dashboard/ValueSurveyBanner";
 import JourneyProgressBar from "@/components/dashboard/JourneyProgressBar";
 import StatCards from "@/components/dashboard/StatCards";
 import FeatureNavigationCards from "@/components/dashboard/FeatureNavigationCards";
 
 export default async function DashboardPage() {
-  const result = await getDashboardData();
+  const [result, surveyStatus] = await Promise.all([
+    getDashboardData(),
+    getValueSurveyStatus(),
+  ]);
 
   const userName = result.data?.userName ?? "there";
   const firstName = userName.split(" ")[0];
@@ -26,6 +31,9 @@ export default async function DashboardPage() {
           Let&apos;s elevate your career through continuous improvement mastery.
         </p>
       </div>
+
+      {/* Manager Value Self-Assessment retake prompt (90/270/360 days) */}
+      <ValueSurveyBanner dueOccasion={surveyStatus.dueOccasion} />
 
       {/* Journey progress bar */}
       <JourneyProgressBar progressRecords={progressRecords} />

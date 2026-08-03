@@ -94,9 +94,19 @@ export default function AdminPage() {
 
   // CSV export
   const exportCSV = () => {
-    const headers = ["Name", "Company", "Industry", "Current Stage", "Sessions Completed", "Last Active", "Milestones"];
+    const headers = [
+      "Name", "Email", "HBCU Alma Mater", "Company", "Industry", "Current Stage",
+      "Sessions Completed", "Last Active", "Milestones",
+      "Value Baseline", "Value 90-Day", "Value 270-Day", "Value 360-Day", "Value Change",
+    ];
+    const scoreFor = (user: AdminUser, occasion: string) => {
+      const s = user.value_surveys.find((v) => v.occasion === occasion);
+      return s ? String(s.total_score) : "";
+    };
     const rows = filteredUsers.map((user) => [
       user.full_name,
+      user.email,
+      user.hbcu_alma_mater,
       user.company_name,
       user.industry,
       user.current_stage,
@@ -106,6 +116,13 @@ export default function AdminPage() {
         .filter((m) => m.unlocked)
         .map((m) => formatMilestoneName(m.milestone_type))
         .join("; ") || "None",
+      scoreFor(user, "baseline"),
+      scoreFor(user, "day_90"),
+      scoreFor(user, "day_270"),
+      scoreFor(user, "day_360"),
+      user.value_score_delta === null
+        ? ""
+        : `${user.value_score_delta > 0 ? "+" : ""}${user.value_score_delta}`,
     ]);
 
     const csv = [headers, ...rows].map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(",")).join("\n");
@@ -209,6 +226,7 @@ export default function AdminPage() {
               <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/60">Industry</th>
               <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/60">Current Stage</th>
               <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/60">Sessions</th>
+              <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/60">Value Score</th>
               <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/60">Last Active</th>
               <th className="px-md py-sm text-left text-caption font-semibold text-charcoal/60">Milestones</th>
             </tr>
@@ -216,7 +234,7 @@ export default function AdminPage() {
           <tbody>
             {filteredUsers.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-md py-xl text-center text-body text-charcoal/40">
+                <td colSpan={8} className="px-md py-xl text-center text-body text-charcoal/40">
                   No users match the selected filters
                 </td>
               </tr>
@@ -313,6 +331,9 @@ function UserRow({
           <StageBadge stage={user.current_stage} />
         </td>
         <td className="px-md py-sm text-body text-charcoal">{user.sessions_completed} / 14</td>
+        <td className="px-md py-sm">
+          <ValueScoreCell user={user} />
+        </td>
         <td className="px-md py-sm text-body text-charcoal">{formatDate(user.last_active)}</td>
         <td className="px-md py-sm">
           <div className="flex gap-xs">
@@ -328,12 +349,106 @@ function UserRow({
       </tr>
       {isExpanded && (
         <tr className="border-b border-paleGray bg-offWhite">
-          <td colSpan={7} className="px-lg py-md">
+          <td colSpan={8} className="px-lg py-md">
             <UserDetailPanel user={user} />
           </td>
         </tr>
       )}
     </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Manager Value Self-Assessment
+// ---------------------------------------------------------------------------
+
+const VALUE_OCCASION_LABELS: Record<string, string> = {
+  baseline: "Baseline",
+  day_90: "90-day",
+  day_270: "270-day",
+  day_360: "360-day",
+};
+
+function ValueScoreCell({ user }: { user: AdminUser }) {
+  const baseline = user.value_surveys.find((s) => s.occasion === "baseline");
+  const latest = user.value_surveys[user.value_surveys.length - 1];
+
+  if (!baseline) {
+    return <span className="text-caption text-charcoal/40">Not taken</span>;
+  }
+
+  const delta = user.value_score_delta;
+
+  return (
+    <div className="whitespace-nowrap">
+      <span className="text-body text-charcoal">{latest.total_score} / 80</span>
+      {delta !== null && (
+        <span
+          className={`ml-xs text-caption font-medium ${
+            delta > 0 ? "text-success" : delta < 0 ? "text-error" : "text-charcoal/50"
+          }`}
+        >
+          {delta > 0 ? "+" : ""}
+          {delta}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function ValueSurveyPanel({ user }: { user: AdminUser }) {
+  if (user.value_surveys.length === 0) {
+    return (
+      <div>
+        <h4 className="text-caption font-semibold text-charcoal/60 mb-sm">
+          Manager Value Self-Assessment
+        </h4>
+        <p className="text-caption text-charcoal/40">Not taken yet</p>
+      </div>
+    );
+  }
+
+  const baseline = user.value_surveys.find((s) => s.occasion === "baseline");
+
+  return (
+    <div>
+      <h4 className="text-caption font-semibold text-charcoal/60 mb-sm">
+        Manager Value Self-Assessment
+      </h4>
+      <div className="flex flex-wrap gap-sm">
+        {user.value_surveys.map((s) => {
+          const delta =
+            baseline && s.occasion !== "baseline"
+              ? s.total_score - baseline.total_score
+              : null;
+          return (
+            <div
+              key={s.occasion}
+              className="rounded-md border border-paleGray bg-white px-md py-sm"
+            >
+              <p className="text-caption text-charcoal/60">
+                {VALUE_OCCASION_LABELS[s.occasion] ?? s.occasion}
+              </p>
+              <p className="text-body font-medium text-charcoal">
+                {s.total_score} / 80
+                {delta !== null && (
+                  <span
+                    className={`ml-xs text-caption ${
+                      delta > 0 ? "text-success" : delta < 0 ? "text-error" : "text-charcoal/50"
+                    }`}
+                  >
+                    {delta > 0 ? "+" : ""}
+                    {delta}
+                  </span>
+                )}
+              </p>
+              <p className="text-caption text-charcoal/50">{s.tier}</p>
+              <p className="text-caption text-charcoal/40">{formatDate(s.completed_at)}</p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -366,6 +481,9 @@ function UserDetailPanel({ user }: { user: AdminUser }) {
 
   return (
     <div className="space-y-md">
+      {/* Manager Value Self-Assessment scores over time */}
+      <ValueSurveyPanel user={user} />
+
       {/* Journey Stages */}
       <div>
         <h4 className="text-body font-semibold text-charcoal mb-sm">Journey Progress</h4>
