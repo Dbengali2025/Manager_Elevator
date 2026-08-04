@@ -165,6 +165,63 @@ export async function toggleSessionCompletion(
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
+// Record module completion when its quiz is passed
+// ---------------------------------------------------------------------------
+
+export async function markModuleQuizPassed(
+  moduleNumber: number
+): Promise<{ success: boolean; error?: string }> {
+  if (![1, 2, 3, 4].includes(moduleNumber)) {
+    return { success: false, error: "Invalid module number" };
+  }
+
+  const token = await getToken();
+  if (!token) {
+    return { success: false, error: "Not authenticated" };
+  }
+
+  const userId = await getUserId(token);
+  if (!userId) {
+    return { success: false, error: "Failed to get user info" };
+  }
+
+  const stage = `module_${moduleNumber}`;
+
+  const { data: existing } = await insforgeClient
+    .from("user_progress")
+    .select<UserProgress[]>(token, `?user_id=eq.${userId}&stage=eq.${stage}`);
+
+  if (existing && existing.length > 0) {
+    if (existing[0].status !== "completed") {
+      await insforgeClient
+        .from("user_progress")
+        .update(
+          {
+            status: "completed",
+            completed_at: new Date().toISOString(),
+          },
+          token,
+          `?id=eq.${existing[0].id}`
+        );
+    }
+  } else {
+    await insforgeClient
+      .from("user_progress")
+      .insert(
+        {
+          user_id: userId,
+          stage,
+          status: "completed",
+          completed_at: new Date().toISOString(),
+        },
+        token
+      );
+  }
+
+  return { success: true };
+}
+
+// ---------------------------------------------------------------------------
 // Get lesson resources
 // ---------------------------------------------------------------------------
 

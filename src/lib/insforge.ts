@@ -321,9 +321,8 @@ export const insforgeAI = {
     maxTokens?: number;
   }): Promise<
     InsforgeResponse<{
-      success: boolean;
-      content: string;
-      metadata: { model: string; usage: Record<string, number> };
+      text: string;
+      metadata?: { model: string; usage: Record<string, number> };
     }>
   > {
     return request("/api/ai/chat/completion", {
