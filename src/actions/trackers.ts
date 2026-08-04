@@ -418,6 +418,20 @@ export interface GeneratedNugget {
   talking_points: string;
 }
 
+// Models occasionally return arrays or objects for fields we expect as plain
+// strings — flatten them into readable text
+function nuggetFieldToString(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((v) => nuggetFieldToString(v)).join("\n");
+  }
+  if (value !== null && typeof value === "object") {
+    return Object.entries(value as Record<string, unknown>)
+      .map(([k, v]) => `${k.replace(/_/g, " ")}: ${nuggetFieldToString(v)}`)
+      .join("\n");
+  }
+  return typeof value === "number" ? String(value) : value;
+}
+
 export async function generateSuccessNuggets(): Promise<{
   success: boolean;
   error?: string;
@@ -521,8 +535,8 @@ Given the user's continuous improvement (CI) tracker data below, generate 3-5 ac
 
 Each nugget MUST include:
 1. achievement_statement: A concise, powerful statement of what was accomplished (2-3 sentences). Use active voice, quantify impact where possible, and frame it for career advancement.
-2. supporting_metrics: Specific numbers and data points that back up the achievement (use the before/after data when available).
-3. talking_points: 2-3 bullet points the user can reference when discussing this achievement in meetings or reviews.
+2. supporting_metrics: Specific numbers and data points that back up the achievement (use the before/after data when available), as a single string — not an object or list.
+3. talking_points: a single string containing 2-3 bullet points (one per line) the user can reference when discussing this achievement in meetings or reviews.
 
 Format your response as a JSON array of objects with keys: achievement_statement, supporting_metrics, talking_points.
 
@@ -554,20 +568,31 @@ Respond ONLY with valid JSON — no markdown, no code fences, no extra text.`;
     };
   }
 
-  const rawContent = aiResponse.content ?? "";
+  // The AI endpoint returns its completion in the `text` field; strip any
+  // markdown code fences the model may add despite instructions
+  const rawContent = (aiResponse.text ?? "")
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/, "");
 
   // Parse JSON from AI response
   try {
-    const nuggets: GeneratedNugget[] = JSON.parse(rawContent);
+    const parsed: unknown = JSON.parse(rawContent);
 
-    if (!Array.isArray(nuggets) || nuggets.length === 0) {
+    if (!Array.isArray(parsed) || parsed.length === 0) {
       return { success: false, error: "AI returned an unexpected format. Please try again." };
     }
 
-    // Validate each nugget has the required fields
-    const validated = nuggets
+    // Validate each nugget has the required fields, normalizing any
+    // arrays/objects the model returned into plain strings
+    const validated: GeneratedNugget[] = parsed
+      .map((n: Record<string, unknown>) => ({
+        achievement_statement: nuggetFieldToString(n.achievement_statement),
+        supporting_metrics: nuggetFieldToString(n.supporting_metrics),
+        talking_points: nuggetFieldToString(n.talking_points),
+      }))
       .filter(
-        (n) =>
+        (n): n is GeneratedNugget =>
           typeof n.achievement_statement === "string" &&
           typeof n.supporting_metrics === "string" &&
           typeof n.talking_points === "string"

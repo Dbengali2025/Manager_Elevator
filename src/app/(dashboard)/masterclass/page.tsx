@@ -7,6 +7,7 @@ import {
   getMasterclassData,
   toggleSessionCompletion,
   getLessonResources,
+  markModuleQuizPassed,
 } from "@/actions/masterclass";
 import { MODULES, WAR_BATTLE_SESSIONS } from "@/lib/masterclass-data";
 import { MODULE_QUIZZES } from "@/lib/quiz-data";
@@ -344,6 +345,15 @@ function ModuleQuizSection({ moduleNumber }: { moduleNumber: number }) {
   const handleSubmit = () => {
     if (answeredCount < totalQuestions) return;
     setSubmitted(true);
+
+    // Persist module completion when the quiz is passed (`passed` from the
+    // current render still reflects the pre-submit state, so compute it here)
+    const correct = quiz.questions.filter(
+      (q) => selectedAnswers[q.id] === q.correctAnswer
+    ).length;
+    if ((correct / totalQuestions) * 100 >= quiz.passThreshold) {
+      markModuleQuizPassed(moduleNumber).catch(console.error);
+    }
   };
 
   const handleRetake = () => {
