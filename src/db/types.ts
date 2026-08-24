@@ -65,6 +65,15 @@ export interface UserProgress {
   created_at: string;
 }
 
+/** Row from the `lesson_completions` table */
+export interface LessonCompletion {
+  id: string;
+  user_id: string;
+  module_number: number;
+  lesson_number: number;
+  completed_at: string;
+}
+
 /** Row from the `milestones` table */
 export interface Milestone {
   id: string;

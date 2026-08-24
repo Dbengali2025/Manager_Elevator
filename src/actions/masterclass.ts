@@ -3,7 +3,7 @@
 import { insforgeClient, insforgeAuth } from "@/lib/insforge";
 import { getValidToken } from "@/lib/auth-helpers";
 import { WAR_BATTLE_SESSIONS } from "@/lib/masterclass-data";
-import type { UserProgress, WarBattleSession } from "@/db/types";
+import type { LessonCompletion, UserProgress, WarBattleSession } from "@/db/types";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -25,6 +25,7 @@ export interface MasterclassData {
   userName: string;
   progressRecords: UserProgress[];
   sessions: WarBattleSession[];
+  lessonCompletions: LessonCompletion[];
 }
 
 export async function getMasterclassData(): Promise<{
@@ -70,12 +71,21 @@ export async function getMasterclassData(): Promise<{
       `?user_id=eq.${userId}&order=week_number.asc`
     );
 
+  // Fetch lesson completions
+  const { data: lessonCompletions } = await insforgeClient
+    .from("lesson_completions")
+    .select<LessonCompletion[]>(
+      token,
+      `?user_id=eq.${userId}&order=module_number.asc,lesson_number.asc`
+    );
+
   return {
     success: true,
     data: {
       userName: users[0].full_name,
       progressRecords: progress ?? [],
       sessions: sessions ?? [],
+      lessonCompletions: lessonCompletions ?? [],
     },
   };
 }
@@ -163,6 +173,61 @@ export async function toggleSessionCompletion(
 // ---------------------------------------------------------------------------
 // Update module progress based on session completions
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Toggle lesson completion (check/uncheck)
+// ---------------------------------------------------------------------------
+
+export async function toggleLessonCompletion(
+  moduleNumber: number,
+  lessonNumber: number,
+  completed: boolean
+): Promise<{ success: boolean; error?: string }> {
+  if (![1, 2, 3, 4].includes(moduleNumber) || lessonNumber < 1 || lessonNumber > 7) {
+    return { success: false, error: "Invalid module or lesson number" };
+  }
+
+  const token = await getToken();
+  if (!token) {
+    return { success: false, error: "Not authenticated" };
+  }
+
+  const userId = await getUserId(token);
+  if (!userId) {
+    return { success: false, error: "Failed to get user info" };
+  }
+
+  const filter = `?user_id=eq.${userId}&module_number=eq.${moduleNumber}&lesson_number=eq.${lessonNumber}`;
+
+  const { data: existing } = await insforgeClient
+    .from("lesson_completions")
+    .select<LessonCompletion[]>(token, filter);
+
+  if (completed) {
+    if (!existing || existing.length === 0) {
+      const { error } = await insforgeClient
+        .from("lesson_completions")
+        .insert(
+          {
+            user_id: userId,
+            module_number: moduleNumber,
+            lesson_number: lessonNumber,
+          },
+          token
+        );
+      if (error) return { success: false, error };
+    }
+  } else {
+    if (existing && existing.length > 0) {
+      const { error } = await insforgeClient
+        .from("lesson_completions")
+        .delete(token, filter);
+      if (error) return { success: false, error };
+    }
+  }
+
+  return { success: true };
+}
 
 // ---------------------------------------------------------------------------
 // Record module completion when its quiz is passed

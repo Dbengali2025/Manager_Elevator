@@ -6,13 +6,14 @@ import { useRouter } from "next/navigation";
 import {
   getMasterclassData,
   toggleSessionCompletion,
+  toggleLessonCompletion,
   getLessonResources,
   markModuleQuizPassed,
 } from "@/actions/masterclass";
 import { MODULES, WAR_BATTLE_SESSIONS } from "@/lib/masterclass-data";
 import { MODULE_QUIZZES } from "@/lib/quiz-data";
 import type { MasterclassData, LessonResource } from "@/actions/masterclass";
-import type { UserProgress, WarBattleSession } from "@/db/types";
+import type { LessonCompletion, UserProgress, WarBattleSession } from "@/db/types";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -242,10 +243,16 @@ function LessonRow({
   lesson,
   moduleNumber,
   resources,
+  completed,
+  moduleCompleted,
+  onToggle,
 }: {
   lesson: { number: number; title: string; vimeoId: string };
   moduleNumber: number;
   resources: LessonResource[];
+  completed: boolean;
+  moduleCompleted: boolean;
+  onToggle: (moduleNumber: number, lessonNumber: number, done: boolean) => void;
 }) {
   const lessonResources = resources.filter(
     (r) => r.module_number === moduleNumber && r.lesson_number === lesson.number
@@ -254,13 +261,44 @@ function LessonRow({
   const [showVideo, setShowVideo] = useState(false);
   const hasResources = lessonResources.length > 0;
 
+  // Lessons inside a completed module always count as done (the quiz was
+  // passed), so the checkbox is locked checked there.
+  const isDone = completed || moduleCompleted;
+
   return (
     <li>
       <div className="flex items-start gap-sm text-body text-charcoal/80">
+        <label
+          className={`relative mt-[2px] flex-shrink-0 ${moduleCompleted ? "cursor-default" : "cursor-pointer"}`}
+          title={
+            moduleCompleted
+              ? "Module complete"
+              : isDone
+                ? "Mark lesson as not completed"
+                : "Mark lesson as completed"
+          }
+        >
+          <input
+            type="checkbox"
+            checked={isDone}
+            disabled={moduleCompleted}
+            onChange={() => onToggle(moduleNumber, lesson.number, !isDone)}
+            className="peer sr-only"
+          />
+          <span
+            className={`flex h-5 w-5 items-center justify-center rounded border-2 transition-colors ${
+              isDone
+                ? "border-success bg-success text-white"
+                : "border-paleGray bg-white hover:border-success/50"
+            }`}
+          >
+            {isDone && <CheckIcon />}
+          </span>
+        </label>
         <span className="mt-[2px] flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-skyBlue/10 text-[10px] font-medium text-skyBlue">
           {lesson.number}
         </span>
-        <span className="flex-1">{lesson.title}</span>
+        <span className={`flex-1 ${isDone ? "text-charcoal/50" : ""}`}>{lesson.title}</span>
         <div className="flex items-center gap-1 flex-shrink-0">
           <button
             type="button"
@@ -564,11 +602,15 @@ function ModuleCard({
   status,
   isCurrentModule,
   resources,
+  lessonCompletions,
+  onToggleLesson,
 }: {
   module: (typeof MODULES)[number];
   status: ModuleStatus;
   isCurrentModule: boolean;
   resources: LessonResource[];
+  lessonCompletions: LessonCompletion[];
+  onToggleLesson: (moduleNumber: number, lessonNumber: number, done: boolean) => void;
 }) {
   const [open, setOpen] = useState(isCurrentModule);
 
@@ -649,6 +691,13 @@ function ModuleCard({
                 lesson={lesson}
                 moduleNumber={module.number}
                 resources={resources}
+                completed={lessonCompletions.some(
+                  (c) =>
+                    c.module_number === module.number &&
+                    c.lesson_number === lesson.number
+                )}
+                moduleCompleted={status === "completed"}
+                onToggle={onToggleLesson}
               />
             ))}
           </ul>
@@ -927,6 +976,43 @@ export default function MasterclassPage() {
     loadData();
   }, [loadData]);
 
+  const handleToggleLesson = async (
+    moduleNumber: number,
+    lessonNumber: number,
+    done: boolean
+  ) => {
+    if (!data) return;
+
+    // Optimistic update
+    const withoutLesson = data.lessonCompletions.filter(
+      (c) =>
+        !(c.module_number === moduleNumber && c.lesson_number === lessonNumber)
+    );
+    const updated = done
+      ? [
+          ...withoutLesson,
+          {
+            id: `temp-${moduleNumber}-${lessonNumber}`,
+            user_id: "",
+            module_number: moduleNumber,
+            lesson_number: lessonNumber,
+            completed_at: new Date().toISOString(),
+          },
+        ]
+      : withoutLesson;
+    setData({ ...data, lessonCompletions: updated });
+
+    try {
+      const result = await toggleLessonCompletion(moduleNumber, lessonNumber, done);
+      if (!result.success) {
+        await loadData();
+      }
+    } catch (err) {
+      console.error("[Masterclass] Toggle lesson failed:", err);
+      await loadData();
+    }
+  };
+
   const handleToggleSession = async (
     week: number,
     name: string,
@@ -1010,9 +1096,24 @@ export default function MasterclassPage() {
   }
 
   const currentModule = getCurrentModule(data.progressRecords);
-  const completedSessions = data.sessions.filter(
-    (s) => s.status === "done"
-  ).length;
+
+  // A lesson counts as completed when it was checked off individually, or when
+  // its whole module is complete (quiz passed).
+  const totalLessons = MODULES.reduce((sum, m) => sum + m.lessons.length, 0);
+  const completedLessons = MODULES.reduce((sum, m) => {
+    if (getModuleStatus(m.stage, data.progressRecords) === "completed") {
+      return sum + m.lessons.length;
+    }
+    return (
+      sum +
+      m.lessons.filter((lesson) =>
+        data.lessonCompletions.some(
+          (c) =>
+            c.module_number === m.number && c.lesson_number === lesson.number
+        )
+      ).length
+    );
+  }, 0);
 
   return (
     <div className="space-y-lg">
@@ -1048,7 +1149,7 @@ export default function MasterclassPage() {
             Currently on Module {currentModule}
           </p>
           <p className="text-caption text-charcoal/60">
-            {completedSessions} of 25 lessons completed
+            {completedLessons} of {totalLessons} lessons completed
           </p>
         </div>
       </div>
@@ -1065,6 +1166,8 @@ export default function MasterclassPage() {
               status={status}
               isCurrentModule={module.number === currentModule}
               resources={resources}
+              lessonCompletions={data.lessonCompletions}
+              onToggleLesson={handleToggleLesson}
             />
           );
         })}
