@@ -1,8 +1,13 @@
 // Helper script to call Insforge MCP tools directly
 const { spawn } = require('child_process');
 
-const API_KEY = 'ik_cd28dfa48f5d0b50871fafcf35959307';
-const API_BASE_URL = 'https://97k43jb9.us-west.insforge.app';
+const API_KEY = process.env.INSFORGE_API_KEY;
+const API_BASE_URL = process.env.NEXT_PUBLIC_INSFORGE_URL || 'https://97k43jb9.us-west.insforge.app';
+
+if (!API_KEY) {
+  console.error('Set INSFORGE_API_KEY in the environment (see .env.local) before running this script.');
+  process.exit(1);
+}
 
 function callMcp(toolName, args) {
   return new Promise((resolve, reject) => {
