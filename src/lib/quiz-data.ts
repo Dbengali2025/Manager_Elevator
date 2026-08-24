@@ -285,14 +285,14 @@ export const MODULE_QUIZZES: ModuleQuiz[] = [
       {
         id: 2,
         lessonRef: "Lesson 1",
-        question: "During Session 13 of a Waste WAR Battle, the team has tested three potential solutions through pilots (Step 7). One solution showed 40% improvement in the target metric during the pilot. The manager says: \u201CThis solution clearly works\u2014let\u2019s implement it fully across the entire department immediately and skip Session 14 planning since we\u2019ve already proven success.\u201D According to the 10-step system taught in this lesson, what should happen instead?",
+        question: "During Session 13, a pilot solution showed 40% improvement. The manager says, \u201CThis clearly works\u2014let\u2019s implement fully across the entire department immediately and skip Session 14 planning.\u201D According to the 10-step system, what should happen instead?",
         options: [
-          { label: "A", text: "Agree and implement immediately since 40% improvement is proven" },
-          { label: "B", text: "Complete Session 14 for proper implementation planning, Control Plans, and sustainability measures" },
-          { label: "C", text: "Learn to identify and systematically eliminate the root causes creating these daily urgent issues" },
-          { label: "D", text: "Ask his manager to assign him to a strategic project team" },
+          { label: "A", text: "Implement immediately since pilot results prove the solution works" },
+          { label: "B", text: "Complete Session 14 to create an implementation roadmap, control plans, and sustainability mechanisms before deploying broadly" },
+          { label: "C", text: "Run additional pilot tests to ensure the 40% improvement wasn\u2019t a statistical anomaly" },
+          { label: "D", text: "Return to Step 4 to investigate whether 40% improvement is sufficient" },
         ],
-        correctAnswer: "C",
+        correctAnswer: "B",
       },
       {
         id: 3,
