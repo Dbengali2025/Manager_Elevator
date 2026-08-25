@@ -9,7 +9,7 @@ import { insforgeEmail } from "@/lib/insforge";
 const DANA_EMAIL =
   process.env.DANA_NOTIFICATION_EMAIL ?? "danat4lssplus@gmail.com";
 
-const LOGO_URL = "https://managerelevator.com/manager-elevator_logo.png";
+const LOGO_URL = "https://app.managerelevator.com/manager-elevator_logo.png";
 
 // ---------------------------------------------------------------------------
 // Email template
