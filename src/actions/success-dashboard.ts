@@ -3,7 +3,7 @@
 import { insforgeClient, insforgeAuth } from "@/lib/insforge";
 import { getValidToken } from "@/lib/auth-helpers";
 import type { UserProgress, Milestone, MilestoneType, ProgressStage } from "@/db/types";
-import { notifyMilestoneUnlocked } from "@/actions/notifications";
+import { notifyMilestoneUnlocked, notifyUserMilestoneUnlocked } from "@/actions/notifications";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -118,9 +118,9 @@ export async function checkAndUnlockMilestones(): Promise<{
   // Fetch user profile
   const { data: users } = await insforgeClient
     .from("users")
-    .select<Array<{ full_name: string; company_name: string }>>(
+    .select<Array<{ full_name: string; company_name: string; email: string; notify_milestones: boolean }>>(
       token,
-      `?id=eq.${authUser.id}&select=full_name,company_name`
+      `?id=eq.${authUser.id}&select=full_name,company_name,email,notify_milestones`
     );
 
   // Fetch progress
@@ -145,6 +145,8 @@ export async function checkAndUnlockMilestones(): Promise<{
   const existing = existingMilestones ?? [];
   const userName = users?.[0]?.full_name ?? "Unknown";
   const company = users?.[0]?.company_name ?? "";
+  const userEmail = users?.[0]?.email ?? "";
+  const wantsMilestoneEmail = (users?.[0]?.notify_milestones ?? true) && userEmail !== "";
   const unlocked: MilestoneType[] = [];
 
   // Check waste_eliminator: all 4 modules + battle 1
@@ -176,6 +178,11 @@ export async function checkAndUnlockMilestones(): Promise<{
     notifyMilestoneUnlocked({ userName, company, milestoneType: "waste_eliminator" }).catch(
       (err) => console.error("Failed to send milestone notification:", err)
     );
+    if (wantsMilestoneEmail) {
+      notifyUserMilestoneUnlocked({ userEmail, userName, milestoneType: "waste_eliminator" }).catch(
+        (err) => console.error("Failed to send user milestone email:", err)
+      );
+    }
   }
 
   // Check ci_consultant: battle 2 + battle 3
@@ -207,6 +214,11 @@ export async function checkAndUnlockMilestones(): Promise<{
     notifyMilestoneUnlocked({ userName, company, milestoneType: "ci_consultant" }).catch(
       (err) => console.error("Failed to send milestone notification:", err)
     );
+    if (wantsMilestoneEmail) {
+      notifyUserMilestoneUnlocked({ userEmail, userName, milestoneType: "ci_consultant" }).catch(
+        (err) => console.error("Failed to send user milestone email:", err)
+      );
+    }
   }
 
   return { success: true, unlocked };

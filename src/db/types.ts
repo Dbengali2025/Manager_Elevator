@@ -51,6 +51,8 @@ export interface User {
   miestro_linked: boolean;
   role: UserRole;
   onboarding_step: number;
+  notify_milestones: boolean;
+  notify_weekly_digest: boolean;
   created_at: string;
   updated_at: string;
 }

@@ -63,10 +63,46 @@ export async function getProfileData(): Promise<{
       industry: user.industry,
       roleTitle: user.role_title,
       miestroLinked: user.miestro_linked,
-      notifyMilestones: true,
-      notifyWeeklyDigest: true,
+      notifyMilestones: user.notify_milestones ?? true,
+      notifyWeeklyDigest: user.notify_weekly_digest ?? true,
     },
   };
+}
+
+// ---------------------------------------------------------------------------
+// Update notification preferences
+// ---------------------------------------------------------------------------
+
+export async function updateNotificationPrefs(prefs: {
+  notifyMilestones: boolean;
+  notifyWeeklyDigest: boolean;
+}): Promise<ActionResult> {
+  const token = await getToken();
+  if (!token) {
+    return { success: false, error: "Not authenticated" };
+  }
+
+  const { data: authUser, error: authError } = await insforgeAuth.getUser(token);
+  if (authError || !authUser) {
+    return { success: false, error: "Failed to get user info" };
+  }
+
+  const { error } = await insforgeClient
+    .from("users")
+    .update(
+      {
+        notify_milestones: prefs.notifyMilestones,
+        notify_weekly_digest: prefs.notifyWeeklyDigest,
+      },
+      token,
+      `?id=eq.${authUser.id}`
+    );
+
+  if (error) {
+    return { success: false, error: "Failed to save notification preferences" };
+  }
+
+  return { success: true };
 }
 
 // ---------------------------------------------------------------------------

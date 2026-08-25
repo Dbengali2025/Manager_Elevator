@@ -182,6 +182,59 @@ export async function notifyMilestoneUnlocked(params: {
 }
 
 // ---------------------------------------------------------------------------
+// Notification: Milestone unlocked — congratulate the user themselves
+// ---------------------------------------------------------------------------
+
+export async function notifyUserMilestoneUnlocked(params: {
+  userEmail: string;
+  userName: string;
+  milestoneType: "waste_eliminator" | "ci_consultant";
+}): Promise<void> {
+  const { userEmail, userName, milestoneType } = params;
+
+  const milestoneNames: Record<string, { title: string; description: string }> = {
+    waste_eliminator: {
+      title: "Most Valuable Workplace Waste Eliminator",
+      description:
+        "You’ve completed all 4 masterclass modules and your 1st Waste WAR Battle. This unlocks affiliate revenue opportunities — check your Success Dashboard for what’s next.",
+    },
+    ci_consultant: {
+      title: "Certified CI Done Right Consultant",
+      description:
+        "You’ve completed your 2nd and 3rd Waste WAR Battles. This unlocks consulting opportunities — check your Success Dashboard for what’s next.",
+    },
+  };
+
+  const milestone = milestoneNames[milestoneType];
+  if (!milestone) return;
+
+  const firstName = userName.split(" ")[0] || userName;
+
+  const body = `
+    <p>Congratulations, ${firstName}!</p>
+    <div style="background:linear-gradient(135deg,#08376B,#2F90B0);border-radius:12px;padding:24px;margin:16px 0;text-align:center;">
+      <p style="color:#9AEBA6;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px;">Milestone Unlocked</p>
+      <p style="color:#ffffff;font-size:20px;font-weight:700;margin:0;">${milestone.title}</p>
+    </div>
+    <p>${milestone.description}</p>
+    <p style="text-align:center;margin:24px 0;">
+      <a href="https://app.managerelevator.com/success-dashboard" style="display:inline-block;background-color:#35C0ED;color:#ffffff;font-weight:600;padding:12px 28px;border-radius:8px;text-decoration:none;">View Your Success Dashboard</a>
+    </p>`;
+
+  const html = emailTemplate("Congratulations — Milestone Unlocked!", body);
+
+  try {
+    await insforgeEmail.send({
+      to: userEmail,
+      subject: `Congratulations! You unlocked: ${milestone.title}`,
+      html,
+    });
+  } catch (err) {
+    console.error("Failed to send user milestone email:", err);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Notification: New user registered
 // ---------------------------------------------------------------------------
 

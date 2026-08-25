@@ -6,6 +6,7 @@ import {
   updateProfile,
   changePassword,
   sendTestNotification,
+  updateNotificationPrefs,
 } from "@/actions/settings";
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment } from "react";
@@ -106,6 +107,28 @@ export default function SettingsPage() {
   // Test notification state
   const [testingSend, setTestingSend] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
+
+  // Persist a toggle change optimistically, reverting on failure
+  const handleNotifyToggle = async (
+    field: "milestones" | "digest",
+    value: boolean
+  ) => {
+    const next = {
+      notifyMilestones: field === "milestones" ? value : notifyMilestones,
+      notifyWeeklyDigest: field === "digest" ? value : notifyWeeklyDigest,
+    };
+    setNotifyMilestones(next.notifyMilestones);
+    setNotifyWeeklyDigest(next.notifyWeeklyDigest);
+    try {
+      const result = await updateNotificationPrefs(next);
+      if (!result.success) throw new Error(result.error);
+    } catch {
+      // Revert on failure
+      setNotifyMilestones(notifyMilestones);
+      setNotifyWeeklyDigest(notifyWeeklyDigest);
+      setError("Failed to save notification preferences. Please try again.");
+    }
+  };
 
   // ---------------------------------------------------------------------------
   // Fetch profile data
@@ -387,7 +410,7 @@ export default function SettingsPage() {
               type="button"
               role="switch"
               aria-checked={notifyMilestones}
-              onClick={() => setNotifyMilestones(!notifyMilestones)}
+              onClick={() => handleNotifyToggle("milestones", !notifyMilestones)}
               className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
                 notifyMilestones ? "bg-skyBlue" : "bg-paleGray"
               }`}
@@ -413,7 +436,7 @@ export default function SettingsPage() {
               type="button"
               role="switch"
               aria-checked={notifyWeeklyDigest}
-              onClick={() => setNotifyWeeklyDigest(!notifyWeeklyDigest)}
+              onClick={() => handleNotifyToggle("digest", !notifyWeeklyDigest)}
               className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
                 notifyWeeklyDigest ? "bg-skyBlue" : "bg-paleGray"
               }`}
