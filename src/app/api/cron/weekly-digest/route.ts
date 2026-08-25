@@ -129,6 +129,9 @@ export async function GET(request: Request) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Optional ?to=email — restrict the run to a single recipient (manual testing)
+  const onlyTo = new URL(request.url).searchParams.get("to");
+
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
   // The admin key acts as project_admin (bypasses RLS) — required here because
@@ -148,7 +151,11 @@ export async function GET(request: Request) {
   let sent = 0;
   const failures: string[] = [];
 
-  for (const user of users ?? []) {
+  const recipients = (users ?? []).filter(
+    (u) => !onlyTo || u.email.toLowerCase() === onlyTo.toLowerCase()
+  );
+
+  for (const user of recipients) {
     try {
       const [completions, sessions, nuggets, progress] = await Promise.all([
         insforgeClient
