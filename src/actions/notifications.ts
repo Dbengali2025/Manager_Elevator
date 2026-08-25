@@ -9,7 +9,9 @@ import { insforgeEmail } from "@/lib/insforge";
 const DANA_EMAIL =
   process.env.DANA_NOTIFICATION_EMAIL ?? "danat4lssplus@gmail.com";
 
-const LOGO_URL = "https://app.managerelevator.com/manager-elevator_logo.png";
+// White + mint variant: legible on the navy email header (the full-color logo
+// has navy text that disappears on navy, plus a large transparent square canvas)
+const LOGO_URL = "https://app.managerelevator.com/manager-elevator_logo_white_mint.png";
 
 // ---------------------------------------------------------------------------
 // Email template

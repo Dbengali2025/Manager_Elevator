@@ -64,7 +64,7 @@ function digestTemplate(params: {
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;max-width:600px;">
           <tr>
             <td style="background-color:#08376B;padding:24px 32px;text-align:center;">
-              <img src="https://app.managerelevator.com/manager-elevator_logo.png" alt="Manager Elevator" width="180" style="display:block;margin:0 auto;" />
+              <img src="https://app.managerelevator.com/manager-elevator_logo_white_mint.png" alt="Manager Elevator" width="180" style="display:block;margin:0 auto;" />
             </td>
           </tr>
           <tr>
