@@ -101,6 +101,10 @@ export async function middleware(request: NextRequest) {
 
   // If user has an access token and tries to visit auth-only pages, redirect to dashboard
   if (hasAuth && isAuthOnlyRoute) {
+    const plan = request.nextUrl.searchParams.get("plan");
+    if (pathname === "/signup" && (plan === "monthly" || plan === "annual")) {
+      return NextResponse.redirect(new URL(`/billing?plan=${plan}`, request.url));
+    }
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 

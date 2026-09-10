@@ -1,7 +1,7 @@
 "use server";
 
 import { insforgeClient, insforgeAuth } from "@/lib/insforge";
-import { getValidToken } from "@/lib/auth-helpers";
+import { requirePaidAccess } from "@/lib/billing";
 import type { UserProgress, Milestone, MilestoneType, ProgressStage } from "@/db/types";
 import { notifyMilestoneUnlocked, notifyUserMilestoneUnlocked } from "@/actions/notifications";
 
@@ -21,7 +21,7 @@ export interface SuccessDashboardData {
 // Helpers
 // ---------------------------------------------------------------------------
 
-const getToken = getValidToken;
+const getToken = requirePaidAccess;
 
 // ---------------------------------------------------------------------------
 // Get success dashboard data

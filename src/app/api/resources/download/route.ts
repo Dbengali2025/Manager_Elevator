@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getValidToken } from "@/lib/auth-helpers";
 import { insforgeClient } from "@/lib/insforge";
+import { getBillingAccess } from "@/lib/billing";
 
 const INSFORGE_URL = process.env.NEXT_PUBLIC_INSFORGE_URL ?? "";
 const INSFORGE_API_KEY = process.env.INSFORGE_API_KEY ?? "";
@@ -11,6 +12,14 @@ export async function GET(request: NextRequest) {
   const token = await getValidToken();
   if (!token) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  try {
+    if (!(await getBillingAccess()).allowed) {
+      return NextResponse.json({ error: "An active membership is required" }, { status: 402 });
+    }
+  } catch {
+    return NextResponse.json({ error: "Unable to verify membership" }, { status: 503 });
   }
 
   const storagePath = request.nextUrl.searchParams.get("path");

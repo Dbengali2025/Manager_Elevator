@@ -1,7 +1,7 @@
 "use server";
 
 import { insforgeClient, insforgeAuth } from "@/lib/insforge";
-import { getValidToken } from "@/lib/auth-helpers";
+import { requirePaidAccess } from "@/lib/billing";
 import {
   scoreSurvey,
   isSurveyComplete,
@@ -58,7 +58,7 @@ export async function submitValueSurvey(
   occasion: string,
   answers: Record<string, number>
 ): Promise<ActionResult & { totalScore?: number; percentage?: number; tier?: string }> {
-  const token = await getValidToken();
+  const token = await requirePaidAccess();
   if (!token) return { success: false, error: "Not authenticated" };
 
   if (!SURVEY_OCCASIONS.some((o) => o.key === occasion)) {
@@ -133,7 +133,7 @@ export async function getValueSurveyStatus(): Promise<ValueSurveyStatus> {
     nextOccasion: null,
   };
 
-  const token = await getValidToken();
+  const token = await requirePaidAccess();
   if (!token) return { ...empty, error: "Not authenticated" };
 
   const { data: authUser, error: authError } = await insforgeAuth.getUser(token);

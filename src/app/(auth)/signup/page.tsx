@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { signupAction, verifyOtpAction } from "@/actions/auth";
 import { HBCU_INSTITUTIONS } from "@/lib/hbcu-list";
+import { isBillingPlan } from "@/lib/billing-plans";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -141,7 +142,8 @@ export default function SignupPage() {
       if (!result.success) {
         setError(result.error ?? "Verification failed. Please try again.");
       } else {
-        router.push("/onboarding");
+        const plan = new URLSearchParams(window.location.search).get("plan");
+        router.push(isBillingPlan(plan) ? `/billing?plan=${plan}` : "/billing");
       }
     } catch {
       setError("An unexpected error occurred. Please try again.");
@@ -177,7 +179,7 @@ export default function SignupPage() {
               Create Your Account
             </h1>
             <p className="text-body text-charcoal/70 text-center mb-lg">
-              Start your continuous improvement journey today
+              Create your account, then choose a paid membership to get started.
             </p>
 
             {error && (

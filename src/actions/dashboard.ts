@@ -1,7 +1,7 @@
 "use server";
 
 import { insforgeClient, insforgeAuth } from "@/lib/insforge";
-import { getValidToken } from "@/lib/auth-helpers";
+import { requirePaidAccess } from "@/lib/billing";
 import type { UserProgress, Milestone } from "@/db/types";
 
 // ---------------------------------------------------------------------------
@@ -21,7 +21,7 @@ export interface DashboardData {
 // Get current user token
 // ---------------------------------------------------------------------------
 
-const getToken = getValidToken;
+const getToken = requirePaidAccess;
 
 // ---------------------------------------------------------------------------
 // Get user name for layout sidebar

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getAdminDashboardData, checkIsAdmin } from "@/actions/admin";
 import type { AdminUser, AdminOverviewStats } from "@/actions/admin";
 import type { UserProgress } from "@/db/types";
+import ComplimentaryAccess from "@/components/billing/ComplimentaryAccess";
 
 // ---------------------------------------------------------------------------
 // Stage filter options
@@ -482,6 +483,7 @@ function UserDetailPanel({ user }: { user: AdminUser }) {
   return (
     <div className="space-y-md">
       {/* Manager Value Self-Assessment scores over time */}
+      <ComplimentaryAccess userId={user.id} />
       <ValueSurveyPanel user={user} />
 
       {/* Journey Stages */}

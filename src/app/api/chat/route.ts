@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { getBillingAccess } from "@/lib/billing";
 import {
   insforgeAuth,
   insforgeEmbeddings,
@@ -222,6 +223,14 @@ export async function POST(req: Request) {
       status: 401,
       headers: { "Content-Type": "application/json" },
     });
+  }
+
+  try {
+    if (!(await getBillingAccess()).allowed) {
+      return Response.json({ error: "An active membership is required" }, { status: 402 });
+    }
+  } catch {
+    return Response.json({ error: "Unable to verify membership" }, { status: 503 });
   }
 
   const body = await req.json();

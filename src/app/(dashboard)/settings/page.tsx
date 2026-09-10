@@ -10,6 +10,7 @@ import {
 } from "@/actions/settings";
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment } from "react";
+import Link from "next/link";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -275,6 +276,8 @@ export default function SettingsPage() {
           Manage your profile and preferences
         </p>
       </div>
+
+      <Link href="/billing" className="inline-flex min-h-[44px] items-center rounded-md border border-navy px-lg text-body font-semibold text-navy">Membership &amp; billing</Link>
 
       {/* Success toast */}
       {successMessage && (

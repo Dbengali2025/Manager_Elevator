@@ -1,7 +1,7 @@
 "use server";
 
 import { insforgeClient, insforgeAuth } from "@/lib/insforge";
-import { getValidToken } from "@/lib/auth-helpers";
+import { requirePaidAccess } from "@/lib/billing";
 import type { ActionResult } from "./auth";
 
 // ---------------------------------------------------------------------------
@@ -18,7 +18,7 @@ export interface OnboardingState {
 // Get current user token
 // ---------------------------------------------------------------------------
 
-const getToken = getValidToken;
+const getToken = requirePaidAccess;
 
 // ---------------------------------------------------------------------------
 // Get user info (name + onboarding state)

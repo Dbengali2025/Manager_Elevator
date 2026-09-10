@@ -1,7 +1,7 @@
 "use server";
 
 import { insforgeClient, insforgeAuth } from "@/lib/insforge";
-import { getValidToken } from "@/lib/auth-helpers";
+import { requirePaidAccess } from "@/lib/billing";
 import { WAR_BATTLE_SESSIONS } from "@/lib/masterclass-data";
 import type { LessonCompletion, UserProgress, WarBattleSession } from "@/db/types";
 
@@ -9,7 +9,7 @@ import type { LessonCompletion, UserProgress, WarBattleSession } from "@/db/type
 // Helpers
 // ---------------------------------------------------------------------------
 
-const getToken = getValidToken;
+const getToken = requirePaidAccess;
 
 async function getUserId(token: string): Promise<string | null> {
   const { data: authUser, error } = await insforgeAuth.getUser(token);

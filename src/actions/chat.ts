@@ -1,14 +1,14 @@
 "use server";
 
 import { insforgeClient, insforgeAuth } from "@/lib/insforge";
-import { getValidToken } from "@/lib/auth-helpers";
+import { requirePaidAccess } from "@/lib/billing";
 import type { Conversation, Message } from "@/db/types";
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-const getToken = getValidToken;
+const getToken = requirePaidAccess;
 
 async function getUserId(token: string): Promise<string | null> {
   const { data: authUser, error } = await insforgeAuth.getUser(token);

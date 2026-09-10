@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { BILLING_PLANS } from "@/lib/billing-plans";
 
 /* ───── Scroll Reveal Hook ───── */
 function useReveal() {
@@ -127,19 +128,8 @@ const PLATFORM_FEATURES = [
   },
 ];
 
-const MONTHLY_FEATURES = [
-  "All 4 masterclass modules",
-  "CI Professor AI chatbot",
-  "All trackers & dashboards",
-  "Success nuggets generator",
-];
-
-const ANNUAL_FEATURES = [
-  "Everything in Monthly",
-  "2 months free savings",
-  "Priority support",
-  "Milestone badge unlocks",
-];
+const MONTHLY_FEATURES = BILLING_PLANS.monthly.features;
+const ANNUAL_FEATURES = BILLING_PLANS.annual.features;
 
 const TESTIMONIALS = [
   {
@@ -282,10 +272,10 @@ export default function Home() {
           <div className="mx-auto mt-xl max-w-2xl text-center">
             <div className="animate-fade-in-up delay-500 flex flex-col items-center gap-md sm:flex-row sm:justify-center">
               <Link
-                href="/signup"
+                href="#pricing"
                 className="group inline-flex items-center rounded-lg bg-skyBlue px-xl py-[16px] text-[16px] font-bold text-white shadow-xl shadow-skyBlue/25 hover:shadow-2xl hover:shadow-skyBlue/30 hover:bg-skyBlue/90 transition-all duration-300"
               >
-                Start Your Journey Free
+                Choose Your Plan
                 <ArrowRightIcon className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
               <button
@@ -636,8 +626,8 @@ export default function Home() {
                   Monthly
                 </p>
                 <div className="mt-md flex items-baseline gap-xs">
-                  <span className="font-heading text-[44px] text-navy">$97</span>
-                  <span className="text-body text-charcoal/40">/month</span>
+                  <span className="font-heading text-[44px] text-navy">${BILLING_PLANS.monthly.amount / 100}</span>
+                  <span className="text-body text-charcoal/40">/{BILLING_PLANS.monthly.interval}</span>
                 </div>
                 <p className="mt-sm text-body text-charcoal/60">
                   Full platform access. Cancel anytime.
@@ -651,7 +641,7 @@ export default function Home() {
                   ))}
                 </ul>
                 <Link
-                  href="/signup"
+                  href="/signup?plan=monthly"
                   className="mt-xl block rounded-lg border-2 border-navy py-[14px] text-center text-body font-bold text-navy hover:bg-navy hover:text-white transition-all duration-300"
                 >
                   Get Started
@@ -672,11 +662,11 @@ export default function Home() {
                     Annual
                   </p>
                   <div className="mt-md flex items-baseline gap-xs">
-                    <span className="font-heading text-[44px] text-navy">$997</span>
-                    <span className="text-body text-charcoal/40">/year</span>
+                    <span className="font-heading text-[44px] text-navy">${BILLING_PLANS.annual.amount / 100}</span>
+                    <span className="text-body text-charcoal/40">/{BILLING_PLANS.annual.interval}</span>
                   </div>
                   <p className="mt-sm text-body text-charcoal/60">
-                    Save over <span className="font-semibold text-success">$167</span> compared to monthly.
+                    Save $167 compared to 12 monthly payments.
                   </p>
                   <ul className="mt-lg flex-1 space-y-sm">
                     {ANNUAL_FEATURES.map((item) => (
@@ -687,7 +677,7 @@ export default function Home() {
                     ))}
                   </ul>
                   <Link
-                    href="/signup"
+                    href="/signup?plan=annual"
                     className="mt-xl block rounded-lg bg-gradient-to-r from-skyBlue to-teal py-[14px] text-center text-body font-bold text-white shadow-lg shadow-skyBlue/20 hover:shadow-xl hover:shadow-skyBlue/30 transition-all duration-300"
                   >
                     Start Your Journey
@@ -717,15 +707,15 @@ export default function Home() {
             </p>
             <div className="mt-xl flex flex-col items-center gap-md sm:flex-row sm:justify-center">
               <Link
-                href="/signup"
+                href="#pricing"
                 className="group inline-flex items-center rounded-lg bg-white px-xl py-[16px] text-[16px] font-bold text-navy shadow-xl hover:shadow-2xl transition-all duration-300"
               >
-                Start Your Journey Free
+                Choose Your Plan
                 <ArrowRightIcon className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
             <p className="mt-lg text-caption text-white/40">
-              No credit card required to explore the platform.
+              Paid membership required. Plans start at $97/month.
             </p>
           </RevealSection>
         </div>

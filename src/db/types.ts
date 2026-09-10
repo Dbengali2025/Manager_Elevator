@@ -205,3 +205,30 @@ export const STAGE_ORDER: ProgressStage[] = [
   "battle_2",
   "battle_3",
 ];
+
+// Billing records are written only by server-side billing operations.
+export interface BillingCustomer {
+  user_id: string;
+  stripe_customer_id: string;
+  checkout_lock_until: string | null;
+  checkout_lock_id: string | null;
+  created_at: string;
+}
+
+export interface BillingSubscription {
+  stripe_subscription_id: string;
+  stripe_customer_id: string;
+  user_id: string;
+  status: string;
+  plan: "monthly" | "annual" | null;
+  current_period_end: string;
+  cancel_at_period_end: boolean;
+  observed_at: string;
+}
+
+export interface BillingAccessGrant {
+  user_id: string;
+  enabled: boolean;
+  granted_by: string;
+  updated_at: string;
+}
