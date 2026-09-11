@@ -87,6 +87,21 @@ export async function signupAction(input: SignupInput): Promise<ActionResult> {
 }
 
 // ---------------------------------------------------------------------------
+// Resend verification code
+// ---------------------------------------------------------------------------
+
+export async function resendVerificationAction(email: string): Promise<ActionResult> {
+  const { error } = await insforgeAuth.sendVerificationEmail(email);
+
+  if (error) {
+    console.error("Resend verification error:", error);
+    return { success: false, error: "Couldn't resend the code. Please try again in a moment." };
+  }
+
+  return { success: true };
+}
+
+// ---------------------------------------------------------------------------
 // Verify OTP (email verification)
 // ---------------------------------------------------------------------------
 

@@ -3,6 +3,7 @@
 
 const INSFORGE_URL = process.env.NEXT_PUBLIC_INSFORGE_URL ?? "";
 const INSFORGE_API_KEY = process.env.INSFORGE_API_KEY ?? "";
+const INSFORGE_ANON_KEY = process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY ?? "";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -95,12 +96,18 @@ async function request<T = unknown>(
   // Authorization header -- the gateway rejects them with "No token provided"
   // when only `apikey` is sent, which breaks signup and login.
   //
+  // Auth endpoints MUST fall back to the anon key, never the admin API key:
+  // an admin-authenticated POST /api/auth/users is treated as admin user
+  // creation and the backend skips the verification email entirely.
+  //
   // Deliberately NOT applied to /api/database/: the service key belongs to
   // project_admin, which has BYPASSRLS, so falling back to it there would
   // silently defeat row-level security on any query that forgot its token.
   if (token) {
     reqHeaders["Authorization"] = `Bearer ${token}`;
-  } else if (path.startsWith("/api/ai/") || path.startsWith("/api/auth/")) {
+  } else if (path.startsWith("/api/auth/")) {
+    reqHeaders["Authorization"] = `Bearer ${INSFORGE_ANON_KEY}`;
+  } else if (path.startsWith("/api/ai/")) {
     reqHeaders["Authorization"] = `Bearer ${INSFORGE_API_KEY}`;
   }
 
@@ -249,6 +256,16 @@ export const insforgeAuth = {
   /** Get a user's profile by ID */
   async getProfile(userId: string): Promise<InsforgeResponse<{ id: string; name?: string; avatar_url?: string }>> {
     return request<{ id: string; name?: string; avatar_url?: string }>(`/api/auth/profiles/${userId}`);
+  },
+
+  /** Send (or resend) the email verification code */
+  async sendVerificationEmail(
+    email: string
+  ): Promise<InsforgeResponse<{ success: boolean; message: string }>> {
+    return request<{ success: boolean; message: string }>("/api/auth/email/send-verification", {
+      method: "POST",
+      body: { email },
+    });
   },
 
   /** Request a password reset email */

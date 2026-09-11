@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { signupAction, verifyOtpAction } from "@/actions/auth";
+import { signupAction, verifyOtpAction, resendVerificationAction } from "@/actions/auth";
 import { HBCU_INSTITUTIONS } from "@/lib/hbcu-list";
 import { isBillingPlan } from "@/lib/billing-plans";
 
@@ -85,6 +85,8 @@ export default function SignupPage() {
   const [verificationCode, setVerificationCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendMessage, setResendMessage] = useState("");
 
   const passwordChecks = validatePassword(password);
 
@@ -150,6 +152,31 @@ export default function SignupPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleResendCode() {
+    if (resendCooldown > 0 || loading) return;
+    setError("");
+    setResendMessage("");
+
+    const result = await resendVerificationAction(email);
+
+    if (!result.success) {
+      setError(result.error ?? "Couldn't resend the code. Please try again.");
+      return;
+    }
+
+    setResendMessage("A new code is on its way. Check your inbox (and spam folder).");
+    setResendCooldown(30);
+    const timer = setInterval(() => {
+      setResendCooldown((s) => {
+        if (s <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
   }
 
   // ---------------------------------------------------------------------------
@@ -374,6 +401,12 @@ export default function SignupPage() {
               </div>
             )}
 
+            {resendMessage && (
+              <div className="bg-success/10 border border-success/30 text-success text-body rounded-md px-md py-sm mb-md">
+                {resendMessage}
+              </div>
+            )}
+
             <form onSubmit={handleVerify} className="space-y-md">
               <div>
                 <label htmlFor="verificationCode" className="block text-body font-medium text-charcoal mb-xs">
@@ -401,10 +434,22 @@ export default function SignupPage() {
             </form>
 
             <button
+              type="button"
+              onClick={handleResendCode}
+              disabled={resendCooldown > 0 || loading}
+              className="w-full text-center text-body text-skyBlue hover:text-teal font-medium mt-md disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {resendCooldown > 0
+                ? `Resend code in ${resendCooldown}s`
+                : "Didn't get a code? Resend it"}
+            </button>
+
+            <button
               onClick={() => {
                 setStep("signup");
                 setError("");
                 setVerificationCode("");
+                setResendMessage("");
               }}
               className="w-full text-center text-body text-charcoal/60 hover:text-charcoal mt-md"
             >
