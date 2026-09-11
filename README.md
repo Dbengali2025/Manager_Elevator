@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Manager Elevator
 
-## Getting Started
+AI-powered Continuous Improvement platform for Black middle managers — the digital companion to Dana Thompson's LBCI Masterclass. Live at [app.managerelevator.com](https://app.managerelevator.com).
 
-First, run the development server:
+> ⚠️ **Branches: always work from `main`.** `main` is the production branch — every push auto-deploys to app.managerelevator.com via Vercel. The repo's default branch, `ralph/manager-elevator-mvp`, is a legacy alias kept pointed at the same commit as `main`; do **not** target it with pull requests or push work to it — changes merged there will never deploy.
+
+## Documentation
+
+Start with **[docs/PRODUCT_REFERENCE_GUIDE.md](docs/PRODUCT_REFERENCE_GUIDE.md)** — the full platform reference (stack, deployment, database schema, Stripe billing, email, AI pipeline, operational runbook).
+
+| Document | Contents |
+|---|---|
+| [docs/HANDOFF.md](docs/HANDOFF.md) | Developer orientation: access, accounts, client contact |
+| [docs/PRODUCT_REFERENCE_GUIDE.md](docs/PRODUCT_REFERENCE_GUIDE.md) | Complete platform reference |
+| [docs/GETTING_STARTED_GUIDE.md](docs/GETTING_STARTED_GUIDE.md) | End-user onboarding guide |
+| [docs/payments.md](docs/payments.md) | Stripe billing design notes |
+| [REMAINING-WORK.md](REMAINING-WORK.md) | Open items: live-payments cutover, launch cutover |
+
+## Local Development
 
 ```bash
+npm install
+cp .env.example .env.local   # fill in values — see docs/PRODUCT_REFERENCE_GUIDE.md §9
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Next.js 14 · TypeScript · Tailwind CSS + Headless UI · [InsForge](https://insforge.dev) (Postgres, Auth, AI gateway, Storage) · Stripe Checkout · Resend · Vercel
 
-## Learn More
+## Deploying
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Push to `main` — Vercel builds and deploys production automatically. Environment variables live in Vercel → Settings → Environment Variables on the **dbengali2025s-projects/manager-elevator** project (never commit secrets; `.env.local` is gitignored).
