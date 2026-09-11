@@ -106,7 +106,9 @@ export async function syncSubscription(subscriptionId: string) {
     p_status: subscription.status,
     p_plan: subscriptionPlan(subscription),
     p_period_end: new Date(periodEnd * 1000).toISOString(),
-    p_cancel_at_period_end: subscription.cancel_at_period_end,
+    // On Stripe API 2026-08-26+, the Customer Portal's "cancel at period end"
+    // sets cancel_at instead of cancel_at_period_end, so honor either signal.
+    p_cancel_at_period_end: subscription.cancel_at_period_end || subscription.cancel_at != null,
     p_observed_at: observedAt,
   });
 }
