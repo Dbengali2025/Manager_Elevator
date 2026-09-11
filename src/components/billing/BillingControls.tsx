@@ -34,7 +34,7 @@ export default function BillingControls({ hasCustomer, subscribed, selectedPlan 
         </section>
       ))}
     </div>}
-    <p className="text-body text-charcoal/70">Subscriptions renew automatically. Cancel anytime through Manage billing. Platform access requires an active subscription or access granted by Dana.</p>
+    <p className="text-body text-charcoal/70">Subscriptions renew automatically. Cancel anytime through Manage billing. Platform access requires an active subscription.</p>
     {hasCustomer && <button disabled={busy} onClick={() => run()} className="min-h-[44px] rounded-md border border-navy px-lg py-sm text-body font-semibold text-navy disabled:opacity-50">Manage billing</button>}
   </div>;
 }

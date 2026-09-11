@@ -39,7 +39,7 @@ export default async function BillingPage({ searchParams }: { searchParams: { se
       {notice && <p role="status" className="rounded-md bg-skyBlue/10 p-md text-body text-navy">{notice}</p>}
       {searchParams.canceled === "1" && <p role="status" className="text-body text-charcoal">Checkout was canceled. You can choose a plan when you’re ready.</p>}
       {access.allowed && <div className="rounded-lg bg-mintGreen/30 p-lg">
-        <p className="mb-md text-body text-navy">{user.isAdmin ? "Administrator access" : access.complimentary ? "Dana has granted you complimentary access." : "Your membership is active."}</p>
+        <p className="mb-md text-body text-navy">{user.isAdmin ? "Administrator access" : access.complimentary ? "You have complimentary access." : "Your membership is active."}</p>
         <Link href={user.onboardingCompleted ? "/dashboard" : "/onboarding"} className="inline-flex min-h-[44px] items-center rounded-md bg-navy px-lg py-sm text-body text-white">Continue to Manager Elevator</Link>
       </div>}
       {subscription && <section className="rounded-lg border border-paleGray bg-white p-lg text-body text-charcoal">
