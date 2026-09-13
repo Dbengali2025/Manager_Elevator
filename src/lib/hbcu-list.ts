@@ -93,4 +93,5 @@ export const HBCU_INSTITUTIONS = [
   "Wiley University (formerly Wiley College)",
   "Winston-Salem State University",
   "Xavier University of Louisiana",
+  "Other HBCU (not listed)",
 ];

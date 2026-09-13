@@ -76,6 +76,7 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [hbcuAlmaMater, setHbcuAlmaMater] = useState("");
+  const [otherHbcu, setOtherHbcu] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [industry, setIndustry] = useState("");
   const [roleTitle, setRoleTitle] = useState("");
@@ -89,6 +90,9 @@ export default function SignupPage() {
   const [resendMessage, setResendMessage] = useState("");
 
   const passwordChecks = validatePassword(password);
+  const isOtherHbcu = hbcuAlmaMater === "Other HBCU (not listed)";
+  // Store the school the user typed, not the literal "Other" option label
+  const resolvedHbcu = isOtherHbcu ? otherHbcu.trim() : hbcuAlmaMater;
 
   // ---------------------------------------------------------------------------
   // Handlers
@@ -109,7 +113,7 @@ export default function SignupPage() {
         email,
         password,
         fullName,
-        hbcuAlmaMater,
+        hbcuAlmaMater: resolvedHbcu,
         companyName,
         industry,
         roleTitle,
@@ -135,7 +139,7 @@ export default function SignupPage() {
     try {
       const result = await verifyOtpAction(email, verificationCode, {
         fullName,
-        hbcuAlmaMater,
+        hbcuAlmaMater: resolvedHbcu,
         companyName,
         industry,
         roleTitle,
@@ -308,6 +312,18 @@ export default function SignupPage() {
                     </option>
                   ))}
                 </select>
+                {isOtherHbcu && (
+                  <input
+                    id="otherHbcu"
+                    type="text"
+                    required
+                    value={otherHbcu}
+                    onChange={(e) => setOtherHbcu(e.target.value)}
+                    className="mt-sm w-full px-md py-sm border border-paleGray rounded-md text-body text-charcoal bg-white focus:outline-none focus:ring-2 focus:ring-skyBlue focus:border-skyBlue"
+                    placeholder="Type your HBCU's name"
+                    aria-label="Your HBCU's name"
+                  />
+                )}
               </div>
 
               {/* Company Name */}
