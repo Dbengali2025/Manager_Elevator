@@ -26,7 +26,9 @@ Go to **app.managerelevator.com** and click **Sign up**.
 
 ## 02 · STEP TWO — Choose Your Membership
 
-Manager Elevator is a paid membership. Pick the plan that fits:
+Your first 7 days are **free** — full access, no credit card needed. Your trial starts the moment you sign up, so you can explore everything right away. (One limit: during the trial, downloadable tools are available for Module 1 only.)
+
+When you're ready — or when your 7 days are up — pick the plan that fits:
 
 | | |
 |:-:|:-:|

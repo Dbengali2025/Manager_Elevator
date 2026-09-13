@@ -132,8 +132,10 @@ INSFORGE_API_KEY=<admin key>               # server-only, never expose
 
 | Plan | Price | Notes |
 |---|---|---|
-| Monthly | $97.00/mo | No trial |
+| Monthly | $97.00/mo | After the free trial |
 | Annual | $997.00/yr | ≈ 14% off vs monthly |
+
+**Free trial:** every new account gets **7 days of full access from signup, no card required** (computed app-side from users.created_at in getBillingAccess — no Stripe-side trial). During the trial, lesson-resource downloads are limited to **Module 1 only**, enforced server-side in /api/resources/download (403 for Modules 2–4) and shown as "Unlock with membership" locks in the masterclass UI. Trial never applies to paid, complimentary, or admin users. TRIAL_DAYS lives in src/lib/billing.ts.
 
 **Status (Sep 2026):** test mode verified end-to-end in production; live mode is activated on the Stripe account but live products/webhook are not yet created. The cutover is fully scripted: `scripts/go-live-payments.mjs` (see the companion doc "Manager Elevator — Going Live with Payments.docx").
 
