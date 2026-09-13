@@ -102,6 +102,40 @@ export async function resendVerificationAction(email: string): Promise<ActionRes
 }
 
 // ---------------------------------------------------------------------------
+// Orphaned profile adoption
+// ---------------------------------------------------------------------------
+
+/**
+ * If an auth user is deleted out-of-band (e.g. from the InsForge dashboard),
+ * its public.users row survives and its unique email blocks the profile
+ * insert on the next signup — bricking the new account. The caller has just
+ * proven ownership of the email (OTP or password), so re-key any such row to
+ * the new auth id. Admin-scoped by necessity: RLS hides other users' rows.
+ * Returns true if an orphan was adopted.
+ */
+async function adoptOrphanProfile(email: string, newUserId: string): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_INSFORGE_URL}/api/database/records/users?email=eq.${encodeURIComponent(email)}&id=neq.${newUserId}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${process.env.INSFORGE_API_KEY}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify({ id: newUserId }),
+      }
+    );
+    if (!res.ok) return false;
+    const rows = await res.json().catch(() => []);
+    return Array.isArray(rows) && rows.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Verify OTP (email verification)
 // ---------------------------------------------------------------------------
 
@@ -154,7 +188,7 @@ export async function verifyOtpAction(
       .from("users")
       .select<Array<{ id: string }>>(data.accessToken, `?id=eq.${userId}&select=id`);
 
-    if (!existing || existing.length === 0) {
+    if ((!existing || existing.length === 0) && !(await adoptOrphanProfile(email, userId))) {
       // Use signup form data if available, otherwise fall back to auth profile
       let fullName = signupData?.fullName ?? "";
       if (!fullName) {
@@ -233,7 +267,7 @@ export async function loginAction(
       .from("users")
       .select<Array<{ id: string }>>(data.accessToken, `?id=eq.${userId}&select=id`);
 
-    if (!existing || existing.length === 0) {
+    if ((!existing || existing.length === 0) && !(await adoptOrphanProfile(email, userId))) {
       const { data: profile } = await insforgeAuth.getProfile(userId);
       await insforgeClient.from("users").insert(
         {
