@@ -127,6 +127,14 @@ function DownloadIcon() {
   );
 }
 
+function LockIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+      <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
+    </svg>
+  );
+}
+
 function PaperclipIcon() {
   return (
     <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
@@ -151,13 +159,38 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function ResourceItem({ resource }: { resource: LessonResource }) {
+function ResourceItem({ resource, locked }: { resource: LessonResource; locked?: boolean }) {
   const typeConfig = FILE_TYPE_CONFIG[resource.file_type] ?? {
     label: resource.file_type.toUpperCase(),
     color: "bg-charcoal/10 text-charcoal/70",
   };
 
   const downloadUrl = `/api/resources/download?path=${encodeURIComponent(resource.storage_path)}&name=${encodeURIComponent(resource.file_name)}`;
+
+  if (locked) {
+    return (
+      <a
+        href="/billing"
+        title="Downloads for Modules 2-4 unlock with a full membership"
+        className="flex items-center gap-sm px-sm py-xs rounded-md hover:bg-offWhite transition-colors group"
+      >
+        <span
+          className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold opacity-60 ${typeConfig.color}`}
+        >
+          {typeConfig.label}
+        </span>
+        <span className="flex-1 text-caption text-charcoal/50 truncate">
+          {resource.display_name}
+        </span>
+        <span className="text-[11px] text-teal font-medium flex-shrink-0 group-hover:underline">
+          Unlock with membership
+        </span>
+        <span className="text-charcoal/30 flex-shrink-0">
+          <LockIcon />
+        </span>
+      </a>
+    );
+  }
 
   return (
     <a
@@ -245,6 +278,7 @@ function LessonRow({
   resources,
   completed,
   moduleCompleted,
+  resourcesLocked,
   onToggle,
 }: {
   lesson: { number: number; title: string; vimeoId: string };
@@ -252,6 +286,7 @@ function LessonRow({
   resources: LessonResource[];
   completed: boolean;
   moduleCompleted: boolean;
+  resourcesLocked: boolean;
   onToggle: (moduleNumber: number, lessonNumber: number, done: boolean) => void;
 }) {
   const lessonResources = resources.filter(
@@ -335,7 +370,7 @@ function LessonRow({
       {hasResources && showResources && (
         <div className="ml-7 mt-xs mb-sm rounded-md border border-paleGray bg-offWhite/50 p-sm space-y-0.5">
           {lessonResources.map((resource) => (
-            <ResourceItem key={resource.id} resource={resource} />
+            <ResourceItem key={resource.id} resource={resource} locked={resourcesLocked} />
           ))}
         </div>
       )}
@@ -603,6 +638,7 @@ function ModuleCard({
   isCurrentModule,
   resources,
   lessonCompletions,
+  trialActive,
   onToggleLesson,
 }: {
   module: (typeof MODULES)[number];
@@ -610,6 +646,7 @@ function ModuleCard({
   isCurrentModule: boolean;
   resources: LessonResource[];
   lessonCompletions: LessonCompletion[];
+  trialActive: boolean;
   onToggleLesson: (moduleNumber: number, lessonNumber: number, done: boolean) => void;
 }) {
   const [open, setOpen] = useState(isCurrentModule);
@@ -697,6 +734,7 @@ function ModuleCard({
                     c.lesson_number === lesson.number
                 )}
                 moduleCompleted={status === "completed"}
+                resourcesLocked={trialActive && module.number !== 1}
                 onToggle={onToggleLesson}
               />
             ))}
@@ -901,7 +939,7 @@ function SessionChecklist({
 // Downloads summary section
 // ---------------------------------------------------------------------------
 
-function DownloadsSection({ resources }: { resources: LessonResource[] }) {
+function DownloadsSection({ resources, trialActive }: { resources: LessonResource[]; trialActive: boolean }) {
   if (resources.length === 0) {
     return (
       <div className="rounded-lg bg-white shadow-sm p-lg">
@@ -934,6 +972,11 @@ function DownloadsSection({ resources }: { resources: LessonResource[] }) {
         {resources.length} resource{resources.length !== 1 ? "s" : ""} available across your lessons.
         Look for the <span className="inline-flex items-center gap-0.5 text-teal font-medium"><PaperclipIcon /> clip</span> icon next to each lesson to access its tools and templates.
       </p>
+      {trialActive && (
+        <p className="mt-sm text-caption text-charcoal/60">
+          During your free trial, downloads are available for Module 1. <a href="/billing" className="text-teal font-medium underline">Choose a plan</a> to unlock the tools in Modules 2&ndash;4.
+        </p>
+      )}
     </div>
   );
 }
@@ -945,6 +988,7 @@ function DownloadsSection({ resources }: { resources: LessonResource[] }) {
 export default function MasterclassPage() {
   const [data, setData] = useState<MasterclassData | null>(null);
   const [resources, setResources] = useState<LessonResource[]>([]);
+  const [trialActive, setTrialActive] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [toggleLoading, setToggleLoading] = useState<number | null>(null);
   const router = useRouter();
@@ -965,6 +1009,7 @@ export default function MasterclassPage() {
       }
       if (resourcesResult.success && resourcesResult.data) {
         setResources(resourcesResult.data);
+        setTrialActive(resourcesResult.trialActive ?? false);
       }
     } catch (err) {
       console.error("[Masterclass] Failed to load data:", err);
@@ -1167,6 +1212,7 @@ export default function MasterclassPage() {
               isCurrentModule={module.number === currentModule}
               resources={resources}
               lessonCompletions={data.lessonCompletions}
+              trialActive={trialActive}
               onToggleLesson={handleToggleLesson}
             />
           );
@@ -1186,7 +1232,7 @@ export default function MasterclassPage() {
       </div>
 
       {/* Downloads summary */}
-      <DownloadsSection resources={resources} />
+      <DownloadsSection resources={resources} trialActive={trialActive} />
     </div>
   );
 }

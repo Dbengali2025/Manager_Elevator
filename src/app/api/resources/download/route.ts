@@ -14,10 +14,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
+  let onTrial: boolean;
   try {
-    if (!(await getBillingAccess()).allowed) {
+    const access = await getBillingAccess();
+    if (!access.allowed) {
       return NextResponse.json({ error: "An active membership is required" }, { status: 402 });
     }
+    onTrial = access.trial;
   } catch {
     return NextResponse.json({ error: "Unable to verify membership" }, { status: 503 });
   }
@@ -33,9 +36,9 @@ export async function GET(request: NextRequest) {
   // for them with the service key.
   const { data: resources, error: lookupError } = await insforgeClient
     .from("lesson_resources")
-    .select<Array<{ file_name: string; storage_path: string }>>(
+    .select<Array<{ file_name: string; storage_path: string; module_number: number }>>(
       token,
-      `?storage_path=eq.${encodeURIComponent(storagePath)}&select=file_name,storage_path`
+      `?storage_path=eq.${encodeURIComponent(storagePath)}&select=file_name,storage_path,module_number`
     );
 
   if (lookupError) {
@@ -45,6 +48,15 @@ export async function GET(request: NextRequest) {
   const resource = resources?.[0];
   if (!resource) {
     return NextResponse.json({ error: "Resource not found" }, { status: 404 });
+  }
+
+  // Free-trial members may only download Module 1 resources. A storage object
+  // can be mapped to several lessons, so allow it if ANY mapping is Module 1.
+  if (onTrial && !resources.some((r) => r.module_number === 1)) {
+    return NextResponse.json(
+      { error: "Downloads for Modules 2-4 unlock with a full membership. Choose a plan on the billing page to keep going." },
+      { status: 403 }
+    );
   }
 
   // Get download strategy from Insforge

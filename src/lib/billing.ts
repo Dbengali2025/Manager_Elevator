@@ -27,27 +27,35 @@ export async function billingRequest<T>(path: string, method = "GET", body?: unk
   return text ? JSON.parse(text) as T : undefined as T;
 }
 
+export const TRIAL_DAYS = 7;
+
 export const getBillingUser = cache(async () => {
   const token = await getValidToken();
   if (!token) return null;
   const { data: user, error } = await insforgeAuth.getUser(token);
   if (error || !user) return null;
   const { data: profiles, error: profileError } = await insforgeClient.from("users")
-    .select<Array<{ role: string; onboarding_completed: boolean }>>(token, `?id=eq.${user.id}&select=role,onboarding_completed`);
+    .select<Array<{ role: string; onboarding_completed: boolean; created_at: string }>>(token, `?id=eq.${user.id}&select=role,onboarding_completed,created_at`);
   if (profileError || !profiles?.[0]) throw new Error("Unable to load account");
-  return { id: user.id, email: user.email, token, isAdmin: profiles[0].role === "admin", onboardingCompleted: profiles[0].onboarding_completed };
+  return { id: user.id, email: user.email, token, isAdmin: profiles[0].role === "admin", onboardingCompleted: profiles[0].onboarding_completed, createdAt: profiles[0].created_at };
 });
 
 export const getBillingAccess = cache(async () => {
   const user = await getBillingUser();
-  if (!user) return { user: null, allowed: false, complimentary: false, subscriptions: [] as BillingSubscription[] };
-  if (user.isAdmin) return { user, allowed: true, complimentary: false, subscriptions: [] as BillingSubscription[] };
+  if (!user) return { user: null, allowed: false, complimentary: false, trial: false, trialEndsAt: null as string | null, subscriptions: [] as BillingSubscription[] };
+  if (user.isAdmin) return { user, allowed: true, complimentary: false, trial: false, trialEndsAt: null as string | null, subscriptions: [] as BillingSubscription[] };
   const [subscriptions, grants] = await Promise.all([
     billingRequest<BillingSubscription[]>(`records/billing_subscriptions?user_id=eq.${user.id}`),
     billingRequest<Array<{ enabled: boolean }>>(`records/billing_access_grants?user_id=eq.${user.id}`),
   ]);
   const complimentary = grants[0]?.enabled === true;
-  return { user, allowed: complimentary || subscriptions.some((s) => hasSubscriptionAccess(s)), complimentary, subscriptions };
+  const paid = complimentary || subscriptions.some((s) => hasSubscriptionAccess(s));
+  // Free trial: TRIAL_DAYS from account creation, no card required. `trial`
+  // is true only when it is the sole reason access is allowed — paid and
+  // complimentary members are never treated as trialing.
+  const trialEndsAt = new Date(new Date(user.createdAt).getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+  const trial = !paid && Date.now() < trialEndsAt.getTime();
+  return { user, allowed: paid || trial, complimentary, trial, trialEndsAt: trial ? trialEndsAt.toISOString() : null, subscriptions };
 });
 
 export async function requirePaidAccess() {

@@ -715,7 +715,7 @@ export default function Home() {
               </Link>
             </div>
             <p className="mt-lg text-caption text-white/40">
-              Paid membership required. Plans start at $97/month.
+              Start with a free 7-day trial. Plans start at $97/month.
             </p>
           </RevealSection>
         </div>

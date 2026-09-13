@@ -148,8 +148,10 @@ export default function SignupPage() {
       if (!result.success) {
         setError(result.error ?? "Verification failed. Please try again.");
       } else {
+        // New accounts start a 7-day free trial. Only route through billing
+        // when the user explicitly picked a plan on the landing page.
         const plan = new URLSearchParams(window.location.search).get("plan");
-        router.push(isBillingPlan(plan) ? `/billing?plan=${plan}` : "/billing");
+        router.push(isBillingPlan(plan) ? `/billing?plan=${plan}` : "/onboarding");
       }
     } catch {
       setError("An unexpected error occurred. Please try again.");
@@ -210,7 +212,7 @@ export default function SignupPage() {
               Create Your Account
             </h1>
             <p className="text-body text-charcoal/70 text-center mb-lg">
-              Create your account, then choose a paid membership to get started.
+              Create your account and start your free 7-day trial. No credit card needed.
             </p>
 
             {error && (

@@ -1,7 +1,7 @@
 "use server";
 
 import { insforgeClient, insforgeAuth } from "@/lib/insforge";
-import { requirePaidAccess } from "@/lib/billing";
+import { requirePaidAccess, getBillingAccess } from "@/lib/billing";
 import { WAR_BATTLE_SESSIONS } from "@/lib/masterclass-data";
 import type { LessonCompletion, UserProgress, WarBattleSession } from "@/db/types";
 
@@ -305,24 +305,29 @@ export async function getLessonResources(): Promise<{
   success: boolean;
   error?: string;
   data?: LessonResource[];
+  /** True when the member's access comes from the free trial — Module 2-4 downloads are locked. */
+  trialActive?: boolean;
 }> {
   const token = await getToken();
   if (!token) {
     return { success: false, error: "Not authenticated" };
   }
 
-  const { data, error } = await insforgeClient
-    .from("lesson_resources")
-    .select<LessonResource[]>(
-      token,
-      `?order=module_number.asc,lesson_number.asc,display_name.asc`
-    );
+  const [{ data, error }, access] = await Promise.all([
+    insforgeClient
+      .from("lesson_resources")
+      .select<LessonResource[]>(
+        token,
+        `?order=module_number.asc,lesson_number.asc,display_name.asc`
+      ),
+    getBillingAccess().catch(() => null),
+  ]);
 
   if (error) {
     return { success: false, error };
   }
 
-  return { success: true, data: data ?? [] };
+  return { success: true, data: data ?? [], trialActive: access?.trial ?? false };
 }
 
 // ---------------------------------------------------------------------------
