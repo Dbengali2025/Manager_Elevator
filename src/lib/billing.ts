@@ -60,7 +60,10 @@ export const getBillingAccess = cache(async () => {
 
 export async function requirePaidAccess() {
   const access = await getBillingAccess();
-  if (!access.user) redirect("/login");
+  // Through /api/auth/reset so dead cookies are cleared first — redirecting
+  // straight to /login loops: middleware sees an unexpired (but revoked)
+  // token and bounces the browser back here.
+  if (!access.user) redirect("/api/auth/reset");
   if (!access.allowed) redirect("/billing");
   return access.user.token;
 }

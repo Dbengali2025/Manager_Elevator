@@ -139,10 +139,14 @@ export async function middleware(request: NextRequest) {
       return response;
     }
 
-    // Refresh failed — redirect to login
+    // Refresh failed — the stored tokens are dead. Clear them on the way to
+    // login so the stale cookies can't send the browser in circles.
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(loginUrl);
+    const response = NextResponse.redirect(loginUrl);
+    response.cookies.delete("access_token");
+    response.cookies.delete("refresh_token");
+    return response;
   }
 
   // No auth at all and trying to access a protected route — redirect to login

@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export default async function BillingPage({ searchParams }: { searchParams: { session_id?: string; canceled?: string; plan?: string } }) {
   const user = await getBillingUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/api/auth/reset");
   let notice = "";
   if (typeof searchParams.session_id === "string") {
     try {
