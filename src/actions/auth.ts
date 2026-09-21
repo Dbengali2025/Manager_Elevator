@@ -3,6 +3,7 @@
 import { insforgeAuth, insforgeClient } from "@/lib/insforge";
 import { cookies } from "next/headers";
 import { notifyNewUserRegistered } from "@/actions/notifications";
+import { claimPreapprovedAccess } from "@/lib/billing";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -71,6 +72,8 @@ export async function signupAction(input: SignupInput): Promise<ActionResult> {
       console.error("Failed to create user profile:", insertError);
       // Don't fail signup — the auth account exists, profile can be created later
     }
+
+    if (data.user?.id) await claimPreapprovedAccess(data.user.id, email);
   }
 
   // Fire-and-forget: notify Dana of new user registration
@@ -213,6 +216,8 @@ export async function verifyOtpAction(
         data.accessToken
       );
     }
+
+    await claimPreapprovedAccess(userId, email);
   }
 
   return { success: true };
@@ -285,6 +290,8 @@ export async function loginAction(
         data.accessToken
       );
     }
+
+    await claimPreapprovedAccess(userId, email);
   }
 
   return { success: true };

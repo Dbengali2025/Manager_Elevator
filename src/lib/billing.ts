@@ -68,6 +68,17 @@ export async function requirePaidAccess() {
   return access.user.token;
 }
 
+// One-shot: a pre-approved email row is claimed the first time its owner
+// proves the address (signup verification or login) and enables a grant.
+// Never blocks auth — a claim failure just means no comp access yet.
+export async function claimPreapprovedAccess(userId: string, email: string) {
+  try {
+    await billingRequest("rpc/claim_preapproved_billing_access", "POST", { p_user_id: userId, p_email: email });
+  } catch (error) {
+    console.error("Pre-approved access claim failed:", error instanceof Error ? error.message : "Unknown error");
+  }
+}
+
 export async function findBillingCustomer(userId: string) {
   const customers = await billingRequest<BillingCustomer[]>(`records/billing_customers?user_id=eq.${userId}`);
   return customers[0] ?? null;

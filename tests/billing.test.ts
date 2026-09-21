@@ -166,6 +166,32 @@ test("members cannot grant themselves complimentary access", async () => {
   assert.deepEqual(dbCalls[0].body, { p_user_id: user.id, p_enabled: true, p_admin_id: user.id });
 });
 
+test("pre-approved email management is admin-only and normalizes input", async () => {
+  assert.ok((await actions.listPreapprovedEmails()).error);
+  assert.ok((await actions.addPreapprovedEmails("a@b.com", "")).error);
+  assert.ok((await actions.removePreapprovedEmail("a@b.com")).error);
+  assert.equal(dbCalls.length, 0);
+  user.isAdmin = true;
+  assert.ok((await actions.addPreapprovedEmails("not-an-email", "")).error);
+  assert.ok((await actions.addPreapprovedEmails("   ", "")).error);
+  assert.equal(dbCalls.length, 0);
+  const result = await actions.addPreapprovedEmails("Alum@HBCU.edu\n alum@hbcu.edu, tester@example.com", "HBCU Fall 2026");
+  assert.equal(result.added, 2);
+  assert.equal(result.skipped, 0);
+  const insert = dbCalls.find((call) => call.method === "POST" && call.path === "records/billing_preapproved_emails");
+  assert.deepEqual(insert?.body, [
+    { email: "alum@hbcu.edu", note: "HBCU Fall 2026", created_by: user.id },
+    { email: "tester@example.com", note: "HBCU Fall 2026", created_by: user.id },
+  ]);
+});
+
+test("removing a pre-approved email only targets unclaimed rows", async () => {
+  user.isAdmin = true;
+  assert.equal((await actions.removePreapprovedEmail("Alum@HBCU.edu")).ok, true);
+  assert.ok(dbCalls.some((call) => call.method === "DELETE" &&
+    call.path === "records/billing_preapproved_emails?email=eq.alum%40hbcu.edu&claimed_by=is.null"));
+});
+
 function webhook(type: string, object: Record<string, unknown>, valid = true) {
   const payload = JSON.stringify({ id: "evt_test", type, data: { object } });
   const signature = realStripe.webhooks.generateTestHeaderString({ payload, secret: valid ? signingSecret : "wrong_secret" });

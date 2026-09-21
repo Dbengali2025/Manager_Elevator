@@ -6,6 +6,7 @@ import { getAdminDashboardData, checkIsAdmin } from "@/actions/admin";
 import type { AdminUser, AdminOverviewStats } from "@/actions/admin";
 import type { UserProgress } from "@/db/types";
 import ComplimentaryAccess from "@/components/billing/ComplimentaryAccess";
+import PreapprovedEmails from "@/components/billing/PreapprovedEmails";
 
 // ---------------------------------------------------------------------------
 // Stage filter options
@@ -160,6 +161,9 @@ export default function AdminPage() {
 
       {/* Overview stats */}
       {stats && <OverviewStats stats={stats} />}
+
+      {/* Pre-approved comp access (HBCU Alumni program, testers) */}
+      <PreapprovedEmails />
 
       {/* Filters and export */}
       <div className="flex flex-wrap items-center gap-md">

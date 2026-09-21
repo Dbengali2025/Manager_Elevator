@@ -93,6 +93,61 @@ export async function getComplimentaryAccess(userId: string) {
   }
 }
 
+export interface PreapprovedEmail {
+  email: string;
+  note: string;
+  created_at: string;
+  claimed_by: string | null;
+  claimed_at: string | null;
+}
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export async function listPreapprovedEmails(): Promise<{ rows?: PreapprovedEmail[]; error?: string }> {
+  const admin = await getBillingUser();
+  if (!admin?.isAdmin) return { error: "Not authorized." };
+  try {
+    const rows = await billingRequest<PreapprovedEmail[]>("records/billing_preapproved_emails");
+    rows.sort((a, b) => b.created_at.localeCompare(a.created_at));
+    return { rows };
+  } catch {
+    return { error: "Unable to load pre-approved emails." };
+  }
+}
+
+export async function addPreapprovedEmails(raw: string, note: string): Promise<{ added?: number; skipped?: number; error?: string }> {
+  const admin = await getBillingUser();
+  if (!admin?.isAdmin || typeof raw !== "string" || typeof note !== "string") return { error: "Not authorized." };
+  const emails = Array.from(new Set(raw.split(/[\s,;]+/).map((e) => e.trim().toLowerCase()).filter(Boolean)));
+  if (emails.length === 0) return { error: "Enter at least one email address." };
+  if (emails.length > 200) return { error: "Add at most 200 emails at a time." };
+  const invalid = emails.find((e) => !EMAIL_PATTERN.test(e) || e.length > 254);
+  if (invalid) return { error: `Not a valid email address: ${invalid}` };
+  try {
+    const existing = new Set((await billingRequest<PreapprovedEmail[]>("records/billing_preapproved_emails")).map((r) => r.email));
+    const fresh = emails.filter((e) => !existing.has(e));
+    if (fresh.length > 0) {
+      await billingRequest("records/billing_preapproved_emails", "POST",
+        fresh.map((email) => ({ email, note: note.trim().slice(0, 200), created_by: admin.id })));
+    }
+    return { added: fresh.length, skipped: emails.length - fresh.length };
+  } catch {
+    return { error: "Unable to add pre-approved emails." };
+  }
+}
+
+export async function removePreapprovedEmail(email: string): Promise<{ ok?: boolean; error?: string }> {
+  const admin = await getBillingUser();
+  if (!admin?.isAdmin || typeof email !== "string" || !EMAIL_PATTERN.test(email)) return { error: "Not authorized." };
+  try {
+    // Claimed rows stay as an audit trail; use the per-user toggle to revoke access.
+    await billingRequest(`records/billing_preapproved_emails?email=eq.${encodeURIComponent(email.toLowerCase())}&claimed_by=is.null`, "DELETE");
+    return { ok: true };
+  } catch {
+    return { error: "Unable to remove that email." };
+  }
+}
+
 export async function setComplimentaryAccess(userId: string, enabled: boolean) {
   const admin = await getBillingUser();
   if (!admin?.isAdmin || !/^[0-9a-f-]{36}$/i.test(userId) || typeof enabled !== "boolean") return { error: "Not authorized." };
